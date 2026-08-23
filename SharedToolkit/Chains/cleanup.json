@@ -1,0 +1,7 @@
+{
+  "Steps": [
+    { "Action": "notify", "Args": ["info", "Cleanup", "starting disk cleanup on target"] },
+    { "Action": "run", "Args": ["cleanmgr /sagerun:1"] },
+    { "Action": "notify", "Args": ["info", "Cleanup", "completed — verify free space"] }
+  ]
+}

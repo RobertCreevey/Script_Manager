@@ -1,0 +1,7 @@
+{
+  "Steps": [
+    { "Action": "notify", "Args": ["info", "WakeOnLAN", "sending magic packet to wake target"] },
+    { "Action": "run", "Args": ["wakeonlan 00:11:22:33:44:55"] },
+    { "Action": "notify", "Args": ["info", "WakeOnLAN", "magic packet sent — target should boot shortly"] }
+  ]
+}

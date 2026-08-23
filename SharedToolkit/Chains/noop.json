@@ -1,0 +1,5 @@
+{
+  "Steps": [
+    { "Action": "notify", "Args": ["info", "Noop", "dismissed — no action taken"] }
+  ]
+}
