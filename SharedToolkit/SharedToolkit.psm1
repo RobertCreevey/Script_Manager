@@ -196,6 +196,21 @@ function Invoke-ToolConfirm {
     return $Ok
 }
 
+function Assert-ToolkitAction {
+    [CmdletBinding()]
+    param(
+        [string]$Verb = "execute command",
+        [string]$Command = "",
+        $Config = $null,
+        [array]$Arguments = @(),
+        [switch]$Dangerous
+    )
+    if ($Arguments -contains "-Force" -or $Arguments -contains "-f") { return $true }
+    $Target = if ($Config) { "$($Config.User)@$($Config.IP)" } else { "local" }
+    $WillDo = if ($Command.Trim()) { "$Verb`n  > $Command" } else { $Verb }
+    Invoke-ToolConfirm -Problem "About to '$Verb' on $Target" -WillDo $WillDo -Target $Target -Dangerous:$Dangerous -Answer $env:TOOLKIT_CONFIRM_DEFAULT
+}
+
 function Format-ChainPreview {
     param([string]$ChainFile)
     if (-not (Test-Path $ChainFile)) { return "  (chain file not found: $ChainFile)" }
@@ -340,4 +355,4 @@ function Invoke-SharedAsset {
     return $false
 }
 
-Export-ModuleMember -Function Invoke-SharedAsset, Invoke-SharedHelpSystem, Invoke-ToolEvent, Invoke-ToolError, Invoke-ToolNotify, Invoke-ToolPrompt, Invoke-ToolConfirm, Format-ChainPreview, Get-ToolStatus
+Export-ModuleMember -Function Invoke-SharedAsset, Invoke-SharedHelpSystem, Invoke-ToolEvent, Invoke-ToolError, Invoke-ToolNotify, Invoke-ToolPrompt, Invoke-ToolConfirm, Assert-ToolkitAction, Format-ChainPreview, Get-ToolStatus
