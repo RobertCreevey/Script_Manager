@@ -1,4 +1,5 @@
 {
+  "Description": "Send a Wake-on-LAN magic packet to boot the target",
   "Steps": [
     { "Action": "notify", "Args": ["info", "WakeOnLAN", "sending magic packet to wake target"] },
     { "Action": "run", "Args": ["wakeonlan 00:11:22:33:44:55"] },

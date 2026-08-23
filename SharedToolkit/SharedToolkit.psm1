@@ -84,6 +84,138 @@ function Invoke-ToolError {
     try { & "$global:SharedToolkitPath\Actions\toast.ps1" -Config $Config -Arguments @("Error", $Message) } catch {}
 }
 
+function Invoke-ToolPrompt {
+    [CmdletBinding()]
+    param(
+        [string]$Message = "Choose an action",
+        [string]$Title = "SSHToolkit",
+        [string[]]$Buttons = @("OK"),
+        [string]$Default = "",
+        [string]$Answer = $null,
+        [switch]$Console
+    )
+    $C = $global:ToolColors
+
+    if ($null -ne $Answer -and $Answer -ne "") {
+        Write-Host "$($C.Info)[PROMPT]$($C.Reset) $Title : $Message → (injected) $Answer" -ForegroundColor DarkGray
+        return $Answer
+    }
+
+    if ($env:TOOLKIT_PROMPT_DEFAULT) {
+        Write-Host "$($C.Info)[PROMPT]$($C.Reset) $Title : $Message → (env) $env:TOOLKIT_PROMPT_DEFAULT" -ForegroundColor DarkGray
+        return $env:TOOLKIT_PROMPT_DEFAULT
+    }
+
+    if (-not $Console) {
+        try {
+            $ws = New-Object -ComObject WScript.Shell -ErrorAction Stop
+            [int]$ButtonType = switch ($Buttons.Count) { 1 { 0 } 2 { 4 } 3 { 3 } default { 0 } }
+            $Label = $Buttons -join " / "
+            $Result = $ws.Popup($Message, 0, "$Title ($Label)", $ButtonType + 32)
+            $Choice = switch ($Result) {
+                1 { $Buttons[0] }
+                6 { $Buttons[0] }
+                7 { if ($Buttons[1]) { $Buttons[1] } else { $Buttons[0] } }
+                2 { "Cancel" }
+                3 { "Abort" }
+                4 { "Retry" }
+                5 { "Ignore" }
+                default { if ($Default) { $Default } else { $Buttons[0] } }
+            }
+            Write-Host "$($C.Info)[PROMPT]$($C.Reset) $Title : $Message → $Choice" -ForegroundColor Cyan
+            return $Choice
+        } catch {
+            Write-Host "$($C.Warn)[PROMPT]$($C.Reset) GUI unavailable, falling back to console" -ForegroundColor Yellow
+        }
+    }
+
+    Write-Host ""
+    Write-Host "$($C.Sys)═══ $Title ═══$($C.Reset)" -ForegroundColor Yellow
+    Write-Host "$($C.Str)$Message$($C.Reset)"
+    for ($i = 0; $i -lt $Buttons.Count; $i++) {
+        Write-Host "  $($C.Param)[$i]$($C.Reset) $($Buttons[$i])"
+    }
+    if ($Default) { Write-Host "$($C.Info)Default (Enter): $Default$($C.Reset)" -ForegroundColor Gray }
+    try {
+        $Sel = Read-Host "Choose (0-$($Buttons.Count - 1))"
+    } catch {
+        if ($Default) { return $Default } else { return $Buttons[0] }
+    }
+    if ($Sel -eq "" -and $Default) { return $Default }
+    $Idx = 0
+    if ([int]::TryParse($Sel, [ref]$Idx) -and $Idx -ge 0 -and $Idx -lt $Buttons.Count) { return $Buttons[$Idx] }
+    if ($Default) { return $Default } else { return $Buttons[0] }
+}
+
+function Invoke-ToolConfirm {
+    [CmdletBinding()]
+    param(
+        [string]$Problem = "",
+        [string]$WillDo = "",
+        [string]$Target = "",
+        [string]$Consequence = "",
+        [switch]$Dangerous,
+        [string]$Answer = $null
+    )
+    $C = $global:ToolColors
+    $Header = if ($Dangerous) { "DANGEROUS ACTION — CONFIRM" } else { "CONFIRM ACTION" }
+    Write-Host ""
+    Write-Host "$($C.Warn)═══ $Header ═══$($C.Reset)" -ForegroundColor Red
+    if ($Problem) {
+        Write-Host "$($C.Sys)WHAT'S WRONG:$($C.Reset)"
+        Write-Host "  $($C.Str)$Problem$($C.Reset)"
+    }
+    if ($WillDo) {
+        Write-Host "$($C.Sys)WILL DO:$($C.Reset)"
+        foreach ($Line in ($WillDo -split "`n")) {
+            Write-Host "  $($C.Action)$Line$($C.Reset)"
+        }
+    }
+    if ($Target) {
+        Write-Host "$($C.Sys)TARGET:$($C.Reset) $($C.Host)$Target$($C.Reset)"
+    }
+    if ($Consequence) {
+        Write-Host "$($C.Warn)NOTE:$($C.Reset) $($C.Str)$Consequence$($C.Reset)"
+    }
+    Write-Host ""
+
+    if ($null -eq $Answer -or $Answer -eq "") { $Answer = $env:TOOLKIT_CONFIRM_DEFAULT }
+
+    $Choice = Invoke-ToolPrompt -Message "Proceed?" -Title $Header -Buttons @("Yes", "No") -Default "No" -Answer $Answer
+    $Ok = ($Choice -eq "Yes")
+    if ($Ok) {
+        Write-Host "$($C.Ok)Confirmed.$($C.Reset)" -ForegroundColor Green
+    } else {
+        Write-Host "$($C.Warn)Cancelled by user.$($C.Reset)" -ForegroundColor Yellow
+    }
+    [void](Invoke-ToolEvent -Name "Confirm" -Data "problem=$Problem choice=$Choice" -Config $null)
+    return $Ok
+}
+
+function Format-ChainPreview {
+    param([string]$ChainFile)
+    if (-not (Test-Path $ChainFile)) { return "  (chain file not found: $ChainFile)" }
+    try {
+        $Chain = Get-Content $ChainFile | ConvertFrom-Json
+    } catch {
+        return "  (failed to parse chain: $_)"
+    }
+    $Lines = [System.Collections.ArrayList]::new()
+    if ($Chain.Description) { [void]$Lines.Add("  $($Chain.Description)") }
+    $Idx = 0
+    foreach ($Step in $Chain.Steps) {
+        $Idx++
+        $ArgsStr = if ($Step.Args) { ($Step.Args | ForEach-Object { "'$_'" }) -join " " } else { "" }
+        $Label = switch ($Step.Action) {
+            { $_ -in @("run", "service", "process", "shutdown", "push", "pull") } { "⚠ $_" }
+            { $_ -in @("lock", "snap", "msg", "wol") } { "⚠ $_" }
+            default { $_ }
+        }
+        [void]$Lines.Add("  ${Idx}. $Label $ArgsStr")
+    }
+    $Lines -join "`n"
+}
+
 function Invoke-ToolNotify {
     param([string]$Title = "SSHToolkit", [string]$Message = "", [string]$Severity = "Info", $Config = $null, [string]$Source = "", [hashtable]$Actions = $null)
     $C = $global:ToolColors
@@ -98,10 +230,14 @@ function Invoke-ToolNotify {
     if ($Sev -eq "critical") { try { & "$global:SharedToolkitPath\Actions\speak.ps1" -Arguments @($Message) } catch {} }
 
     if ($Sev -eq "interactive" -and $Actions -and $Actions.Count) {
-        $Buttons = ($Actions.Keys -join ",")
+        $Buttons = @($Actions.Keys)
         $ChainMap = ($Actions.GetEnumerator() | ForEach-Object { "$($_.Key):$($_.Value)" }) -join ";"
-        $AskArgs = @($Message, "$Severity : $Title", $Buttons, $ChainMap)
-        try { & "$global:SharedToolkitPath\Actions\ask.ps1" -Config $Config -Arguments $AskArgs } catch {}
+        $Choice = Invoke-ToolPrompt -Message $Message -Title $Title -Buttons $Buttons -Default $Buttons[0] -Answer $env:TOOLKIT_PROMPT_DEFAULT
+        if ($Actions[$Choice]) {
+            try { Invoke-UniversalToolkitRouter -Action "chain" -ForwardedArgs @("run", $Actions[$Choice]) } catch {
+                Invoke-ToolError -Message "Interactive chain '$($Actions[$Choice])' failed: $_" -Severity Error -Config $Config
+            }
+        }
     }
 
     Write-Host "$($C.Info)[NOTIFY]$($C.Reset) ($Severity) $Title : $Message" -ForegroundColor Cyan
@@ -200,4 +336,4 @@ function Invoke-SharedAsset {
     return $false
 }
 
-Export-ModuleMember -Function Invoke-SharedAsset, Invoke-SharedHelpSystem, Invoke-ToolEvent, Invoke-ToolError, Invoke-ToolNotify, Get-ToolStatus
+Export-ModuleMember -Function Invoke-SharedAsset, Invoke-SharedHelpSystem, Invoke-ToolEvent, Invoke-ToolError, Invoke-ToolNotify, Invoke-ToolPrompt, Invoke-ToolConfirm, Format-ChainPreview, Get-ToolStatus

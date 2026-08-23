@@ -1,4 +1,5 @@
 {
+  "Description": "Run Windows Disk Cleanup (cleanmgr) on the target to free space",
   "Steps": [
     { "Action": "notify", "Args": ["info", "Cleanup", "starting disk cleanup on target"] },
     { "Action": "run", "Args": ["cleanmgr /sagerun:1"] },

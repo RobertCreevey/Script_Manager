@@ -38,12 +38,34 @@ if ($Sub -eq "new") {
 }
 
 if ($Sub -eq "run") {
-    if (-not $Name) { Write-Host "[ERROR] Usage: chain run <name>" -ForegroundColor Red ; return }
+    if (-not $Name) { Write-Host "[ERROR] Usage: chain run <name> [-Force]" -ForegroundColor Red ; return }
     $File = $null
     foreach ($d in $ChainDirs) { if (Test-Path "$d\$Name.json") { $File = "$d\$Name.json"; break } }
     if (-not $File) { Write-Host "[ERROR] Chain '$Name' not found." -ForegroundColor Red ; return }
     $Chain = Get-Content $File | ConvertFrom-Json
-    Write-Host "[chain] Running '$Name' ($($Chain.Steps.Count) steps) in context $($C.Host)$(if($Config){$Config.User+'@'+$Config.IP}else{'local'})$($C.Reset)..." -ForegroundColor Magenta
+
+    $CtxStr = if ($Config) { "$($Config.User)@$($Config.IP)" } else { "local" }
+    $HasMutation = $Chain.Steps | Where-Object { $_.Action -in @("run", "service", "process", "shutdown", "push", "pull", "lock", "msg", "wol", "snap", "restart") }
+
+    $Force = $false
+    $ConfirmAnswer = $null
+    if ($Arguments.Count -gt 2) {
+        $Extra = $Arguments[2..($Arguments.Count - 1)]
+        $Force = ($Extra -contains "-Force") -or ($Extra -contains "-f")
+        $AnsIdx = $Extra.IndexOf("-ConfirmAnswer")
+        if ($AnsIdx -ge 0 -and $AnsIdx + 1 -lt $Extra.Count) { $ConfirmAnswer = $Extra[$AnsIdx + 1] }
+    }
+
+    if (-not $Force) {
+        Write-Host ""
+        Write-Host "$($C.Sys)CHAIN: $($C.Action)$Name$($C.Reset)  ($($Chain.Steps.Count) steps)" -ForegroundColor White
+        Write-Host (Format-ChainPreview $File)
+        Write-Host ""
+        $Confirmed = Invoke-ToolConfirm -Problem "About to execute chain '$Name'" -WillDo ("Steps:`n" + (Format-ChainPreview $File)) -Target $CtxStr -Dangerous:($HasMutation -ne $null) -Answer $ConfirmAnswer
+        if (-not $Confirmed) { Invoke-ToolEvent -Name "ChainAborted" -Data $Name -Config $Config ; return }
+    }
+
+    Write-Host "[chain] Running '$Name' ($($Chain.Steps.Count) steps) in context $($C.Host)$CtxStr$($C.Reset)..." -ForegroundColor Magenta
     foreach ($Step in $Chain.Steps) {
         Write-Host "$($C.Param)--> $($C.Action)$($Step.Action)$($C.Reset) $($Step.Args -join ' ')"
         try { Invoke-UniversalToolkitRouter -Action $Step.Action -ForwardedArgs $Step.Args } catch {

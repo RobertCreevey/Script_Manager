@@ -1,4 +1,5 @@
 {
+  "Description": "No operation — dismiss the alert",
   "Steps": [
     { "Action": "notify", "Args": ["info", "Noop", "dismissed — no action taken"] }
   ]

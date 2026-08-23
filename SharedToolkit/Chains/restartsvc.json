@@ -1,6 +1,7 @@
 {
+  "Description": "Restart the Print Spooler (Spooler) service on the target",
   "Steps": [
-    { "Action": "notify", "Args": ["info", "Service Restart", "restarting the target service"] },
+    { "Action": "notify", "Args": ["info", "Service Restart", "restarting Spooler on target"] },
     { "Action": "service", "Args": ["Spooler", "restart"] },
     { "Action": "notify", "Args": ["info", "Service Restart", "Spooler restarted successfully"] }
   ]
