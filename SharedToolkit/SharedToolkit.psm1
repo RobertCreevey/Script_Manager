@@ -92,7 +92,8 @@ function Invoke-ToolPrompt {
         [string[]]$Buttons = @("OK"),
         [string]$Default = "",
         [string]$Answer = $null,
-        [switch]$Console
+        [switch]$Gui,
+        [int]$TimeoutSeconds = 30
     )
     $C = $global:ToolColors
 
@@ -106,26 +107,29 @@ function Invoke-ToolPrompt {
         return $env:TOOLKIT_PROMPT_DEFAULT
     }
 
-    if (-not $Console) {
+    $UseGui = $Gui -and [Environment]::UserInteractive
+    if ($UseGui) {
         try {
             $ws = New-Object -ComObject WScript.Shell -ErrorAction Stop
             [int]$ButtonType = switch ($Buttons.Count) { 1 { 0 } 2 { 4 } 3 { 3 } default { 0 } }
             $Label = $Buttons -join " / "
-            $Result = $ws.Popup($Message, 0, "$Title ($Label)", $ButtonType + 32)
-            $Choice = switch ($Result) {
-                1 { $Buttons[0] }
-                6 { $Buttons[0] }
-                7 { if ($Buttons[1]) { $Buttons[1] } else { $Buttons[0] } }
-                2 { "Cancel" }
-                3 { "Abort" }
-                4 { "Retry" }
-                5 { "Ignore" }
-                default { if ($Default) { $Default } else { $Buttons[0] } }
+            $Result = $ws.Popup($Message, $TimeoutSeconds, "$Title ($Label)", $ButtonType + 32)
+            if ($Result -ne -1) {
+                $Choice = switch ($Result) {
+                    1 { $Buttons[0] }
+                    6 { $Buttons[0] }
+                    7 { if ($Buttons[1]) { $Buttons[1] } else { $Buttons[0] } }
+                    2 { "Cancel" }
+                    3 { "Abort" }
+                    4 { "Retry" }
+                    5 { "Ignore" }
+                    default { if ($Default) { $Default } else { $Buttons[0] } }
+                }
+                Write-Host "$($C.Info)[PROMPT]$($C.Reset) $Title : $Message → $Choice" -ForegroundColor Cyan
+                return $Choice
             }
-            Write-Host "$($C.Info)[PROMPT]$($C.Reset) $Title : $Message → $Choice" -ForegroundColor Cyan
-            return $Choice
         } catch {
-            Write-Host "$($C.Warn)[PROMPT]$($C.Reset) GUI unavailable, falling back to console" -ForegroundColor Yellow
+            Write-Host "$($C.Warn)[PROMPT]$($C.Reset) GUI unavailable, using console" -ForegroundColor Yellow
         }
     }
 

@@ -55,7 +55,7 @@ if ($Map -and $Map[$Choice]) {
         if (-not $Confirmed) { Write-Host "$($C.Warn)Alert action cancelled by user.$($C.Reset)" -ForegroundColor Yellow; return }
     }
     Write-Host "$($C.Param)→ running chain '$TargetChain'$($C.Reset)"
-    try { Invoke-UniversalToolkitRouter -Action "chain" -ForwardedArgs @("run", $TargetChain) } catch {
+    try { Invoke-UniversalToolkitRouter -Action "chain" -ForwardedArgs @("run", $TargetChain, "-Force") } catch {
         Invoke-ToolError -Message "Alert chain '$TargetChain' failed: $_" -Severity Error -Config $Config
     }
 } else {
