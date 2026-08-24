@@ -3,7 +3,10 @@
 [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='Medium')]
 param(
     $Config,
-    [array]$Arguments
+    [array]$Arguments,
+    [ValidateSet('wmplayer', 'edge')]
+    [string]$Player = 'wmplayer',
+    [switch]$Fullscreen
 )
 
 $Parsed = Get-ActionArguments -Arguments $Arguments

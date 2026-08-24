@@ -55,5 +55,5 @@ Get-ChildItem "$global:MediaToolkitPath\Profiles\*.json" -ErrorAction SilentlyCo
     New-Alias -Name $_.BaseName -Value Invoke-MediaToolkitRouter -Force
     Export-ModuleMember -Alias $_.BaseName
 }
-New-Alias -Name "newmedia" -Value Register-MediaTarget -Force
+New-Alias -Name "New-MediaProfile" -Value Register-MediaTarget -Force
 Export-ModuleMember -Function * -Alias *

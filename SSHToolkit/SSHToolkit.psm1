@@ -109,5 +109,5 @@ Get-ChildItem "$global:SSHToolkitPath\Profiles\*.json" -ErrorAction SilentlyCont
     New-Alias -Name $_.BaseName -Value Invoke-UniversalToolkitRouter -Force
     Export-ModuleMember -Alias $_.BaseName
 }
-New-Alias -Name "newtarget" -Value Register-Target -Force
+New-Alias -Name "New-Target" -Value Register-Target -Force
 Export-ModuleMember -Function * -Alias *

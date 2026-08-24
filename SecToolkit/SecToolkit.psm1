@@ -55,5 +55,5 @@ Get-ChildItem "$global:SecToolkitPath\Profiles\*.json" -ErrorAction SilentlyCont
     New-Alias -Name $_.BaseName -Value Invoke-SecToolkitRouter -Force
     Export-ModuleMember -Alias $_.BaseName
 }
-New-Alias -Name "newsec" -Value Register-SecTarget -Force
+New-Alias -Name "New-SecProfile" -Value Register-SecTarget -Force
 Export-ModuleMember -Function * -Alias *

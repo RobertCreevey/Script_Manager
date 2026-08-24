@@ -74,5 +74,5 @@ Get-ChildItem "$global:NetToolkitPath\Profiles\*.json" -ErrorAction SilentlyCont
     New-Alias -Name $_.BaseName -Value Invoke-NetToolkitRouter -Force
     Export-ModuleMember -Alias $_.BaseName
 }
-New-Alias -Name "newnet" -Value Register-NetTarget -Force
+New-Alias -Name "New-NetProfile" -Value Register-NetTarget -Force
 Export-ModuleMember -Function * -Alias *

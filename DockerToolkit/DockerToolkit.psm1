@@ -127,5 +127,5 @@ Get-ChildItem "$global:DockerToolkitPath\Profiles\*.json" -ErrorAction SilentlyC
     New-Alias -Name $_.BaseName -Value Invoke-DockerToolkitRouter -Force
     Export-ModuleMember -Alias $_.BaseName
 }
-New-Alias -Name "newdocker" -Value Register-DockerProfile -Force
+New-Alias -Name "New-DockerProfile" -Value Register-DockerProfile -Force
 Export-ModuleMember -Function * -Alias *

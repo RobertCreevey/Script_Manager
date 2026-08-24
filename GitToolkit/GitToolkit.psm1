@@ -127,5 +127,5 @@ Get-ChildItem "$global:GitToolkitPath\Profiles\*.json" -ErrorAction SilentlyCont
     New-Alias -Name $_.BaseName -Value Invoke-GitToolkitRouter -Force
     Export-ModuleMember -Alias $_.BaseName
 }
-New-Alias -Name "newgit" -Value Register-GitProfile -Force
+New-Alias -Name "New-GitProfile" -Value Register-GitProfile -Force
 Export-ModuleMember -Function * -Alias *

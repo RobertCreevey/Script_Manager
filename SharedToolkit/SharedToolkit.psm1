@@ -526,11 +526,11 @@ function Format-ToolOutput {
             'json' {
                 $Data | ConvertTo-Json -Depth 4 -Compress
             }
-            'csv' {
+'csv' {
                 if ($Properties) {
-                    $Data | Select-Object -Property $Properties | ConvertTo-Csv -NoTypeInformation
+                    $Data | Select-Object -Property $Properties | ConvertTo-Csv -NoTypeInformation | Out-String
                 } else {
-                    $Data | ConvertTo-Csv -NoTypeInformation
+                    $Data | ConvertTo-Csv -NoTypeInformation | Out-String
                 }
             }
             'raw' {

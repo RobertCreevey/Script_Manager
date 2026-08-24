@@ -55,5 +55,5 @@ Get-ChildItem "$global:FileToolkitPath\Profiles\*.json" -ErrorAction SilentlyCon
     New-Alias -Name $_.BaseName -Value Invoke-FileToolkitRouter -Force
     Export-ModuleMember -Alias $_.BaseName
 }
-New-Alias -Name "newfile" -Value Register-FileTarget -Force
+New-Alias -Name "New-FileProfile" -Value Register-FileTarget -Force
 Export-ModuleMember -Function * -Alias *

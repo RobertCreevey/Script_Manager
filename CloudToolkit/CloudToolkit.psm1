@@ -137,5 +137,5 @@ Get-ChildItem "$global:CloudToolkitPath\Profiles\*.json" -ErrorAction SilentlyCo
     New-Alias -Name $_.BaseName -Value Invoke-CloudToolkitRouter -Force
     Export-ModuleMember -Alias $_.BaseName
 }
-New-Alias -Name "newcloud" -Value Register-CloudProfile -Force
+New-Alias -Name "New-CloudProfile" -Value Register-CloudProfile -Force
 Export-ModuleMember -Function * -Alias *

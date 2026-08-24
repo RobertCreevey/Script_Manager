@@ -3,7 +3,8 @@
 [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
 param(
     $Config,
-    [array]$Arguments
+    [array]$Arguments,
+    [switch]$ForceConfirm
 )
 
 $Parsed = Get-ActionArguments -Arguments $Arguments
