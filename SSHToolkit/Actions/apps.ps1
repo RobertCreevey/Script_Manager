@@ -1,10 +1,20 @@
 # Type: Action
-# Description: Lists applications with visible windows running on the remote host via the active SSH profile.
+# Description: Lists open applications with visible windows on the target.
 param($Config, [array]$Arguments)
+$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table", "-h", "-?") })
+$Format = "table"
+if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
 
-if (-not (Test-Connection -ComputerName $Config.IP -Count 1 -Quiet)) { Write-Host "[ABORT] Target offline." -ForegroundColor Yellow ; return }
-$Auth = "-i `"$($Config.Key)`""
-$Target = "$($Config.User)@$($Config.IP)"
-Write-Host "[*] Querying open applications on $Target ..." -ForegroundColor Yellow
-$Result = & ssh -o ConnectTimeout=8 -o BatchMode=yes $Auth $Target "powershell -NoProfile -Command \"Get-Process | Where-Object { `$_.MainWindowTitle } | Select-Object Name,MainWindowTitle,Id | Format-Table -AutoSize | Out-String\""
-if ($LASTEXITCODE -eq 0) { Write-Host $Result } else { Write-Host "[FAIL] Remote query failed." -ForegroundColor Red }
+$IP = $Config.IP
+$User = $Config.User
+$Key = $Config.Key
+
+$Script = @"
+Get-Process | Where-Object { `$_.MainWindowTitle -and `$_.MainWindowTitle.Length -gt 0 } | 
+Select-Object Id, ProcessName, MainWindowTitle, @{Name='User';Expression={ (Get-WmiObject Win32_Process -Filter "ProcessId = `$($_.Id)").GetOwner().User } } |
+Format-Table -AutoSize
+"@
+$Encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($Script))
+$SSHCmd = "ssh -i `$Key $User@$IP powershell -NoProfile -WindowStyle Hidden -EncodedCommand $Encoded"
+& powershell -NoProfile -Command $SSHCmd

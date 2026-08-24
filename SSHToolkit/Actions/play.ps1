@@ -1,50 +1,61 @@
 # Type: Action
-# Description: SCP-copies a local media file to the remote host and triggers fullscreen playback via an interactive scheduled task (Session-0 safe), then erases all remote traces and logs locally.
+# Description: Force-plays a video file on the target's physical screen via Scheduled Task (bypasses Session 0 isolation).
 param($Config, [array]$Arguments)
+$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table", "-h", "-?") })
+$Format = "table"
+if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
+$Path = $ArgsOnly[0]
+$Player = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { 'wmplayer' }  # wmplayer or edge
+$Fullscreen = $Arguments -contains '-fs' -or $Arguments -contains '-fullscreen'
 
-$FilePath = $Arguments -join " "
-if (-not $FilePath -or -not (Test-Path $FilePath)) { Write-Host "[ERROR] Local source media not found at: '$FilePath'" -ForegroundColor Red ; return }
-if (-not (Test-Connection -ComputerName $Config.IP -Count 1 -Quiet)) { Write-Host "[ABORT] Target offline." -ForegroundColor Yellow ; return }
-
-& "$global:SharedToolkitPath\Actions\log.ps1" -Config $Config -Arguments @("Initiating fullscreen playback for: $FilePath")
-
-$BaseName = [IO.Path]::GetFileName($FilePath)
-$RemoteDest = "C:\Users\Public\$BaseName"
-$Auth = "-i `"$($Config.Key)`""
-$Target = "$($Config.User)@$($Config.IP)"
-
-Write-Host "[*] Deploying $BaseName to $Target ..." -ForegroundColor Yellow
-& scp $Auth "$FilePath" "${Target}:$RemoteDest"
-if ($LASTEXITCODE -ne 0) { Write-Host "[FAIL] SCP transfer failed." -ForegroundColor Red ; return }
-Write-Host "[PASS] Media deployed." -ForegroundColor Green
-
-$ScriptName = "play_$BaseName.ps1"
-$RemoteScript = "C:\Users\Public\$ScriptName"
-$Wrapper = @"
-`$base = '$BaseName'
-`$rdest = '$RemoteDest'
-`$user = (Get-CimInstance Win32_ComputerSystem).UserName
-`$exe = 'C:\Program Files\Windows Media Player\wmplayer.exe'
-if (Test-Path `$exe) {
-    `$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -Command Start-Process '$exe' -ArgumentList '""`$rdest""','/fullscreen'"
-} else {
-    `$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -Command Start-Process 'msedge.exe' -ArgumentList 'file:///`$rdest'"
+if (-not $Path) {
+    Write-Host "$($C.Warn)[ERROR] Usage: play <path> [wmplayer|edge] [-fs]$($C.Reset)"
+    Write-Host "$($C.Str)  Path must be accessible by the logged-in user (use C:\Users\Public\...)$($C.Reset)"
+    return
 }
-`$principal = New-ScheduledTaskPrincipal -UserId `$user -LogonType Interactive
-Register-ScheduledTask -TaskName "PLAY_`$base" -Action `$action -Principal `$principal -Force | Out-Null
-Start-ScheduledTask -TaskName "PLAY_`$base"
-Start-Sleep -Seconds 6
-Unregister-ScheduledTask -TaskName "PLAY_`$base" -Confirm:`$false
+
+if (-not (Assert-ToolkitAction -Verb "force-play video" -Command "play $Path" -Config $Config -Arguments $Arguments)) { return }
+
+$IP = $Config.IP
+$User = $Config.User
+$Key = $Config.Key
+$FileName = Split-Path $Path -Leaf
+$PublicPath = "C:\Users\Public\$FileName"
+
+Write-Host "[play] Copying to Public folder for cross-user access..." -ForegroundColor Cyan
+$CopyCmd = "scp -i `"$Key`" `"$Path`" $User@$IP:`"$PublicPath`""
+$ExitCode = & powershell -NoProfile -Command $CopyCmd; $LASTEXITCODE
+if ($ExitCode -ne 0) { Write-Host "[FAIL] SCP copy failed." -ForegroundColor Red; return }
+
+Write-Host "[play] Launching on target via Scheduled Task..." -ForegroundColor Cyan
+$LoggedInUserCmd = "ssh $User@$IP -i $Key `(Get-CimInstance Win32_ComputerSystem).UserName`"
+$LoggedInUser = & powershell -NoProfile -Command $LoggedInUserCmd
+
+if ($Player -eq 'edge') {
+    $EdgePath = 'file:///C:/Users/Public/' + $FileName
+    $ActionArg = "--start-fullscreen `"`$EdgePath`"`"
+    $Exe = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+} else {
+    $ActionArg = "`"`$PublicPath`" /fullscreen"
+    $Exe = "C:\Program Files\Windows Media Player\wmplayer.exe"
+}
+
+$TaskScript = @"
+`$Action = New-ScheduledTaskAction -Execute `"$Exe`" -Argument $ActionArg
+`$Principal = New-ScheduledTaskPrincipal -UserId `"$LoggedInUser`" -LogonType Interactive
+Register-ScheduledTask -TaskName `"ForceVideo_$FileName`" -Action `$Action -Principal `$Principal | Out-Null
+Start-ScheduledTask -TaskName `"ForceVideo_$FileName`"
+Start-Sleep -Seconds 3
+Unregister-ScheduledTask -TaskName `"ForceVideo_$FileName`" -Confirm:`$false
 "@
-$LocalScript = Join-Path $env:TEMP $ScriptName
-$Wrapper | Out-File $LocalScript -Force
 
-& scp $Auth "$LocalScript" "${Target}:$RemoteScript"
-Invoke-Expression "ssh -o ConnectTimeout=8 -o BatchMode=yes $Auth $Target `"powershell -NoProfile -ExecutionPolicy Bypass -File '$RemoteScript'`""
+$Encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($TaskScript))
+$SSHCmd = "ssh -i `$Key $User@$IP powershell -NoProfile -WindowStyle Hidden -EncodedCommand $Encoded"
+& powershell -NoProfile -Command $SSHCmd
 
-Write-Host "[*] Playback triggered, cleaning up remote traces..." -ForegroundColor Cyan
-Invoke-Expression "ssh -o ConnectTimeout=8 -o BatchMode=yes $Auth $Target `"powershell -NoProfile -Command 'if (Test-Path ''$RemoteScript'') { Remove-Item ''$RemoteScript'' -Force } ; if (Test-Path ''$RemoteDest'') { Remove-Item ''$RemoteDest'' -Force }'`""
+Write-Host "[play] Cleaning up remote file..." -ForegroundColor Cyan
+$CleanupCmd = "ssh -i `"$Key`" $User@$IP Remove-Item `"$PublicPath`" -Force"
+& powershell -NoProfile -Command $CleanupCmd
 
-Remove-Item $LocalScript -Force -ErrorAction SilentlyContinue
-& "$global:SharedToolkitPath\Actions\log.ps1" -Config $Config -Arguments @("Playback finished and remote footprints erased.")
-Write-Host "[DONE] Playback sequence complete, no trace left on target." -ForegroundColor Green
+[PSCustomObject]@{ Action='play'; File=$FileName; Player=$Player; Status='Completed' } | Format-ToolOutput -Format $Format

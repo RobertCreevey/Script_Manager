@@ -1,10 +1,59 @@
 {
-  "name": "SSHToolkit",
   "version": "1.0.0",
-  "description": "Remote administration over SSH — push/pull files, run commands, playback media, manage services and power state on LAN targets.",
-  "author": "Rober",
-  "parent": "SharedToolkit",
+  "description": "LAN SSH administration - profiles, remote actions, file transfer, visual interaction",
   "profiles": ["ani", "alice"],
-  "actions": ["play", "snap", "apps", "lock", "time", "popup", "run", "push", "pull", "service", "process", "disk", "ports", "shutdown", "msg"],
-  "listeners": ["netcheck", "procwait", "onlinemon"]
+  "actions": {
+    "play": ["play", "start-video", "force-play", "video"],
+    "snap": ["snap", "screenshot", "screen-capture", "ss"],
+    "apps": ["apps", "applications", "windows", "open-apps"],
+    "lock": ["lock", "lock-screen", "winlock"],
+    "time": ["time", "sync-time", "resync", "w32tm"],
+    "msg": ["msg", "message", "notify", "popup-msg", "alert"],
+    "popup": ["popup", "prompt", "yesno", "confirm", "interactive"],
+    "push": ["push", "scp-push", "upload", "send-file"],
+    "pull": ["pull", "scp-pull", "download", "get-file"],
+    "run": ["run", "exec", "execute", "cmd"],
+    "shutdown": ["shutdown", "poweroff", "reboot", "restart"],
+    "ports": ["ports", "port-scan", "scan", "netstat"],
+    "process": ["process", "proc", "ps", "tasklist"],
+    "service": ["service", "svc", "services"],
+    "disk": ["disk", "drives", "storage", "df"]
+  },
+  "parameters": {
+    "play": {
+      "path": ["path", "p", "file", "f", "video"],
+      "player": ["player", "pl", "engine"]
+    },
+    "msg": {
+      "method": ["method", "m", "type"],
+      "message": ["message", "msg", "text", "t"]
+    },
+    "popup": {
+      "question": ["question", "q", "prompt"],
+      "title": ["title", "t"],
+      "timeout": ["timeout", "to", "seconds", "s"],
+      "yes-action": ["yes-action", "ya", "on-yes"],
+      "no-action": ["no-action", "na", "on-no"]
+    },
+    "procwait": {
+      "process": ["process", "proc", "name", "n"],
+      "chain": ["chain", "c", "on-exit"]
+    }
+  },
+  "switches": {
+    "Global": ["Force", "f", "DryRun", "ConfirmAnswer", "json", "csv", "raw", "table", "help", "h", "?"],
+    "play": ["fullscreen", "fs", "force", "f"],
+    "msg": [],
+    "popup": []
+  },
+  "listeners": {
+    "netcheck": ["netcheck", "nc", "ping-watch", "heartbeat"],
+    "procwait": ["procwait", "pw", "process-wait", "wait-proc"]
+  },
+  "builtins": {
+    "help": ["help", "h", "?", "-h", "--help", "/?"],
+    "config": ["config", "cfg", "settings", "conf"],
+    "online": ["online", "ping", "check", "health", "status"],
+    "ssh": ["ssh", "shell", "terminal", "term"]
+  }
 }

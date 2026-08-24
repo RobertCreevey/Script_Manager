@@ -1,10 +1,44 @@
 {
-  "name": "MediaToolkit",
   "version": "1.0.0",
   "description": "Local media and display control — audio volume and mute, display resolution, monitor info, wallpaper, and foreground window capture.",
-  "author": "Rober",
-  "parent": "SharedToolkit",
   "profiles": ["thispc"],
-  "actions": ["audio", "display", "monitors", "wallpaper", "wincap"],
-  "listeners": []
+  "actions": {
+    "audio": ["audio", "volume", "vol", "sound", "mute"],
+    "display": ["display", "screen", "resolution", "res", "dpi"],
+    "monitors": ["monitors", "monitor", "screens", "displays"],
+    "wallpaper": ["wallpaper", "background", "bg", "desktop"],
+    "wincap": ["wincap", "window-capture", "capture-window", "fg-capture"]
+  },
+  "parameters": {
+    "audio": {
+      "level": ["level", "l", "volume", "vol", "percent"],
+      "device": ["device", "d", "endpoint", "output"]
+    },
+    "display": {
+      "width": ["width", "w", "x"],
+      "height": ["height", "h", "y"],
+      "refresh": ["refresh", "r", "hz", "rate"],
+      "monitor": ["monitor", "m", "screen", "display"]
+    },
+    "wallpaper": {
+      "path": ["path", "p", "file", "image", "img"],
+      "mode": ["mode", "m", "fit", "fill", "stretch", "tile", "center", "span"]
+    },
+    "wincap": {
+      "output": ["output", "o", "file", "out"],
+      "format": ["format", "f", "type", "png", "jpg", "bmp"]
+    }
+  },
+  "switches": {
+    "Global": ["Force", "f", "DryRun", "ConfirmAnswer", "json", "csv", "raw", "table", "help", "h", "?"],
+    "audio": ["mute", "unmute", "toggle"],
+    "display": ["list", "all"],
+    "wallpaper": ["next", "prev", "random"]
+  },
+  "listeners": {},
+  "builtins": {
+    "help": ["help", "h", "?", "-h", "--help", "/?"],
+    "config": ["config", "cfg", "settings", "conf"],
+    "online": ["online", "ping", "check", "health", "status"]
+  }
 }

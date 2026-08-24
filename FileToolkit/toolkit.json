@@ -1,10 +1,56 @@
 {
-  "name": "FileToolkit",
   "version": "1.0.0",
   "description": "File operations and search — find by wildcard with size filters, grep file contents by regex, find duplicate files by SHA256, directory tree sizes, and recent file activity.",
-  "author": "Rober",
-  "parent": "SharedToolkit",
   "profiles": ["home"],
-  "actions": ["find", "grep", "dedupe", "treesize", "recent"],
-  "listeners": []
+  "actions": {
+    "find": ["find", "search", "locate", "files"],
+    "grep": ["grep", "search-content", "content-search", "rg", "ripgrep"],
+    "dedupe": ["dedupe", "duplicates", "dups", "dedup"],
+    "treesize": ["treesize", "tree", "dirsize", "folder-size", "size"],
+    "recent": ["recent", "latest", "new", "activity", "modified"]
+  },
+  "parameters": {
+    "find": {
+      "pattern": ["pattern", "p", "name", "n", "wildcard", "glob"],
+      "path": ["path", "dir", "directory", "folder", "root"],
+      "minsize": ["minsize", "min", "min-size"],
+      "maxsize": ["maxsize", "max", "max-size"],
+      "minage": ["minage", "min-age", "older-than"],
+      "maxage": ["maxage", "max-age", "newer-than"]
+    },
+    "grep": {
+      "pattern": ["pattern", "p", "regex", "expression"],
+      "path": ["path", "dir", "directory", "folder"],
+      "filemask": ["filemask", "mask", "include", "ext", "extension"],
+      "context": ["context", "c", "lines", "before", "after"]
+    },
+    "dedupe": {
+      "path": ["path", "dir", "directory", "folder"],
+      "action": ["action", "a", "report", "delete", "move", "hardlink"],
+      "move-to": ["move-to", "destination", "dest", "quarantine"]
+    },
+    "treesize": {
+      "path": ["path", "dir", "directory", "folder"],
+      "depth": ["depth", "d", "levels", "maxdepth"],
+      "top": ["top", "t", "count", "limit"]
+    },
+    "recent": {
+      "path": ["path", "dir", "directory", "folder"],
+      "hours": ["hours", "h", "age", "since"],
+      "count": ["count", "c", "limit", "top"]
+    }
+  },
+  "switches": {
+    "Global": ["Force", "f", "DryRun", "ConfirmAnswer", "json", "csv", "raw", "table", "help", "h", "?"],
+    "find": ["files", "dirs", "recurse", "r"],
+    "grep": ["ignore-case", "i", "fixed-strings", "F", "files-only", "l"],
+    "dedupe": ["dry-run", "hardlink", "symlink"],
+    "treesize": ["all", "files-only", "dirs-only"]
+  },
+  "listeners": {},
+  "builtins": {
+    "help": ["help", "h", "?", "-h", "--help", "/?"],
+    "config": ["config", "cfg", "settings", "conf"],
+    "online": ["online", "ping", "check", "health", "status"]
+  }
 }

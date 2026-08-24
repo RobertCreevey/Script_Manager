@@ -1,10 +1,67 @@
 {
-  "name": "NetToolkit",
   "version": "1.0.0",
   "description": "Network diagnostics and LAN discovery — ping sweeps, port scans, traceroute, DNS, ARP, WiFi profiles, Wake-on-LAN, gateway info and MAC vendor lookups.",
-  "author": "Rober",
-  "parent": "SharedToolkit",
   "profiles": ["router"],
-  "actions": ["wol", "sweep", "portscan", "traceroute", "dns", "arp", "wifi", "gateway", "connections", "publicip", "macvendor"],
-  "listeners": ["netmon"]
+  "actions": {
+    "wol": ["wol", "wake", "wakeonlan", "magic-packet"],
+    "sweep": ["sweep", "ping-sweep", "pingsweep", "scan", "discover"],
+    "portscan": ["portscan", "pscan", "scan-ports", "ports"],
+    "traceroute": ["traceroute", "trace", "tracert", "hops"],
+    "dns": ["dns", "dig", "resolve", "nslookup"],
+    "arp": ["arp", "arp-table", "neighbors", "mac-table"],
+    "wifi": ["wifi", "wlan", "wireless", "profiles"],
+    "gateway": ["gateway", "gw", "default-gateway", "route"],
+    "connections": ["connections", "conn", "netstat", "sockets", "tcp"],
+    "publicip": ["publicip", "myip", "wanip", "external-ip"],
+    "macvendor": ["macvendor", "oui", "mac-lookup", "vendor"]
+  },
+  "parameters": {
+    "wol": {
+      "mac": ["mac", "address", "hwaddr", "mac-address"],
+      "ip": ["ip", "broadcast", "bcast"]
+    },
+    "sweep": {
+      "network": ["network", "net", "cidr", "range", "subnet"],
+      "timeout": ["timeout", "t", "ms"]
+    },
+    "portscan": {
+      "target": ["target", "t", "host", "ip"],
+      "ports": ["ports", "p", "port-range", "range"]
+    },
+    "traceroute": {
+      "target": ["target", "t", "host", "ip"],
+      "maxhops": ["maxhops", "hops", "max"]
+    },
+    "dns": {
+      "name": ["name", "n", "domain", "host"],
+      "server": ["server", "s", "nameserver", "ns"],
+      "type": ["type", "record", "rrtype"]
+    },
+    "arp": {
+      "ip": ["ip", "address", "target"]
+    },
+    "wifi": {
+      "ssid": ["ssid", "name", "network"],
+      "password": ["password", "pwd", "key", "psk"]
+    },
+    "connections": {
+      "state": ["state", "st", "status"],
+      "process": ["process", "proc", "pid", "exe"]
+    }
+  },
+  "switches": {
+    "Global": ["Force", "f", "DryRun", "ConfirmAnswer", "json", "csv", "raw", "table", "help", "h", "?"],
+    "sweep": ["parallel", "p"],
+    "portscan": ["syn", "connect", "udp"],
+    "traceroute": ["icmp", "udp"],
+    "dns": ["short", "authority", "additional"]
+  },
+  "listeners": {
+    "netmon": ["netmon", "network-monitor", "conn-watch"]
+  },
+  "builtins": {
+    "help": ["help", "h", "?", "-h", "--help", "/?"],
+    "config": ["config", "cfg", "settings", "conf"],
+    "online": ["online", "ping", "check", "health", "status"]
+  }
 }

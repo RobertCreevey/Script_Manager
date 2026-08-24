@@ -1,0 +1,85 @@
+{
+  "version": "1.0.0",
+  "description": "Docker container management — containers, images, compose, volumes, networks, logs, exec, prune, and system info.",
+  "profiles": ["local", "remote", "swarm"],
+  "actions": {
+    "ps": ["ps", "containers", "container-list", "list"],
+    "images": ["images", "image-list", "img", "image"],
+    "compose": ["compose", "compose-up", "compose-down", "dc", "stack"],
+    "volumes": ["volumes", "volume-list", "vol", "volume"],
+    "networks": ["networks", "network-list", "net", "docker-networks"],
+    "logs": ["logs", "container-logs", "tail", "follow"],
+    "exec": ["exec", "execute", "run-in", "shell"],
+    "prune": ["prune", "clean", "cleanup", "remove-unused"],
+    "stats": ["stats", "container-stats", "resources", "usage"],
+    "inspect": ["inspect", "container-inspect", "details"],
+    "build": ["build", "image-build", "docker-build"],
+    "pull": ["pull", "image-pull", "download"],
+    "push": ["push", "image-push", "upload"],
+    "system": ["system", "info", "df", "disk-usage", "version"]
+  },
+  "parameters": {
+    "ps": {
+      "all": ["all", "a", "show-all"],
+      "filter": ["filter", "f", "name", "status", "label"],
+      "format": ["format", "fmt", "template"]
+    },
+    "images": {
+      "all": ["all", "a", "show-all"],
+      "filter": ["filter", "f", "reference", "dangling"],
+      "format": ["format", "fmt", "template"]
+    },
+    "compose": {
+      "file": ["file", "f", "compose-file", "config"],
+      "project": ["project", "p", "name"],
+      "profile": ["profile", "profiles"]
+    },
+    "volumes": {
+      "filter": ["filter", "f", "dangling", "label"],
+      "format": ["format", "fmt", "template"]
+    },
+    "networks": {
+      "filter": ["filter", "f", "driver", "scope"],
+      "format": ["format", "fmt", "template"]
+    },
+    "logs": {
+      "follow": ["follow", "f", "tail", "stream"],
+      "tail": ["tail", "n", "lines", "count"],
+      "since": ["since", "s", "time", "duration"],
+      "until": ["until", "u", "end-time"]
+    },
+    "exec": {
+      "container": ["container", "c", "name", "id"],
+      "command": ["command", "cmd", "cmdline"],
+      "interactive": ["interactive", "it", "i", "tty", "t"],
+      "user": ["user", "u", "username"]
+    },
+    "prune": {
+      "all": ["all", "a", "volumes", "networks"],
+      "filter": ["filter", "f", "until", "label"]
+    },
+    "build": {
+      "tag": ["tag", "t", "name"],
+      "file": ["file", "f", "dockerfile"],
+      "nocache": ["nocache", "no-cache"],
+      "target": ["target", "stage"]
+    }
+  },
+  "switches": {
+    "Global": ["Force", "f", "DryRun", "ConfirmAnswer", "json", "csv", "raw", "table", "help", "h", "?"],
+    "ps": ["quiet", "q", "no-trunc", "size"],
+    "images": ["quiet", "q", "digests"],
+    "compose": ["build", "abort-on-container-exit", "remove-orphans"],
+    "logs": ["timestamps", "details"],
+    "exec": ["detach", "d", "privileged", "env"],
+    "prune": ["force", "f"]
+  },
+  "listeners": {},
+  "builtins": {
+    "help": ["help", "h", "?", "-h", "--help", "/?"],
+    "config": ["config", "cfg", "settings", "conf"],
+    "online": ["online", "ping", "check", "health", "status"],
+    "context": ["context", "ctx", "docker-context"],
+    "login": ["login", "registry-login", "auth"]
+  }
+}

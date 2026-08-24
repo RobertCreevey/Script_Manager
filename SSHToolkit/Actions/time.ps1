@@ -1,10 +1,21 @@
 # Type: Action
-# Description: Resynchronizes the remote host system clock against its time source via w32tm.
+# Description: Resynchronizes the target's system clock with its time source (w32tm).
 param($Config, [array]$Arguments)
+$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table", "-h", "-?") })
+$Format = "table"
+if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
+$Force = $Arguments -contains '-f' -or $Arguments -contains '-Force'
 
-if (-not (Test-Connection -ComputerName $Config.IP -Count 1 -Quiet)) { Write-Host "[ABORT] Target offline." -ForegroundColor Yellow ; return }
-$Auth = "-i `"$($Config.Key)`""
-$Target = "$($Config.User)@$($Config.IP)"
-Write-Host "[*] Resyncing clock on $Target ..." -ForegroundColor Yellow
-$Result = & ssh -o ConnectTimeout=8 -o BatchMode=yes $Auth $Target "w32tm /resync /nowarn"
-if ($LASTEXITCODE -eq 0) { Write-Host "[DONE] Clock resynced." -ForegroundColor Green ; Write-Host $Result } else { Write-Host "[FAIL] Resync failed (try: net time \\host /set)." -ForegroundColor Red }
+if (-not $Force -and -not (Assert-ToolkitAction -Verb "resync time" -Command "w32tm /resync" -Config $Config -Arguments $Arguments)) { return }
+
+$IP = $Config.IP
+$User = $Config.User
+$Key = $Config.Key
+
+Write-Host "[time] Resynchronizing target clock..." -ForegroundColor Cyan
+$SSHCmd = "ssh -i `$Key $User@$IP w32tm /resync /nowarn"
+& powershell -NoProfile -Command $SSHCmd
+
+Write-Host "[OK] Time resync triggered" -ForegroundColor Green
+[PSCustomObject]@{ Action='time'; Status='Completed' } | Format-ToolOutput -Format $Format

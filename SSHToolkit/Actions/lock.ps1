@@ -1,10 +1,20 @@
 # Type: Action
-# Description: Locks the remote workstation session via rundll32 LockWorkStation. Requires confirmation unless -Force.
+# Description: Locks the target workstation (Win+L equivalent).
 param($Config, [array]$Arguments)
-$ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
-if (-not (Test-Connection -ComputerName $Config.IP -Count 1 -Quiet)) { Write-Host "[ABORT] Target offline." -ForegroundColor Yellow ; return }
-$Auth = "-i `"$($Config.Key)`""
-$Target = "$($Config.User)@$($Config.IP)"
-if (-not (Assert-ToolkitAction -Verb "lock workstation" -Command "rundll32 user32.dll,LockWorkStation" -Config $Config -Arguments $Arguments -Dangerous)) { return }
-& ssh -o ConnectTimeout=8 -o BatchMode=yes $Auth $Target "rundll32.exe user32.dll,LockWorkStation"
-if ($LASTEXITCODE -eq 0) { Write-Host "[DONE] Lock command sent." -ForegroundColor Green } else { Write-Host "[FAIL] Lock command failed." -ForegroundColor Red }
+$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table", "-h", "-?") })
+$Format = "table"
+if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
+
+if (-not (Assert-ToolkitAction -Verb "lock workstation" -Command "lock" -Config $Config -Arguments $Arguments)) { return }
+
+$IP = $Config.IP
+$User = $Config.User
+$Key = $Config.Key
+
+Write-Host "[lock] Locking target workstation..." -ForegroundColor Cyan
+$SSHCmd = "ssh -i `$Key $User@$IP rundll32.exe user32.dll,LockWorkStation"
+& powershell -NoProfile -Command $SSHCmd
+
+Write-Host "[OK] Workstation locked" -ForegroundColor Green
+[PSCustomObject]@{ Action='lock'; Status='Completed' } | Format-ToolOutput -Format $Format

@@ -1,10 +1,53 @@
 {
-  "name": "SecToolkit",
   "version": "1.0.0",
   "description": "Local security auditing — firewall status, Windows Defender, local users/groups, UAC level, auto-start programs, SMB shares, and failed-logon brute-force detection.",
-  "author": "Rober",
-  "parent": "SharedToolkit",
   "profiles": ["host"],
-  "actions": ["firewall", "defender", "accounts", "uac", "autoruns", "shares"],
-  "listeners": ["failwatch"]
+  "actions": {
+    "firewall": ["firewall", "fw", "rules", "firewall-rules"],
+    "defender": ["defender", "wd", "windows-defender", "antivirus", "av"],
+    "accounts": ["accounts", "users", "groups", "local-users", "local-groups"],
+    "uac": ["uac", "user-account-control", "elevation"],
+    "autoruns": ["autoruns", "startup", "auto-start", "boot-items"],
+    "shares": ["shares", "smb-shares", "shared-folders", "smb"]
+  },
+  "parameters": {
+    "firewall": {
+      "profile": ["profile", "p", "domain", "private", "public"],
+      "action": ["action", "a", "allow", "block", "list", "enable", "disable"]
+    },
+    "defender": {
+      "scan": ["scan", "s", "quick", "full", "custom"],
+      "path": ["path", "p", "folder", "file"],
+      "realtime": ["realtime", "rt", "protection", "monitor"]
+    },
+    "accounts": {
+      "user": ["user", "u", "name", "account"],
+      "group": ["group", "g", "role"],
+      "locked": ["locked", "lockout", "locked-out"]
+    },
+    "autoruns": {
+      "location": ["location", "loc", "run", "runonce", "services", "drivers", "tasks", "all"],
+      "publisher": ["publisher", "pub", "signed", "verified"]
+    },
+    "shares": {
+      "name": ["name", "n", "share"],
+      "path": ["path", "p", "folder", "directory"]
+    }
+  },
+  "switches": {
+    "Global": ["Force", "f", "DryRun", "ConfirmAnswer", "json", "csv", "raw", "table", "help", "h", "?"],
+    "firewall": ["inbound", "outbound", "enabled", "disabled"],
+    "defender": ["history", "threats", "exclusions"],
+    "accounts": ["admin", "admins", "builtins"],
+    "autoruns": ["hide-signed", "verify-signatures"],
+    "shares": ["hidden", "special"]
+  },
+  "listeners": {
+    "failwatch": ["failwatch", "failed-logons", "brute-force", "logon-monitor"]
+  },
+  "builtins": {
+    "help": ["help", "h", "?", "-h", "--help", "/?"],
+    "config": ["config", "cfg", "settings", "conf"],
+    "online": ["online", "ping", "check", "health", "status"]
+  }
 }

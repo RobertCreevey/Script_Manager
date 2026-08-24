@@ -1,0 +1,120 @@
+{
+  "version": "1.0.0",
+  "description": "Shared local/UI actions, events, chains, aliases, profiles - usable by all toolkits",
+  "profiles": [],
+  "actions": {
+    "beep": ["beep", "sound", "tone"],
+    "toast": ["toast", "notification", "notify", "balloon"],
+    "log": ["log", "write-log", "event"],
+    "speak": ["speak", "tts", "say", "voice"],
+    "clip": ["clip", "clipboard", "copy"],
+    "open": ["open", "launch", "start"],
+    "now": ["now", "time", "datetime", "clock"],
+    "sys": ["sys", "system", "info", "status"],
+    "hash": ["hash", "checksum", "md5", "sha256", "sha1"],
+    "net": ["net", "network", "ip", "ping", "dns"],
+    "shot": ["shot", "screenshot", "capture"],
+    "timer": ["timer", "countdown", "stopwatch"],
+    "battery": ["battery", "power", "charge"],
+    "procs": ["procs", "processes", "ps", "tasks"],
+    "svc": ["svc", "services", "service"],
+    "theme": ["theme", "colors", "palette"],
+    "alias": ["alias", "aliases", "shortcut"],
+    "events": ["events", "event-log", "history"],
+    "notify": ["notify", "alert", "warning"],
+    "ask": ["ask", "prompt", "input"],
+    "alert": ["alert", "warn", "critical"],
+    "dashboard": ["dashboard", "status", "overview"],
+    "registry": ["registry", "reg", "toolkit-list"],
+    "dispatch": ["dispatch", "cross-toolkit", "remote-action"],
+    "backup": ["backup", "save", "export"],
+    "restore": ["restore", "import", "recover"],
+    "schedule": ["schedule", "cron", "timer-job"],
+    "history": ["history", "cmd-history", "commands"],
+    "search": ["search", "find", "grep", "lookup"],
+    "logs": ["logs", "log-viewer", "tail", "events"],
+    "health": ["health", "health-check", "status", "diag"],
+    "profiles": ["profiles", "profile-mgr", "targets"],
+    "shell": ["shell", "repl", "interactive"],
+    "chain": ["chain", "chains", "workflow", "pipeline"],
+    "alias-resolver": ["alias-resolver", "resolve-alias", "canonical"],
+    "help-index": ["help-index", "help-full", "all-help"]
+  },
+  "parameters": {
+    "toast": {
+      "title": ["title", "t"],
+      "message": ["message", "msg", "m", "body"],
+      "duration": ["duration", "d", "timeout", "time"]
+    },
+    "log": {
+      "message": ["message", "msg", "m", "text"],
+      "level": ["level", "l", "severity"]
+    },
+    "speak": {
+      "text": ["text", "t", "message", "msg"],
+      "voice": ["voice", "v", "speaker"]
+    },
+    "clip": {
+      "text": ["text", "t", "content", "c"],
+      "format": ["format", "f", "type"]
+    },
+    "open": {
+      "path": ["path", "p", "file", "f", "url", "u"],
+      "app": ["app", "application", "program"]
+    },
+    "hash": {
+      "path": ["path", "p", "file", "f"],
+      "algorithm": ["algorithm", "a", "algo", "type"]
+    },
+    "net": {
+      "target": ["target", "t", "host", "ip"],
+      "port": ["port", "p"]
+    },
+    "timer": {
+      "duration": ["duration", "d", "time", "seconds"],
+      "action": ["action", "a", "on-complete"]
+    },
+    "schedule": {
+      "name": ["name", "n"],
+      "interval": ["interval", "i", "every"],
+      "action": ["action", "a", "command"]
+    },
+    "search": {
+      "query": ["query", "q", "term", "t"],
+      "format": ["format", "f", "output"]
+    },
+    "logs": {
+      "filter": ["filter", "f", "pattern"],
+      "lines": ["lines", "l", "count", "n"],
+      "follow": ["follow", "f", "tail"]
+    },
+    "profiles": {
+      "action": ["action", "a", "subcommand"],
+      "name": ["name", "n"],
+      "toolkit": ["toolkit", "t", "tk"]
+    }
+  },
+  "switches": {
+    "Global": ["Force", "f", "DryRun", "ConfirmAnswer", "json", "csv", "raw", "table", "help", "h", "?"],
+    "toast": ["duration", "d"],
+    "schedule": ["force", "f", "list", "ls", "add", "remove", "rm"],
+    "logs": ["follow", "f", "tail", "filter"],
+    "search": ["json", "csv", "raw", "table"]
+  },
+  "listeners": {
+    "clock": ["clock", "time-sync", "ntp"],
+    "clipboard": ["clipboard", "clip-watch", "paste-trigger"],
+    "filewatch": ["filewatch", "fw", "dir-watch", "folder-monitor"],
+    "popup": ["popup", "popup-listener", "interactive-listener"]
+  },
+  "builtins": {
+    "help": ["help", "h", "?", "-h", "--help", "/?"],
+    "config": ["config", "cfg", "settings", "conf"],
+    "online": ["online", "ping", "check", "health", "status"],
+    "chain": ["chain", "chains", "workflow"],
+    "dispatch": ["dispatch", "remote", "cross"],
+    "alias": ["alias", "aliases"],
+    "schedule": ["schedule", "cron"],
+    "registry": ["registry", "reg", "list"]
+  }
+}

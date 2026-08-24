@@ -1,25 +1,30 @@
 # Type: Listener
-# Description: Polls the remote host for a process; when it closes, runs the supplied chain argument and breaks.
+# Description: Waits for a remote process to exit, then triggers a chain.
 param($Config, [array]$Arguments)
+$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-h", "-?") })
+$ProcessName = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { "notepad" }
+$ChainName = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { "" }
+$Interval = if ($ArgsOnly[2]) { [int]$ArgsOnly[2] } else { 5 }
 
-$ProcName = if ($Arguments[0]) { $Arguments[0] } else { $null }
-$Chain = if ($Arguments[1]) { ($Arguments[1..($Arguments.Length-1)] -join " ") } else { $null }
-if (-not $ProcName) { Write-Host "[Procwait Listener] Usage: <profile> procwait <ProcessName> [chain...]" -ForegroundColor Yellow ; return }
-if (-not (Test-Connection -ComputerName $Config.IP -Count 1 -Quiet)) { Write-Host "[ABORT] Target offline." -ForegroundColor Yellow ; return }
+if (-not $ChainName) {
+    Write-Host "$($C.Warn)[ERROR] Usage: procwait <process> <chain> [interval_secs]$($C.Reset)"
+    return
+}
 
-$Auth = "-i `"$($Config.Key)`""
-$Target = "$($Config.User)@$($Config.IP)"
-Write-Host "[Procwait Listener] Waiting for '$ProcName' to close on $Target (Ctrl+C to stop)..." -ForegroundColor Cyan
-try {
-    while ($true) {
-        $Running = & ssh -o ConnectTimeout=8 -o BatchMode=yes $Auth $Target "powershell -NoProfile -Command 'Get-Process -Name ''$ProcName'' -ErrorAction SilentlyContinue | Measure-Object | Select-Object -ExpandProperty Count'"
-        if ("$Running".Trim() -eq "0") {
-            Write-Host "[Procwait Listener] '$ProcName' has exited." -ForegroundColor Green
-            if ($Chain) { Invoke-Expression $Chain }
-            break
-        }
-        Start-Sleep -Seconds 3
+Write-Host "[procwait] Watching for '$ProcessName' to exit, then running chain '$ChainName'..." -ForegroundColor Cyan
+
+$IP = $Config.IP
+$User = $Config.User
+$Key = $Config.Key
+
+while ($true) {
+    $CheckCmd = "ssh -i `$Key $User@$IP tasklist /FI `\"IMAGENAME eq $ProcessName`\" /FO CSV | Select-String $ProcessName"
+    $Result = & powershell -NoProfile -Command $CheckCmd
+    if (-not $Result) {
+        Write-Host "[procwait] Process '$ProcessName' exited. Triggering chain '$ChainName'..." -ForegroundColor Green
+        Invoke-UniversalToolkitRouter -Action "chain" -ForwardedArgs @("run", $ChainName)
+        break
     }
-} finally {
-    Write-Host "[Procwait Listener] Stopped." -ForegroundColor Yellow
+    Start-Sleep -Seconds $Interval
 }

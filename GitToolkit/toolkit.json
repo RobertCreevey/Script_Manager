@@ -1,0 +1,112 @@
+{
+  "version": "1.0.0",
+  "description": "Git repository operations — status, diff, commit, push, pull, branch, merge, tag, log, stash, rebase, and remote management.",
+  "profiles": ["work", "personal"],
+  "actions": {
+    "status": ["status", "st", "state", "changes"],
+    "diff": ["diff", "d", "changes", "patch"],
+    "commit": ["commit", "ci", "cm", "save"],
+    "push": ["push", "psh", "publish", "upstream"],
+    "pull": ["pull", "pl", "fetch", "update"],
+    "branch": ["branch", "br", "branches", "checkout", "co", "switch"],
+    "merge": ["merge", "mg", "integrate"],
+    "tag": ["tag", "tags", "label", "release"],
+    "log": ["log", "lg", "history", "commits"],
+    "stash": ["stash", "st", "save", "shelf"],
+    "rebase": ["rebase", "rb", "rebase-interactive", "squash"],
+    "remote": ["remote", "rmt", "remotes", "origin", "upstream"],
+    "init": ["init", "initialize", "create-repo"],
+    "clone": ["clone", "cl", "checkout-repo"],
+    "add": ["add", "stage", "index"],
+    "reset": ["reset", "unstage", "uncommit"],
+    "restore": ["restore", "discard", "checkout-files"],
+    "clean": ["clean", "remove-untracked", "prune"],
+    "config": ["config", "cfg", "settings", "git-config"],
+    "blame": ["blame", "annotate", "who"],
+    "show": ["show", "display", "commit-show"],
+    "bisect": ["bisect", "binary-search", "find-bug"]
+  },
+  "parameters": {
+    "status": {
+      "short": ["short", "s", "porcelain"],
+      "branch": ["branch", "b", "show-branch"]
+    },
+    "diff": {
+      "cached": ["cached", "staged", "staged-changes"],
+      "name-only": ["name-only", "names", "files"],
+      "stat": ["stat", "summary", "stats"],
+      "target": ["target", "t", "commit", "branch", "ref"]
+    },
+    "commit": {
+      "message": ["message", "m", "msg", "commit-message"],
+      "amend": ["amend", "a", "fix-last"],
+      "all": ["all", "a", "stage-all"],
+      "signoff": ["signoff", "s", "signed-off"]
+    },
+    "push": {
+      "remote": ["remote", "r", "origin", "upstream"],
+      "branch": ["branch", "b", "refspec"],
+      "force": ["force", "f", "force-with-lease"],
+      "tags": ["tags", "t", "push-tags"]
+    },
+    "pull": {
+      "remote": ["remote", "r", "origin", "upstream"],
+      "branch": ["branch", "b", "refspec"],
+      "rebase": ["rebase", "r", "rebase-instead"]
+    },
+    "branch": {
+      "name": ["name", "n", "branch-name"],
+      "create": ["create", "c", "new", "checkout"],
+      "delete": ["delete", "d", "remove"],
+      "list": ["list", "l", "all", "remote", "r"]
+    },
+    "merge": {
+      "branch": ["branch", "b", "source"],
+      "no-ff": ["no-ff", "no-fast-forward"],
+      "squash": ["squash", "s", "squash-merge"],
+      "abort": ["abort", "cancel"]
+    },
+    "log": {
+      "oneline": ["oneline", "1", "short"],
+      "graph": ["graph", "g", "visual"],
+      "author": ["author", "a", "by"],
+      "since": ["since", "s", "after", "from"],
+      "until": ["until", "u", "before", "to"],
+      "count": ["count", "c", "limit", "n"],
+      "grep": ["grep", "g", "search", "message"]
+    },
+    "stash": {
+      "list": ["list", "l", "show-all"],
+      "pop": ["pop", "apply-and-drop"],
+      "apply": ["apply", "a", "keep"],
+      "drop": ["drop", "d", "delete"],
+      "message": ["message", "m", "msg", "description"]
+    },
+    "rebase": {
+      "onto": ["onto", "target", "base"],
+      "interactive": ["interactive", "i", "edit"],
+      "autosquash": ["autosquash", "squash", "fixup"],
+      "continue": ["continue", "c", "next"],
+      "abort": ["abort", "cancel"],
+      "skip": ["skip", "s"]
+    }
+  },
+  "switches": {
+    "Global": ["Force", "f", "DryRun", "ConfirmAnswer", "json", "csv", "raw", "table", "help", "h", "?"],
+    "status": ["porcelain", "short", "branch"],
+    "diff": ["cached", "name-only", "stat", "unified", "color"],
+    "commit": ["amend", "all", "signoff", "no-verify"],
+    "push": ["force", "force-with-lease", "tags", "dry-run"],
+    "pull": ["rebase", "ff-only", "no-rebase"],
+    "branch": ["all", "remote", "contains", "merged", "no-merged"],
+    "log": ["oneline", "graph", "decorate", "stat", "patch"],
+    "stash": ["include-untracked", "keep-index"],
+    "rebase": ["interactive", "autosquash", "preserve-merges"]
+  },
+  "listeners": {},
+  "builtins": {
+    "help": ["help", "h", "?", "-h", "--help", "/?"],
+    "config": ["config", "cfg", "settings", "conf"],
+    "online": ["online", "ping", "check", "health", "status"]
+  }
+}

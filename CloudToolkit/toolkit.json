@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0",
+  "description": "Multi-cloud management (AWS, Azure, GCP) - instances, storage, functions, networks, databases, secrets, costs",
+  "profiles": [],
+  "actions": {
+    "instances": ["instances", "inst", "ec2", "vms", "servers", "nodes"],
+    "storage": ["storage", "stor", "s3", "blobs", "buckets", "objects"],
+    "fn": ["fn", "functions", "func", "lambda", "serverless", "faas"],
+    "vnet": ["vnet", "network", "vpc", "vpcs", "subnets", "sg", "security-groups", "cloudnet"],
+    "db": ["db", "database", "databases", "rds", "sql", "cloudsql"],
+    "secrets": ["secrets", "secret", "vault", "keys", "secrets-manager"],
+    "costs": ["costs", "cost", "billing", "budget", "spend"]
+  },
+  "parameters": {
+    "instances": {
+      "filter": ["filter", "f", "name", "n", "query", "q"]
+    },
+    "storage": {
+      "recursive": ["recursive", "r", "R"],
+      "bucket": ["bucket", "b", "container", "c"],
+      "prefix": ["prefix", "p", "path"]
+    },
+    "fn": {
+      "payload": ["payload", "p", "data", "d", "input"],
+      "function": ["function", "fn", "name", "n"]
+    },
+    "vnet": {
+      "vpc": ["vpc", "v", "network"],
+      "subnet": ["subnet", "s", "sub"],
+      "sg": ["sg", "security-group", "firewall"]
+    },
+    "db": {
+      "instance": ["instance", "i", "name", "n"],
+      "engine": ["engine", "e", "type"]
+    },
+    "secrets": {
+      "name": ["name", "n", "key", "k"],
+      "value": ["value", "v", "secret", "s"]
+    }
+  },
+  "switches": {
+    "Global": ["Force", "f", "DryRun", "ConfirmAnswer", "json", "csv", "raw", "table", "help", "h"],
+    "instances": [],
+    "storage": ["recursive", "r", "R"],
+    "fn": [],
+    "vnet": [],
+    "db": [],
+    "secrets": [],
+    "costs": []
+  },
+  "listeners": {},
+  "builtins": {
+    "help": ["help", "h", "?", "-h", "--help", "/?"],
+    "config": ["config", "cfg", "settings", "conf"],
+    "online": ["online", "ping", "check", "health", "status"],
+    "auth": ["auth", "login", "authenticate", "signin"],
+    "regions": ["regions", "region", "locations", "azs", "zones"]
+  }
+}
