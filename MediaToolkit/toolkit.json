@@ -1,0 +1,10 @@
+{
+  "name": "MediaToolkit",
+  "version": "1.0.0",
+  "description": "Local media and display control — audio volume and mute, display resolution, monitor info, wallpaper, and foreground window capture.",
+  "author": "Rober",
+  "parent": "SharedToolkit",
+  "profiles": ["thispc"],
+  "actions": ["audio", "display", "monitors", "wallpaper", "wincap"],
+  "listeners": []
+}

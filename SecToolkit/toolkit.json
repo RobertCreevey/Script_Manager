@@ -1,0 +1,10 @@
+{
+  "name": "SecToolkit",
+  "version": "1.0.0",
+  "description": "Local security auditing — firewall status, Windows Defender, local users/groups, UAC level, auto-start programs, SMB shares, and failed-logon brute-force detection.",
+  "author": "Rober",
+  "parent": "SharedToolkit",
+  "profiles": ["host"],
+  "actions": ["firewall", "defender", "accounts", "uac", "autoruns", "shares"],
+  "listeners": ["failwatch"]
+}

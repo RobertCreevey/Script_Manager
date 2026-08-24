@@ -225,10 +225,11 @@ function Format-ChainPreview {
     foreach ($Step in $Chain.Steps) {
         $Idx++
         $ArgsStr = if ($Step.Args) { ($Step.Args | ForEach-Object { "'$_'" }) -join " " } else { "" }
+        $Prefix = if ($Step.Toolkit) { "$($Step.Toolkit)::" } else { "" }
         $Label = switch ($Step.Action) {
-            { $_ -in @("run", "service", "process", "shutdown", "push", "pull") } { "⚠ $_" }
-            { $_ -in @("lock", "snap", "msg", "wol") } { "⚠ $_" }
-            default { $_ }
+            { $_ -in @("run", "service", "process", "shutdown", "push", "pull") } { "⚠ $Prefix$_" }
+            { $_ -in @("lock", "snap", "msg", "wol") } { "⚠ $Prefix$_" }
+            default { "$Prefix$_" }
         }
         [void]$Lines.Add("  ${Idx}. $Label $ArgsStr")
     }
@@ -355,4 +356,46 @@ function Invoke-SharedAsset {
     return $false
 }
 
-Export-ModuleMember -Function Invoke-SharedAsset, Invoke-SharedHelpSystem, Invoke-ToolEvent, Invoke-ToolError, Invoke-ToolNotify, Invoke-ToolPrompt, Invoke-ToolConfirm, Assert-ToolkitAction, Format-ChainPreview, Get-ToolStatus
+$global:ToolCommandLog = "$env:USERPROFILE\Documents\SSHToolkit_CommandHistory.log"
+
+function Write-ToolCommand {
+    param([string]$ContextName, [string]$Action, [array]$Arguments = @(), [string]$Status = "run")
+    $Stamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $ArgsStr = $Arguments -join " "
+    $Line = "[$Stamp] [$ContextName] [$Status] $Action $ArgsStr"
+    try { $Line | Out-File $global:ToolCommandLog -Append } catch {}
+}
+
+function Dispatch-ToolkitAction {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)][string]$Toolkit,
+        [Parameter(Mandatory=$true)][string]$Action,
+        [array]$Arguments = @(),
+        $Config = $null
+    )
+    $ModulesPath = "$env:USERPROFILE\Documents\PowerShell\Modules"
+    $ToolkitFolder = "$ModulesPath\$Toolkit"
+    $RouterFile = "$ToolkitFolder\$Toolkit.psm1"
+    if (-not (Test-Path $RouterFile)) { Write-Host "No module named '$Toolkit' at $RouterFile" -ForegroundColor Red ; return $false }
+    $ActionFile = "$ToolkitFolder\Actions\$Action.ps1"
+    if (-not (Test-Path $ActionFile)) { Write-Host "Toolkit '$Toolkit' has no action '$Action'" -ForegroundColor Red ; return $false }
+    if (-not (Get-Command $Toolkit -ErrorAction SilentlyContinue)) {
+        . $RouterFile
+    }
+    & $ActionFile -Config $Config -Arguments $Arguments
+    $true
+}
+
+function Register-ToolkitCompleter {
+    param([string]$AliasName, [string]$ToolkitName)
+    $ActionNames = @(Get-ChildItem "$global:SharedToolkitPath\..\$ToolkitName\Actions\*.ps1" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName)
+    $SubNames = @("config", "help", "online", "ssh", "chain", "history", "registry", "dispatch", "backup", "restore", "schedule", "theme", "alias", "events", "notify", "ask", "alert", "dashboard", "timer", "battery", "sys", "procs", "svc", "net", "hash", "find", "grep", "log", "beep", "toast", "speak", "open", "now", "clip", "shot")
+    $AllActions = @($ActionNames + $SubNames) | Select-Object -Unique | Sort-Object
+    Register-ArgumentCompleter -CommandName $AliasName -ParameterName Action -ScriptBlock {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+        $AllActions | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
+    } | Out-Null
+}
+
+Export-ModuleMember -Function Invoke-SharedAsset, Invoke-SharedHelpSystem, Invoke-ToolEvent, Invoke-ToolError, Invoke-ToolNotify, Invoke-ToolPrompt, Invoke-ToolConfirm, Assert-ToolkitAction, Format-ChainPreview, Get-ToolStatus, Dispatch-ToolkitAction, Get-ToolkitRouter, Write-ToolCommand, Register-ToolkitCompleter

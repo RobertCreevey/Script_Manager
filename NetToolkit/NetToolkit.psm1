@@ -54,6 +54,7 @@ function Invoke-NetToolkitRouter {
         return
     }
 
+    Write-ToolCommand -ContextName $ContextName -Action $Action -Arguments $ForwardedArgs
     $ChildAction = "$global:NetToolkitPath\Actions\$Action.ps1"
     if (Test-Path $ChildAction) { & $ChildAction -Config $Config -Args $ForwardedArgs ; return }
 

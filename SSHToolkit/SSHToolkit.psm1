@@ -88,6 +88,7 @@ function Invoke-UniversalToolkitRouter {
         return
     }
 
+    Write-ToolCommand -ContextName $ContextName -Action $Action -Arguments $ForwardedArgs
     $ChildAction = "$global:SSHToolkitPath\Actions\$Action.ps1"
     if (Test-Path $ChildAction) { & $ChildAction -Config $Config -Arguments $ForwardedArgs ; return }
 

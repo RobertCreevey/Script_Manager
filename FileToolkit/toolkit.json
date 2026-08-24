@@ -1,0 +1,10 @@
+{
+  "name": "FileToolkit",
+  "version": "1.0.0",
+  "description": "File operations and search — find by wildcard with size filters, grep file contents by regex, find duplicate files by SHA256, directory tree sizes, and recent file activity.",
+  "author": "Rober",
+  "parent": "SharedToolkit",
+  "profiles": ["home"],
+  "actions": ["find", "grep", "dedupe", "treesize", "recent"],
+  "listeners": []
+}

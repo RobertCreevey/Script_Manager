@@ -41,6 +41,7 @@ function Invoke-MediaToolkitRouter {
         return
     }
 
+    Write-ToolCommand -ContextName $ContextName -Action $Action -Arguments $ForwardedArgs
     $ChildAction = "$global:MediaToolkitPath\Actions\$Action.ps1"
     if (Test-Path $ChildAction) { & $ChildAction -Config $Config -Args $ForwardedArgs ; return }
 

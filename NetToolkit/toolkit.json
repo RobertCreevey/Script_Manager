@@ -1,0 +1,10 @@
+{
+  "name": "NetToolkit",
+  "version": "1.0.0",
+  "description": "Network diagnostics and LAN discovery — ping sweeps, port scans, traceroute, DNS, ARP, WiFi profiles, Wake-on-LAN, gateway info and MAC vendor lookups.",
+  "author": "Rober",
+  "parent": "SharedToolkit",
+  "profiles": ["router"],
+  "actions": ["wol", "sweep", "portscan", "traceroute", "dns", "arp", "wifi", "gateway", "connections", "publicip", "macvendor"],
+  "listeners": ["netmon"]
+}
