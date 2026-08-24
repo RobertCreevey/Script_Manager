@@ -387,6 +387,108 @@ function Dispatch-ToolkitAction {
     $true
 }
 
+function Initialize-ToolkitCompletion {
+    <#
+    .SYNOPSIS
+        Registers tab completion for all installed toolkit aliases.
+    .DESCRIPTION
+        Call this function in your PowerShell profile AFTER importing the toolkit modules
+        to enable tab completion for all toolkit commands. This avoids module-load recursion
+        issues that occur when completers are registered during module import.
+    .EXAMPLE
+        Import-Module SSHToolkit
+        Import-Module NetToolkit
+        Initialize-ToolkitCompletion
+    #>
+    $ModulesPath = "$env:USERPROFILE\Documents\PowerShell\Modules"
+    $Toolkits = @("SSHToolkit", "NetToolkit", "MediaToolkit", "SecToolkit", "FileToolkit")
+    foreach ($Toolkit in $Toolkits) {
+        $ProfilePath = "$env:USERPROFILE\Documents\PowerShell\Modules\$Toolkit\Profiles"
+        if (Test-Path $ProfilePath) {
+            Get-ChildItem "$ProfilePath\*.json" -ErrorAction SilentlyContinue | ForEach-Object {
+                $Alias = $_.BaseName
+                Register-ToolkitCompleter -AliasName $Alias -ToolkitName $Toolkit
+            }
+        }
+    }
+    # Also register for SharedToolkit local actions
+    $SharedActions = @("beep", "toast", "log", "speak", "clip", "open", "now", "sys", "hash", "net", "shot", "timer", "battery", "procs", "svc", "theme", "alias", "events", "notify", "ask", "alert", "dashboard", "timer", "battery", "procs", "svc", "registry", "dispatch", "backup", "restore", "schedule", "history", "search", "logs", "health", "profiles", "shell", "dispatch", "alert", "ask")
+    $SharedActions | Select-Object -Unique | ForEach-Object {
+        Register-ArgumentCompleter -CommandName "ani" -ParameterName Action -ScriptBlock {
+            param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
+            # This is a fallback - real completion comes from toolkit-specific completers
+        } | Out-Null
+    }
+}
+
+function Format-ToolOutput {
+    <#
+    .SYNOPSIS
+        Formats output in JSON, CSV, or raw text format.
+    .DESCRIPTION
+        Standardized output formatting helper for all toolkit actions.
+    .PARAMETER InputObject
+        The object(s) to format.
+    .PARAMETER Format
+        Output format: json, csv, table, raw (default: table)
+    .PARAMETER Properties
+        Specific properties to include (for table/csv).
+    .EXAMPLE
+        Get-Process | Format-ToolOutput -Format json
+        Get-Service | Format-ToolOutput -Format csv -Properties Name,Status
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline=$true, Mandatory=$true)]
+        $InputObject,
+        [ValidateSet('json', 'csv', 'table', 'raw')]
+        [string]$Format = 'table',
+        [string[]]$Properties = @()
+    )
+
+    begin {
+        $Data = @()
+    }
+    process {
+        $Data += $InputObject
+    }
+    end {
+        if (-not $Data) { return }
+        switch ($Format) {
+            'json' {
+                $Data | ConvertTo-Json -Depth 4 -Compress
+            }
+            'csv' {
+                if ($Properties) {
+                    $Data | Select-Object -Property $Properties | ConvertTo-Csv -NoTypeInformation
+                } else {
+                    $Data | ConvertTo-Csv -NoTypeInformation
+                }
+            }
+            'raw' {
+                if ($Properties) {
+                    $Data | ForEach-Object {
+                        $Props = @()
+                        foreach ($Prop in $Properties) {
+                            $Props += "$($_.$Prop)"
+                        }
+                        $Props -join ' | '
+                    }
+                } else {
+                    $Data | ForEach-Object { $_ -join ' | ' }
+                }
+            }
+            default {
+                if ($Properties) {
+                    $Data | Format-Table -AutoSize -Property $Properties | Out-String
+                } else {
+                    $Data | Format-Table -AutoSize | Out-String
+                }
+            }
+        }
+    }
+}
+
 function Register-ToolkitCompleter {
     param([string]$AliasName, [string]$ToolkitName)
     $ActionNames = @(Get-ChildItem "$global:SharedToolkitPath\..\$ToolkitName\Actions\*.ps1" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName)
@@ -398,4 +500,4 @@ function Register-ToolkitCompleter {
     } | Out-Null
 }
 
-Export-ModuleMember -Function Invoke-SharedAsset, Invoke-SharedHelpSystem, Invoke-ToolEvent, Invoke-ToolError, Invoke-ToolNotify, Invoke-ToolPrompt, Invoke-ToolConfirm, Assert-ToolkitAction, Format-ChainPreview, Get-ToolStatus, Dispatch-ToolkitAction, Get-ToolkitRouter, Write-ToolCommand, Register-ToolkitCompleter
+Export-ModuleMember -Function Invoke-SharedAsset, Invoke-SharedHelpSystem, Invoke-ToolEvent, Invoke-ToolError, Invoke-ToolNotify, Invoke-ToolPrompt, Invoke-ToolConfirm, Assert-ToolkitAction, Format-ChainPreview, Get-ToolStatus, Dispatch-ToolkitAction, Get-ToolkitRouter, Write-ToolCommand, Register-ToolkitCompleter, Initialize-ToolkitCompletion, Format-ToolOutput
