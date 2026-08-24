@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Sends a message popup to the target user via multiple methods (msg, WScript, Toast, WTSSendMessage).
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table", "-h", "-?") })
 $Format = "table"
 if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
@@ -9,7 +9,7 @@ $Method = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { 'auto' }  # auto, msg, wscri
 $Message = if ($ArgsOnly.Count -gt 1) { $ArgsOnly[1..($ArgsOnly.Count-1)] -join ' ' } else { "Message from admin" }
 $Title = "System Notification"
 
-if (-not (Assert-ToolkitAction -Verb "send message" -Command "msg $Method" -Config $Config -Arguments $Arguments)) { return }
+if (-not (Request-ToolkitConfirmation -Verb "send message" -Command "msg $Method" -Config $Config -Arguments $Arguments)) { return }
 
 $IP = $Config.IP
 $User = $Config.User
@@ -87,3 +87,4 @@ Unregister-ScheduledTask -TaskName `"MsgPopup`" -Confirm:`$false
 }
 
 [PSCustomObject]@{ Action='msg'; Method=$Method; Status='Sent' } | Format-ToolOutput -Format $Format
+

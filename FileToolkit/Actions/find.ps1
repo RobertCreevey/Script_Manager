@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Finds files by name pattern (supports wildcards) under a root directory, with optional size filtering.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $Pattern = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { "*" }
 $Root = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { $Config.Root }
@@ -18,3 +18,4 @@ try {
 } catch {
     Write-Host "[FAIL] Find failed: $_" -ForegroundColor Red
 }
+

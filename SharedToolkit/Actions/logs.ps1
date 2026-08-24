@@ -2,7 +2,7 @@
 # Description: View and tail toolkit logs with filtering support.
 param($Config, [array]$Arguments)
 
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $LogPath = "$env:USERPROFILE\Documents\SSHToolkit_CommandHistory.log"
 $EventPath = "$env:USERPROFILE\Documents\SSHToolkit_Events.log"
 $Follow = $false

@@ -29,13 +29,44 @@ $global:ToolThemes = [PSCustomObject]@{
 
 $global:ToolColors = $global:ToolThemes.default
 
-# In-memory event ring buffer + persistent log path.
-$global:ToolEvents = [System.Collections.ArrayList]::new()
+function Get-ToolkitColors {
+    <#
+    .SYNOPSIS
+        Returns the active color theme object for consistent output coloring.
+    .DESCRIPTION
+        Returns $global:ToolColors if set, otherwise an empty PSCustomObject.
+        Use this instead of the repeated pattern: $C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
+    #>
+    return $global:ToolColors ?? [PSCustomObject]@{}
+}
+
+# In-memory event ring buffer (bounded) + persistent log path.
+$global:ToolEvents = [System.Collections.Generic.List[PSCustomObject]]::new()
+$global:ToolEventsMax = 200
 $global:ToolEventLog = "$env:USERPROFILE\Documents\SSHToolkit_Events.log"
+
+# Module unload cleanup
+function On-ModuleUnload {
+    # Flush any pending events to log
+    try {
+        if ($global:ToolEvents -and $global:ToolEvents.Count -gt 0) {
+            $global:ToolEvents | ForEach-Object {
+                $Line = "[$($_.Time)] [EVENT] [$($_.Context)] $($_.Name)$(if ($_.Data) { ' : ' + $_.Data })"
+                $Line | Out-File $global:ToolEventLog -Append -ErrorAction SilentlyContinue
+            }
+        }
+    } catch {}
+    # Clear global state
+    $global:ToolEvents.Clear()
+    $global:ToolContext = $null
+}
+
+# Register cleanup on shell exit
+$null = Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action { On-ModuleUnload } -SupportEvent
 
 # Module-level safety net: any unhandled terminating error is recorded as an event.
 trap {
-    try { Invoke-ToolError -Message "Unhandled exception: $_" -Severity Critical } catch {}
+    try { Write-ToolkitError -Message "Unhandled exception: $_" -Severity Critical } catch {}
     continue
 }
 
@@ -58,7 +89,7 @@ function Get-ToolStatus {
     }
 }
 
-function Invoke-ToolEvent {
+function Write-ToolkitEvent {
     param([string]$Name, $Data = $null, $Config = $null)
     $Ev = [PSCustomObject]@{
         Time    = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -66,25 +97,62 @@ function Invoke-ToolEvent {
         Context = if ($Config) { $Config.IP } else { "LocalSystem" }
         Data    = $Data
     }
-    [void]$global:ToolEvents.Add($Ev)
-    if ($global:ToolEvents.Count -gt 200) { $global:ToolEvents.RemoveAt(0) }
+    $global:ToolEvents.Add($Ev)
+    if ($global:ToolEvents.Count -gt $global:ToolEventsMax) { $global:ToolEvents.RemoveAt(0) }
     $Line = "[$($Ev.Time)] [EVENT] [$($Ev.Context)] $($Ev.Name)$(if ($Ev.Data) { ' : ' + $Ev.Data })"
     try { $Line | Out-File $global:ToolEventLog -Append } catch {}
     $Ev
 }
 
-function Invoke-ToolError {
+function Get-ActionArguments {
+    <#
+    .SYNOPSIS
+        Parses action arguments into positional args and named switches.
+    .DESCRIPTION
+        Standardizes argument parsing across all actions. Returns a hashtable with:
+        - ArgsOnly: array of positional arguments (excluding known switches)
+        - Switches: hashtable of detected switches (Force, DryRun, ConfirmAnswer, Format, Help)
+        - Format: detected output format (json, csv, raw, table)
+    .PARAMETER Arguments
+        The arguments array passed to the action.
+    #>
+    [CmdletBinding()]
+    param([array]$Arguments)
+
+    $KnownSwitches = @("-Force", "-f", "-DryRun", "-ConfirmAnswer", "-json", "-csv", "-raw", "-table", "-h", "-?", "--help")
+    $ArgsOnly = @($Arguments | Where-Object { $_ -notin $KnownSwitches })
+    $Switches = @{}
+
+    $Switches.Force = $Arguments -contains '-Force' -or $Arguments -contains '-f'
+    $Switches.DryRun = $Arguments -contains '-DryRun'
+    $Switches.ConfirmAnswer = $Arguments -contains '-ConfirmAnswer'
+    $Switches.Help = $Arguments -contains '-h' -or $Arguments -contains '-?' -or $Arguments -contains '--help'
+
+    if ($Arguments -contains '-json') { $Switches.Format = 'json' }
+    elseif ($Arguments -contains '-csv') { $Switches.Format = 'csv' }
+    elseif ($Arguments -contains '-raw') { $Switches.Format = 'raw' }
+    elseif ($Arguments -contains '-table') { $Switches.Format = 'table' }
+    else { $Switches.Format = 'table' }
+
+    return @{
+        ArgsOnly = $ArgsOnly
+        Switches = $Switches
+        Format = $Switches.Format
+    }
+}
+
+function Write-ToolkitError {
     param([string]$Message, [string]$Severity = "Error", $Config = $null)
     $C = $global:ToolColors
     $Ctx = if ($Config) { $Config.IP } else { "LocalSystem" }
     Write-Host "$($C.Warn)[$Severity]$($C.Reset) $Message" -ForegroundColor Red
     $LogLine = "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] [$Ctx] [ERROR] $Message"
     try { $LogLine | Out-File $global:ToolEventLog -Append } catch {}
-    Invoke-ToolEvent -Name "Error" -Data "$Severity : $Message" -Config $Config
+    Write-ToolkitEvent -Name "Error" -Data "$Severity : $Message" -Config $Config
     try { & "$global:SharedToolkitPath\Actions\toast.ps1" -Config $Config -Arguments @("Error", $Message) } catch {}
 }
 
-function Invoke-ToolPrompt {
+function Read-ToolkitPrompt {
     [CmdletBinding()]
     param(
         [string]$Message = "Choose an action",
@@ -151,7 +219,7 @@ function Invoke-ToolPrompt {
     if ($Default) { return $Default } else { return $Buttons[0] }
 }
 
-function Invoke-ToolConfirm {
+function Confirm-ToolkitAction {
     [CmdletBinding()]
     param(
         [string]$Problem = "",
@@ -185,18 +253,18 @@ function Invoke-ToolConfirm {
 
     if ($null -eq $Answer -or $Answer -eq "") { $Answer = $env:TOOLKIT_CONFIRM_DEFAULT }
 
-    $Choice = Invoke-ToolPrompt -Message "Proceed?" -Title $Header -Buttons @("Yes", "No") -Default "No" -Answer $Answer
+    $Choice = Read-ToolkitPrompt -Message "Proceed?" -Title $Header -Buttons @("Yes", "No") -Default "No" -Answer $Answer
     $Ok = ($Choice -eq "Yes")
     if ($Ok) {
         Write-Host "$($C.Ok)Confirmed.$($C.Reset)" -ForegroundColor Green
     } else {
         Write-Host "$($C.Warn)Cancelled by user.$($C.Reset)" -ForegroundColor Yellow
     }
-    [void](Invoke-ToolEvent -Name "Confirm" -Data "problem=$Problem choice=$Choice" -Config $null)
+    [void](Write-ToolkitEvent -Name "Confirm" -Data "problem=$Problem choice=$Choice" -Config $null)
     return $Ok
 }
 
-function Assert-ToolkitAction {
+function Request-ToolkitConfirmation {
     [CmdletBinding()]
     param(
         [string]$Verb = "execute command",
@@ -208,7 +276,7 @@ function Assert-ToolkitAction {
     if ($Arguments -contains "-Force" -or $Arguments -contains "-f") { return $true }
     $Target = if ($Config) { "$($Config.User)@$($Config.IP)" } else { "local" }
     $WillDo = if ($Command.Trim()) { "$Verb`n  > $Command" } else { $Verb }
-    Invoke-ToolConfirm -Problem "About to '$Verb' on $Target" -WillDo $WillDo -Target $Target -Dangerous:$Dangerous -Answer $env:TOOLKIT_CONFIRM_DEFAULT
+    Confirm-ToolkitAction -Problem "About to '$Verb' on $Target" -WillDo $WillDo -Target $Target -Dangerous:$Dangerous -Answer $env:TOOLKIT_CONFIRM_DEFAULT
 }
 
 function Format-ChainPreview {
@@ -236,7 +304,7 @@ function Format-ChainPreview {
     $Lines -join "`n"
 }
 
-function Invoke-ToolNotify {
+function Send-ToolkitNotification {
     param([string]$Title = "SSHToolkit", [string]$Message = "", [string]$Severity = "Info", $Config = $null, [string]$Source = "", [hashtable]$Actions = $null)
     $C = $global:ToolColors
     $Sev = $Severity.ToLower()
@@ -252,19 +320,19 @@ function Invoke-ToolNotify {
     if ($Sev -eq "interactive" -and $Actions -and $Actions.Count) {
         $Buttons = @($Actions.Keys)
         $ChainMap = ($Actions.GetEnumerator() | ForEach-Object { "$($_.Key):$($_.Value)" }) -join ";"
-        $Choice = Invoke-ToolPrompt -Message $Message -Title $Title -Buttons $Buttons -Default $Buttons[0] -Answer $env:TOOLKIT_PROMPT_DEFAULT
+        $Choice = Read-ToolkitPrompt -Message $Message -Title $Title -Buttons $Buttons -Default $Buttons[0] -Answer $env:TOOLKIT_PROMPT_DEFAULT
         if ($Actions[$Choice]) {
             try { Invoke-UniversalToolkitRouter -Action "chain" -ForwardedArgs @("run", $Actions[$Choice]) } catch {
-                Invoke-ToolError -Message "Interactive chain '$($Actions[$Choice])' failed: $_" -Severity Error -Config $Config
+                Write-ToolkitError -Message "Interactive chain '$($Actions[$Choice])' failed: $_" -Severity Error -Config $Config
             }
         }
     }
 
     Write-Host "$($C.Info)[NOTIFY]$($C.Reset) ($Severity) $Title : $Message" -ForegroundColor Cyan
-    Invoke-ToolEvent -Name "Notify" -Data "$Severity : $Title - $Message" -Config $Config
+    Write-ToolkitEvent -Name "Notify" -Data "$Severity : $Title - $Message" -Config $Config
 }
 
-function Invoke-SharedHelpSystem {
+function Get-ToolkitHelp {
     param([string]$Caller, [string]$TargetTopic, [string]$ChildModulePath)
     $C = $global:ToolColors
     Write-Host ""
@@ -345,7 +413,7 @@ function Invoke-SharedHelpSystem {
     Write-Host ""
 }
 
-function Invoke-SharedAsset {
+function Use-SharedAsset {
     [CmdletBinding()]
     param([string]$Type, [string]$AssetName, $Config, $ForwardedArgs)
     $TargetScript = "$global:SharedToolkitPath\$Type\$AssetName.ps1"
@@ -366,7 +434,7 @@ function Write-ToolCommand {
     try { $Line | Out-File $global:ToolCommandLog -Append } catch {}
 }
 
-function Dispatch-ToolkitAction {
+function Invoke-CrossToolkitAction {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$true)][string]$Toolkit,
@@ -407,7 +475,7 @@ function Initialize-ToolkitCompletion {
         if (Test-Path $ProfilePath) {
             Get-ChildItem "$ProfilePath\*.json" -ErrorAction SilentlyContinue | ForEach-Object {
                 $Alias = $_.BaseName
-                Register-ToolkitCompleter -AliasName $Alias -ToolkitName $Toolkit
+                Register-ToolkitArgumentCompleter -AliasName $Alias -ToolkitName $Toolkit
             }
         }
     }
@@ -489,7 +557,7 @@ function Format-ToolOutput {
     }
 }
 
-function Register-ToolkitCompleter {
+function Register-ToolkitArgumentCompleter {
     param([string]$AliasName, [string]$ToolkitName)
     $ActionNames = @(Get-ChildItem "$global:SharedToolkitPath\..\$ToolkitName\Actions\*.ps1" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName)
     $SubNames = @("config", "help", "online", "ssh", "chain", "history", "registry", "dispatch", "backup", "restore", "schedule", "theme", "alias", "events", "notify", "ask", "alert", "dashboard", "timer", "battery", "sys", "procs", "svc", "net", "hash", "find", "grep", "log", "beep", "toast", "speak", "open", "now", "clip", "shot")
@@ -500,4 +568,5 @@ function Register-ToolkitCompleter {
     } | Out-Null
 }
 
-Export-ModuleMember -Function Invoke-SharedAsset, Invoke-SharedHelpSystem, Invoke-ToolEvent, Invoke-ToolError, Invoke-ToolNotify, Invoke-ToolPrompt, Invoke-ToolConfirm, Assert-ToolkitAction, Format-ChainPreview, Get-ToolStatus, Dispatch-ToolkitAction, Get-ToolkitRouter, Write-ToolCommand, Register-ToolkitCompleter, Initialize-ToolkitCompletion, Format-ToolOutput
+Export-ModuleMember -function Use-SharedAsset, Get-ToolkitHelp, Write-ToolkitEvent, Write-ToolkitError, Send-ToolkitNotification, Read-ToolkitPrompt, Confirm-ToolkitAction, Request-ToolkitConfirmation, Format-ChainPreview, Get-ToolStatus, Invoke-CrossToolkitAction, Get-ToolkitRouter, Write-ToolCommand, Register-ToolkitArgumentCompleter, Initialize-ToolkitCompletion, Format-ToolOutput, Get-ToolkitColors, Get-ActionArguments
+

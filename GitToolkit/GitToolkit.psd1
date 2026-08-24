@@ -1,0 +1,27 @@
+@{
+    RootModule = 'GitToolkit.psm1'
+    ModuleVersion = '1.0.0'
+    GUID = 'c9d0e1f2-a3b4-5678-2345-901234567890'
+    Author = 'Rober'
+    Description = 'Git repository operations'
+    PowerShellVersion = '7.0'
+    CompatiblePSEditions = @('Core')
+    RequiredModules = @('SharedToolkit')
+    FunctionsToExport = @(
+        'Register-GitProfile'
+        'Invoke-GitToolkitRouter'
+    )
+    AliasesToExport = @(
+        'work'
+        'personal'
+        'newgit'
+    )
+    PrivateData = @{
+        PSData = @{
+            Tags = @('toolkit', 'git', 'version-control', 'devops')
+            LicenseUri = ''
+            ProjectUri = ''
+            ReleaseNotes = 'Git operations toolkit'
+        }
+    }
+}

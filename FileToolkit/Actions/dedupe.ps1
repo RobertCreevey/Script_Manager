@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Finds duplicate files under a root by computing SHA256 hashes, grouping identical files to reclaim space. Requires confirmation unless -Force.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $Root = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { $Config.Root }
 if (-not (Test-Path $Root)) { Write-Host "[ERROR] Root not found: $Root" -ForegroundColor Red ; return }
@@ -29,3 +29,4 @@ try {
 } catch {
     Write-Host "[FAIL] Dedupe failed: $_" -ForegroundColor Red
 }
+

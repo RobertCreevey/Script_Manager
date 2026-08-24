@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Manages secrets (Secrets Manager, Key Vault, Secret Manager).
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table") })
 $Format = "table"
 if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
@@ -34,7 +34,7 @@ switch ($Sub) {
     }
     'set' {
         if (-not $Name -or -not $Value) { Write-Host "$($C.Warn)[ERROR] Usage: secrets set <name> <value>$($C.Reset)" ; return }
-        if (-not (Assert-ToolkitAction -Verb "create/update secret" -Command "secrets set $Name" -Config $Config -Arguments $Arguments)) { return }
+        if (-not (Request-ToolkitConfirmation -Verb "create/update secret" -Command "secrets set $Name" -Config $Config -Arguments $Arguments)) { return }
         switch ($Provider) {
             'aws'  { & aws secretsmanager put-secret-value --secret-id $Name --secret-string $Value $CommonArgs }
             'azure' { & az keyvault secret set --vault-name $ArgsOnly[3] --name $Name --value $Value }
@@ -43,3 +43,4 @@ switch ($Sub) {
     }
     default { Write-Host "$($C.Warn)[ERROR] Usage: secrets [list|get|set] ...$($C.Reset)" }
 }
+

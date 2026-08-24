@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Runs a traceroute to the target (default profile IP) showing each hop latency.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $Target = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { $Config.IP }
 if (-not $Target) { Write-Host "[ERROR] Provide a target IP or set profile IP." -ForegroundColor Red ; return }
@@ -19,3 +19,4 @@ while ($Hop -lt $MaxHops) {
         Write-Host "  $($C.Param)$($Hop.ToString().PadLeft(2))$($C.Reset) $($C.Warn)* timeout" -ForegroundColor Yellow
     }
 }
+

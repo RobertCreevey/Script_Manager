@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Captures the foreground (active) window to a PNG file (default Desktop). Unlike the primary-screen shot, this grabs only the active window.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $Out = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { Join-Path $env:USERPROFILE "Desktop\window_$(Get-Date -Format yyyyMMdd_HHmmss).png" }
 Add-Type -TypeDefinition @'
@@ -32,3 +32,4 @@ try {
 } catch {
     Write-Host "[FAIL] Window capture failed: $_" -ForegroundColor Red
 }
+

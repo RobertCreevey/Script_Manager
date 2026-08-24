@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Shows a Yes/No popup on target and returns the response to the SSH session.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table", "-h", "-?") })
 $Format = "table"
 if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
@@ -11,7 +11,7 @@ $Timeout = if ($ArgsOnly[2]) { [int]$ArgsOnly[2] } else { 60 }
 $YesAction = if ($ArgsOnly[3]) { $ArgsOnly[3] } else { "" }
 $NoAction = if ($ArgsOnly[4]) { $ArgsOnly[4] } else { "" }
 
-if (-not (Assert-ToolkitAction -Verb "interactive popup" -Command "popup $Question" -Config $Config -Arguments $Arguments)) { return }
+if (-not (Request-ToolkitConfirmation -Verb "interactive popup" -Command "popup $Question" -Config $Config -Arguments $Arguments)) { return }
 
 $IP = $Config.IP
 $User = $Config.User
@@ -83,3 +83,4 @@ if ($Result -eq 'Yes' -and $YesAction) {
 }
 
 [PSCustomObject]@{ Action='popup'; Question=$Question; Response=$Result; Status='Completed' } | Format-ToolOutput -Format $Format
+

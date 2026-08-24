@@ -2,7 +2,7 @@
 # Description: Watches the Security event log for failed logon attempts (event 4625) and alerts with count and source IP.
 param($Config, [array]$Arguments)
 $Arguments = @($Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $Threshold = if ($Arguments[0] -and $Arguments[0] -match '^\d+$') { [int]$Arguments[0] } else { 5 }
 $WindowMin = if ($Arguments[1] -and $Arguments[1] -match '^\d+$') { [int]$Arguments[1] } else { 5 }
 Write-Host "[failwatch] Watching for >=$Threshold failed logons in ${WindowMin}min windows (Ctrl+C)..." -ForegroundColor Cyan
@@ -19,3 +19,4 @@ try {
         Start-Sleep -Seconds 30
     }
 } catch { Write-Host "[failwatch] (event log access denied — run as admin)" -ForegroundColor Yellow }
+

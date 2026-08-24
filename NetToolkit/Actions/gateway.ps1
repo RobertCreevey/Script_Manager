@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Displays the default gateway, primary DNS server, and active network adapter info for the local machine.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 Write-Host "[gateway] Default gateway and adapter info..." -ForegroundColor Cyan
 try {
     $Route = Get-NetRoute -DestinationPrefix '0.0.0.0/0' -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -20,3 +20,4 @@ try {
 } catch {
     Write-Host "[FAIL] Could not read gateway info: $_" -ForegroundColor Red
 }
+

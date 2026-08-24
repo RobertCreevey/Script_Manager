@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Shows directory tree sizes under a root, sorted by total size descending (like du/ ncdu).
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $Root = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { $Config.Root }
 $Depth = if ($ArgsOnly[1] -and $ArgsOnly[1] -match '^\d+$') { [int]$ArgsOnly[1] } else { 2 }
@@ -19,3 +19,4 @@ try {
 } catch {
     Write-Host "[FAIL] Treesize failed: $_" -ForegroundColor Red
 }
+

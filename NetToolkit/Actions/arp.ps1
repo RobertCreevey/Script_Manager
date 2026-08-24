@@ -2,7 +2,7 @@
 # Description: Displays the local ARP table mapping IP addresses to MAC addresses, optionally filtered by subnet.
 param($Config, [array]$Arguments)
 $Arguments = @($Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $Filter = if ($Arguments[0]) { $Arguments[0] } else { $null }
 Write-Host "[arp] Local ARP table$(if($Filter){" (filter: $Filter)"})..." -ForegroundColor Cyan
 try {
@@ -14,3 +14,4 @@ try {
 } catch {
     Write-Host "[FAIL] Could not read ARP table: $_" -ForegroundColor Red
 }
+

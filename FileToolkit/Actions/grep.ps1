@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Searches file contents for a regex pattern (grep) under a root, showing file, line number, and matching text.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $Pattern = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { $null }
 $Root = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { $Config.Root }
@@ -21,9 +21,12 @@ try {
                     $Hits++
                 }
             }
-        } catch {}
+        } catch {
+            Write-Host "[grep] Failed to read $($F.FullName): $_" -ForegroundColor Red
+        }
     }
     Write-Host "[grep] $Hits match(es) in $($Files.Count) file(s)." -ForegroundColor Yellow
 } catch {
     Write-Host "[FAIL] Grep failed: $_" -ForegroundColor Red
 }
+

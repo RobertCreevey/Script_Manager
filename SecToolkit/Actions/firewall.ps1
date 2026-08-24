@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Shows the status of all Windows Firewall profiles and the default inbound/outbound action.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 Write-Host "[firewall] Windows Firewall status..." -ForegroundColor Cyan
 try {
     $Profiles = Get-NetFirewallProfile -ErrorAction SilentlyContinue
@@ -14,3 +14,4 @@ try {
 } catch {
     Write-Host "[FAIL] Could not read firewall status: $_" -ForegroundColor Red
 }
+

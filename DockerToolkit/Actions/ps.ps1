@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Lists and manages containers (ps, start, stop, restart, rm, inspect).
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table", "-a", "--all") })
 $Format = "table"
 if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
@@ -26,25 +26,25 @@ switch ($Sub) {
     }
     'start' {
         if (-not $Target) { Write-Host "$($C.Warn)[ERROR] Usage: ps start <name|id>$($C.Reset)" ; return }
-        if (-not (Assert-ToolkitAction -Verb "start container" -Command "docker start $Target" -Config $Config -Arguments $Arguments)) { return }
+        if (-not (Request-ToolkitConfirmation -Verb "start container" -Command "docker start $Target" -Config $Config -Arguments $Arguments)) { return }
         & $BaseCmd start $Target
     }
     'stop' {
         if (-not $Target) { Write-Host "$($C.Warn)[ERROR] Usage: ps stop <name|id> [timeout]$($C.Reset)" ; return }
         $Timeout = if ($ArgsOnly[2]) { $ArgsOnly[2] } else { 10 }
-        if (-not (Assert-ToolkitAction -Verb "stop container" -Command "docker stop $Target" -Config $Config -Arguments $Arguments)) { return }
+        if (-not (Request-ToolkitConfirmation -Verb "stop container" -Command "docker stop $Target" -Config $Config -Arguments $Arguments)) { return }
         & $BaseCmd stop -t $Timeout $Target
     }
     'restart' {
         if (-not $Target) { Write-Host "$($C.Warn)[ERROR] Usage: ps restart <name|id> [timeout]$($C.Reset)" ; return }
         $Timeout = if ($ArgsOnly[2]) { $ArgsOnly[2] } else { 10 }
-        if (-not (Assert-ToolkitAction -Verb "restart container" -Command "docker restart $Target" -Config $Config -Arguments $Arguments)) { return }
+        if (-not (Request-ToolkitConfirmation -Verb "restart container" -Command "docker restart $Target" -Config $Config -Arguments $Arguments)) { return }
         & $BaseCmd restart -t $Timeout $Target
     }
     'rm' {
         if (-not $Target) { Write-Host "$($C.Warn)[ERROR] Usage: ps rm <name|id> [-f]$($C.Reset)" ; return }
         $Force = $Arguments -contains '-f'
-        if (-not (Assert-ToolkitAction -Verb "remove container" -Command "docker rm $Target" -Config $Config -Arguments $Arguments)) { return }
+        if (-not (Request-ToolkitConfirmation -Verb "remove container" -Command "docker rm $Target" -Config $Config -Arguments $Arguments)) { return }
         & $BaseCmd rm @(if($Force){"-f"}) $Target
     }
     'logs' {
@@ -70,3 +70,4 @@ switch ($Sub) {
     }
     default { Write-Host "$($C.Warn)[ERROR] Usage: ps [ps|start|stop|restart|rm|logs|exec|inspect|stats] ...$($C.Reset)" }
 }
+

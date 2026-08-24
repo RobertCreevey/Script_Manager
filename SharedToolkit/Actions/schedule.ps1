@@ -2,7 +2,7 @@
 # Description: Schedules a chain to run automatically via Windows Task Scheduler at a set interval, lists scheduled chains, or removes them.
 param($Config, [array]$Arguments)
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $Sub = if ($ArgsOnly[0]) { $ArgsOnly[0].ToLower() } else { "list" }
 $Prefix = "ToolkitChain_"
 
@@ -26,7 +26,7 @@ if ($Sub -eq "remove") {
     $TaskName = "$Prefix$Name"
     $Task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
     if (-not $Task) { Write-Host "$($C.Warn)[ERROR] No scheduled task '$Name'.$($C.Reset)" ; return }
-    if (-not (Assert-ToolkitAction -Verb "remove scheduled chain '$Name'" -Command "Unregister-ScheduledTask $TaskName" -Config $Config -Arguments @($Arguments, "-Force"))) { return }
+    if (-not (Request-ToolkitConfirmation -Verb "remove scheduled chain '$Name'" -Command "Unregister-ScheduledTask $TaskName" -Config $Config -Arguments @($Arguments, "-Force"))) { return }
     Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
     Write-Host "[OK] Removed scheduled chain '$Name'." -ForegroundColor Green
     return
@@ -46,7 +46,7 @@ if ($Sub -eq "add") {
     $Trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes $IntervalMin) -RepetitionDuration (New-TimeSpan -Days 3650)
     $Principal = New-ScheduledTaskPrincipal -UserId $LoggedInUser -LogonType Interactive
     $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
-    if (-not (Assert-ToolkitAction -Verb "schedule chain '$Name'" -Command "every ${IntervalMin}min" -Config $Config -Arguments @($Arguments, "-Force") -Dangerous)) { return }
+    if (-not (Request-ToolkitConfirmation -Verb "schedule chain '$Name'" -Command "every ${IntervalMin}min" -Config $Config -Arguments @($Arguments, "-Force") -Dangerous)) { return }
     try {
         Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings -Force | Out-Null
         Write-Host "[OK] Scheduled '$Name' every ${IntervalMin} minutes." -ForegroundColor Green
@@ -57,3 +57,5 @@ if ($Sub -eq "add") {
 }
 
 Write-Host "$($C.Warn)[ERROR] Usage: schedule [add|list|remove] ...$($C.Reset)"
+
+

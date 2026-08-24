@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Live realtime status dashboard (clock, CPU, RAM, context, target online, recent events) refreshed until Ctrl+C.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
+$C = Get-ToolkitColors
 $Interval = if ($Arguments[0] -and $Arguments[0] -match '^\d+$') { [int]$Arguments[0] } else { 2 }
 Write-Host "$($C.Warn)[dashboard] Refresh every ${Interval}s. Press Ctrl+C to exit.$($C.Reset)"
 $Ctx = if ($Config) { "$($C.Host)$($Config.User)@$($Config.IP)$($C.Reset)" } else { "$($C.File)local$($C.Reset)" }
@@ -30,3 +30,4 @@ try {
         Start-Sleep -Seconds $Interval
     }
 } finally { Write-Host "$($C.Warn)[dashboard] stopped.$($C.Reset)" }
+

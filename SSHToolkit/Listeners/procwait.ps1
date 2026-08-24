@@ -1,7 +1,7 @@
 # Type: Listener
 # Description: Waits for a remote process to exit, then triggers a chain.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-h", "-?") })
 $ProcessName = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { "notepad" }
 $ChainName = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { "" }

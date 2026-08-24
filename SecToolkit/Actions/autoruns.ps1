@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Lists auto-start programs from Run keys and startup folders (current user and local machine).
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 Write-Host "[autoruns] Auto-start entries..." -ForegroundColor Cyan
 try {
     $Locations = @(
@@ -28,3 +28,4 @@ try {
 } catch {
     Write-Host "[FAIL] Could not enumerate autoruns: $_" -ForegroundColor Red
 }
+

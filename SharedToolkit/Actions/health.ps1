@@ -2,7 +2,7 @@
 # Description: Health check dashboard for all toolkits and system status.
 param($Config, [array]$Arguments)
 
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $Format = "table"
 if ($Arguments -contains '-json') { $Format = 'json' }
 elseif ($Arguments -contains '-csv') { $Format = 'csv' }

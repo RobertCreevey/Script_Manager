@@ -2,7 +2,7 @@
 # Description: Manage profiles across all toolkits - list, show, create, delete, export.
 param($Config, [array]$Arguments)
 
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $Action = if ($Arguments.Count -gt 0) { $Arguments[0] } else { "list" }
 $Toolkit = ""
 $Name = ""

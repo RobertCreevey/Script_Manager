@@ -9,7 +9,8 @@ if (-not (Test-Connection -ComputerName $Config.IP -Count 1 -Quiet)) { Write-Hos
 $Auth = "-i `"$($Config.Key)`""
 $Target = "$($Config.User)@$($Config.IP)"
 if ($Action -ne "status") {
-    if (-not (Assert-ToolkitAction -Verb "$Action service '$Name'" -Command "$Action $Name" -Config $Config -Arguments $Arguments -Dangerous)) { return }
+    if (-not (Request-ToolkitConfirmation -Verb "$Action service '$Name'" -Command "$Action $Name" -Config $Config -Arguments $Arguments -Dangerous)) { return }
 }
 $Cmd = "powershell -NoProfile -Command `"`$s=Get-Service -Name '$Name' -ErrorAction SilentlyContinue; if(-not `$s){'Service not found'}else{ if('$Action'-eq'start'){`$s.Start()} if('$Action'-eq'stop'){`$s.Stop()} if('$Action'-eq'restart'){`$s.Restart()} Start-Sleep 1; (Get-Service -Name '$Name').Status }`""
 & ssh -o ConnectTimeout=8 -o BatchMode=yes $Auth $Target $Cmd
+

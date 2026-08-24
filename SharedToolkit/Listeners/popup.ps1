@@ -1,7 +1,7 @@
 # Type: Listener
 # Description: Starts a background listener for incoming popup requests (Yes/No) from remote SSH sessions.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-h", "-?") })
 $Action = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { "listen" }  # listen, stop, status
 $Port = if ($ArgsOnly[1]) { [int]$ArgsOnly[1] } else { 0 }  # not used, for future TCP listener

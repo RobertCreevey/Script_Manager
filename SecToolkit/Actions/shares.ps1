@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Lists local SMB shares and their permissions, path, and current connection count.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 Write-Host "[shares] Local SMB shares..." -ForegroundColor Cyan
 try {
     $Shares = Get-SmbShare -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne 'ADMIN$' -and $_.Name -ne 'IPC$' }
@@ -14,3 +14,4 @@ try {
 } catch {
     Write-Host "[FAIL] Could not enumerate shares: $_" -ForegroundColor Red
 }
+

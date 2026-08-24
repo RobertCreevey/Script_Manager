@@ -10,12 +10,14 @@ public class Audio {
     public const uint KEYEVENTF_KEYDOWN = 0x0000; public const uint KEYEVENTF_KEYUP = 0x0002;
 }
 '@ -ErrorAction SilentlyContinue
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 if ($Arguments.Count -eq 0) {
     try {
         $Snd = New-Object -ComObject WScript.Shell
         Write-Host "[audio] Use: audio <0-100> | audio mute | audio unmute | audio toggle" -ForegroundColor Cyan
-    } catch {}
+    } catch {
+        Write-Host "[audio] Failed to create COM object: $_" -ForegroundColor Red
+    }
     return
 }
 $Cmd = $Arguments[0].ToLower()
@@ -24,7 +26,9 @@ if ($Cmd -eq "mute") {
     [Audio]::keybd_event([Audio]::VK_VOLUME_MUTE, 0, [Audio]::KEYEVENTF_KEYUP, 0)
     Write-Host "[OK] Audio muted." -ForegroundColor Green
 } elseif ($Cmd -eq "unmute") {
-    try { (New-Object -ComObject WScript.Shell).SendKeys([char]174) } catch {}
+    try { (New-Object -ComObject WScript.Shell).SendKeys([char]174) } catch {
+        Write-Host "[audio] Failed to send unmute key: $_" -ForegroundColor Red
+    }
     Write-Host "[OK] Audio unmuted (toggle)." -ForegroundColor Green
 } elseif ($Cmd -eq "toggle") {
     [Audio]::keybd_event([Audio]::VK_VOLUME_MUTE, 0, [Audio]::KEYEVENTF_KEYDOWN, 0)
@@ -44,3 +48,4 @@ if ($Cmd -eq "mute") {
 } else {
     Write-Host "[ERROR] Usage: audio <0-100> | audio mute | audio unmute | audio toggle" -ForegroundColor Red
 }
+

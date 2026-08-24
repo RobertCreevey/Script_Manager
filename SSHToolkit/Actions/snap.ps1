@@ -1,13 +1,13 @@
 # Type: Action
 # Description: Takes a silent screenshot on the target and downloads it via SCP.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table", "-h", "-?") })
 $Format = "table"
 if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
 $OutName = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { "snap_$(Get-Date -Format 'yyyyMMdd_HHmmss').png" }
 
-if (-not (Assert-ToolkitAction -Verb "take screenshot" -Command "snap" -Config $Config -Arguments $Arguments)) { return }
+if (-not (Request-ToolkitConfirmation -Verb "take screenshot" -Command "snap" -Config $Config -Arguments $Arguments)) { return }
 
 $IP = $Config.IP
 $User = $Config.User
@@ -43,3 +43,4 @@ if (Test-Path $LocalPath) {
     Write-Host "[FAIL] Screenshot not retrieved" -ForegroundColor Red
     [PSCustomObject]@{ Action='snap'; File=$OutName; Status='Failed' } | Format-ToolOutput -Format $Format
 }
+

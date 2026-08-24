@@ -1,12 +1,25 @@
 # Type: Action
 # Description: Locks the target workstation (Win+L equivalent).
-param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
-$ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table", "-h", "-?") })
-$Format = "table"
-if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
+[CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+param(
+    $Config,
+    [array]$Arguments
+)
 
-if (-not (Assert-ToolkitAction -Verb "lock workstation" -Command "lock" -Config $Config -Arguments $Arguments)) { return }
+$Parsed = Get-ActionArguments -Arguments $Arguments
+$ArgsOnly = $Parsed.ArgsOnly
+$Format = $Parsed.Format
+$Force = $Parsed.Switches.Force
+
+$C = Get-ToolkitColors
+
+if (-not $Force) {
+    if ($PSCmdlet.ShouldProcess("Lock workstation on $($Config.IP)", "Lock")) {
+        if (-not (Request-ToolkitConfirmation -Verb "lock workstation" -Command "lock" -Config $Config -Arguments $Arguments)) { return }
+    } else {
+        return
+    }
+}
 
 $IP = $Config.IP
 $User = $Config.User
@@ -18,3 +31,4 @@ $SSHCmd = "ssh -i `$Key $User@$IP rundll32.exe user32.dll,LockWorkStation"
 
 Write-Host "[OK] Workstation locked" -ForegroundColor Green
 [PSCustomObject]@{ Action='lock'; Status='Completed' } | Format-ToolOutput -Format $Format
+

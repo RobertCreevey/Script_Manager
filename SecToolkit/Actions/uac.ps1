@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Shows the current UAC (User Account Control) elevation prompt level and consent behavior.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 Write-Host "[uac] User Account Control settings..." -ForegroundColor Cyan
 try {
     $Keys = @(
@@ -16,3 +16,4 @@ try {
 } catch {
     Write-Host "[FAIL] Could not read UAC settings: $_" -ForegroundColor Red
 }
+

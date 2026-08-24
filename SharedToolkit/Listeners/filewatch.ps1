@@ -1,7 +1,7 @@
 # Type: Listener
 # Description: Watches a directory for new files matching pattern, triggers chain on creation.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-h", "-?") })
 $Path = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { "C:\_Scripts" }
 $Filter = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { "*.mp4" }

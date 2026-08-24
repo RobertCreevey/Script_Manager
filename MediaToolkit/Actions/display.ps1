@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Lists or sets the display resolution. Use 'display list' to show modes, or 'display <width> <height>' to change. Requires confirmation unless -Force.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 Add-Type -TypeDefinition @'
 using System; using System.Runtime.InteropServices;
@@ -37,7 +37,7 @@ if ($ArgsOnly.Count -eq 0 -or $ArgsOnly[0] -eq "list") {
 }
 if ($ArgsOnly.Count -ge 2 -and $ArgsOnly[0] -match '^\d+$' -and $ArgsOnly[1] -match '^\d+$') {
     $W = [int]$ArgsOnly[0]; $H = [int]$ArgsOnly[1]
-    if (-not (Assert-ToolkitAction -Verb "change resolution" -Command "${W}x$H" -Config $Config -Arguments $Arguments -Dangerous)) { return }
+    if (-not (Request-ToolkitConfirmation -Verb "change resolution" -Command "${W}x$H" -Config $Config -Arguments $Arguments -Dangerous)) { return }
     $Mode = New-Object Display+DEVMODE; $Mode.dmSize = [System.Runtime.InteropServices.Marshal]::SizeOf($Mode)
     $Mode.dmPelsWidth = $W; $Mode.dmPelsHeight = $H; $Mode.dmFields = 0x00080000 -bor 0x00100000
     $R = [Display]::ChangeDisplaySettings([ref]$Mode, 0)
@@ -46,3 +46,5 @@ if ($ArgsOnly.Count -ge 2 -and $ArgsOnly[0] -match '^\d+$' -and $ArgsOnly[1] -ma
 } else {
     Write-Host "[ERROR] Usage: display list | display <width> <height>" -ForegroundColor Red
 }
+
+

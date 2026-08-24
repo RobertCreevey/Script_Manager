@@ -2,7 +2,7 @@
 # Description: Shows command history with timestamps, context, and action. Supports search, replay by index, and clear.
 param($Config, [array]$Arguments)
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $Sub = if ($ArgsOnly[0]) { "$($ArgsOnly[0])".ToLower() } else { "show" }
 
 if ($Sub -eq "clear") {
@@ -49,3 +49,4 @@ foreach ($Line in $Lines) {
 Write-Host ""
 Write-Host "$($C.Sys)Usage:$($C.Reset) $($C.Param)history run <n>$($C.Reset) replay | $($C.Param)history search <term>$($C.Reset) | $($C.Param)history clear$($C.Reset)"
 Write-Host ""
+

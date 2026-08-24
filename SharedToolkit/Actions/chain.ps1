@@ -4,7 +4,7 @@ param($Config, [array]$Arguments)
 $ChainDirs = @("$global:SSHToolkitPath\Chains", "$global:SharedToolkitPath\Chains")
 $Sub = if ($Arguments[0]) { $Arguments[0] } else { "list" }
 $Name = if ($Arguments[1]) { $Arguments[1] } else { $null }
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
+$C = Get-ToolkitColors
 
 if ($Sub -eq "list") {
     $Found = $false
@@ -44,7 +44,7 @@ if ($Sub -eq "new") {
     }
     [PSCustomObject]@{ Steps = $Steps } | ConvertTo-Json -Depth 5 | Out-File "$global:SharedToolkitPath\Chains\$Name.json" -Force
     Write-Host "[OK] Chain '$Name' created with $($Steps.Count) steps." -ForegroundColor Green
-    Invoke-ToolEvent -Name "ChainCreated" -Data $Name -Config $Config
+    Write-ToolkitEvent -Name "ChainCreated" -Data $Name -Config $Config
     return
 }
 
@@ -83,8 +83,8 @@ if ($Sub -eq "run") {
     }
 
     if (-not $Force) {
-        $Confirmed = Invoke-ToolConfirm -Problem "About to execute chain '$Name'" -WillDo ("Steps:`n" + (Format-ChainPreview $File)) -Target $CtxStr -Dangerous:($HasMutation -ne $null) -Answer $ConfirmAnswer
-        if (-not $Confirmed) { Invoke-ToolEvent -Name "ChainAborted" -Data $Name -Config $Config ; return }
+        $Confirmed = Confirm-ToolkitAction -Problem "About to execute chain '$Name'" -WillDo ("Steps:`n" + (Format-ChainPreview $File)) -Target $CtxStr -Dangerous:($HasMutation -ne $null) -Answer $ConfirmAnswer
+        if (-not $Confirmed) { Write-ToolkitEvent -Name "ChainAborted" -Data $Name -Config $Config ; return }
     }
 
     Write-Host "[chain] Running '$Name' ($($Chain.Steps.Count) steps) in context $($C.Host)$CtxStr$($C.Reset)..." -ForegroundColor Magenta
@@ -93,17 +93,19 @@ if ($Sub -eq "run") {
         Write-Host "$($C.Param)--> $($C.Action)$ToolkitLabel$($Step.Action)$($C.Reset) $($Step.Args -join ' ')"
         try {
             if ($Step.Toolkit) {
-                $null = Dispatch-ToolkitAction -Toolkit $Step.Toolkit -Action $Step.Action -Arguments $Step.Args -Config $Config
+                $null = Invoke-CrossToolkitAction -Toolkit $Step.Toolkit -Action $Step.Action -Arguments $Step.Args -Config $Config
             } else {
                 Invoke-UniversalToolkitRouter -Action $Step.Action -ForwardedArgs $Step.Args
             }
         } catch {
-            Invoke-ToolError -Message "Chain step '$ToolkitLabel$($Step.Action)' failed: $_" -Severity Error -Config $Config
+            Write-ToolkitError -Message "Chain step '$ToolkitLabel$($Step.Action)' failed: $_" -Severity Error -Config $Config
         }
     }
     Write-Host "[chain] '$Name' complete." -ForegroundColor Green
-    Invoke-ToolEvent -Name "ChainRun" -Data $Name -Config $Config
+    Write-ToolkitEvent -Name "ChainRun" -Data $Name -Config $Config
     return
 }
 
 Write-Host "[ERROR] Usage: chain [list|new|run] <name> ..." -ForegroundColor Red
+
+

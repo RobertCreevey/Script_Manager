@@ -2,7 +2,7 @@
 # Description: Polls the target and fires a toast/beep alert (plus optional chain) as soon as it comes online.
 param($Config, [array]$Arguments)
 $Chain = if ($Arguments) { $Arguments -join " " } else { $null }
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
+$C = Get-ToolkitColors
 Write-Host "[onlinemon] Watching $($C.Str)$($Config.IP)$($C.Reset) for online event [Ctrl+C to stop]" -ForegroundColor Cyan
 try {
     while ($true) {
@@ -16,3 +16,4 @@ try {
         Start-Sleep -Seconds 5
     }
 } finally { Write-Host "[onlinemon] Stopped." -ForegroundColor Yellow }
+

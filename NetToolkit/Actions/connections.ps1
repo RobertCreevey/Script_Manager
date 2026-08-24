@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Shows active TCP connections and listening ports on the local machine with owning process names.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 Write-Host "[netstat] Active connections..." -ForegroundColor Cyan
 try {
     $Connections = Get-NetTCPConnection -ErrorAction SilentlyContinue | Where-Object { $_.State -eq 'Listen' -or $_.State -eq 'Established' }
@@ -14,3 +14,4 @@ try {
 } catch {
     Write-Host "[FAIL] Could not read connections: $_" -ForegroundColor Red
 }
+

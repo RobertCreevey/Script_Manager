@@ -10,4 +10,5 @@ $Buttons = $ButtonSpec -split '[,;]' | ForEach-Object { $_.Trim() } | Where-Obje
 
 $Answer = if ($Arguments[3]) { $Arguments[3] } else { $env:TOOLKIT_PROMPT_DEFAULT }
 
-Invoke-ToolPrompt -Message $Message -Title $Title -Buttons $Buttons -Default ($Buttons[0]) -Answer $Answer
+Read-ToolkitPrompt -Message $Message -Title $Title -Buttons $Buttons -Default ($Buttons[0]) -Answer $Answer
+

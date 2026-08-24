@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Discovers and displays all installed toolkits with structured, color-coded info. Summary view lists all toolkits; detailed view shows actions, listeners, and profiles for one toolkit.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $TargetName = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { $null }
 
@@ -64,3 +64,4 @@ foreach ($Folder in $ToolkitFolders) {
 Write-Host ""
 Write-Host "$($C.Sys)Usage:$($C.Reset) $($C.Param)registry <name>$($C.Reset) for detailed view"
 Write-Host ""
+

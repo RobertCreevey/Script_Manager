@@ -1,7 +1,7 @@
 # Type: Listener
 # Description: Monitors clipboard for IP addresses or file paths, triggers chain on match.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-h", "-?") })
 $ChainName = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { "" }
 $Pattern = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { '(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|([A-Za-z]:\\\\[^<>:"/\\|?*]+)' }
@@ -29,6 +29,8 @@ while ($true) {
                 $LastContent = $Content
             }
         }
-    } catch {}
+    } catch {
+        Write-Host "[clipboard] Error monitoring clipboard: $_" -ForegroundColor Red
+    }
     Start-Sleep -Seconds $Interval
 }

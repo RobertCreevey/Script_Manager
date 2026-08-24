@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Pings a target or sweeps a subnet (/24 from first three octets) and reports which hosts are online.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $Target = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { $Config.IP }
 if (-not $Target) { Write-Host "[ERROR] Provide an IP or subnet (e.g. 192.168.1) or set profile IP." -ForegroundColor Red ; return }
@@ -23,3 +23,4 @@ if ($Target -match '^\d{1,3}(\.\d{1,3}){2}$') {
     if ($R) { Write-Host "  $($C.Ok)REACHABLE$($C.Reset) : $($C.Str)$Target$($C.Reset) (avg $([math]::Round(($R | Measure-Object ResponseTime -Average).Average,1))ms)" -ForegroundColor Green }
     else { Write-Host "  $($C.Warn)UNREACHABLE$($C.Reset) : $Target" -ForegroundColor Red }
 }
+

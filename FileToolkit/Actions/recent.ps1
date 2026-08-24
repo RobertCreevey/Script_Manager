@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Lists the most recently modified files under a root, with age and size.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $Root = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { $Config.Root }
 $Top = if ($ArgsOnly[1] -and $ArgsOnly[1] -match '^\d+$') { [int]$ArgsOnly[1] } else { 20 }
@@ -16,3 +16,4 @@ try {
 } catch {
     Write-Host "[FAIL] Recent-files failed: $_" -ForegroundColor Red
 }
+

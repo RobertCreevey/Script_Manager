@@ -1,13 +1,20 @@
 # Type: Action
 # Description: Force-plays a video file on the target's physical screen via Scheduled Task (bypasses Session 0 isolation).
-param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
-$ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table", "-h", "-?") })
-$Format = "table"
-if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
+[CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='Medium')]
+param(
+    $Config,
+    [array]$Arguments
+)
+
+$Parsed = Get-ActionArguments -Arguments $Arguments
+$ArgsOnly = $Parsed.ArgsOnly
+$Format = $Parsed.Format
+$Force = $Parsed.Switches.Force
+
+$C = Get-ToolkitColors
+
 $Path = $ArgsOnly[0]
 $Player = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { 'wmplayer' }  # wmplayer or edge
-$Fullscreen = $Arguments -contains '-fs' -or $Arguments -contains '-fullscreen'
 
 if (-not $Path) {
     Write-Host "$($C.Warn)[ERROR] Usage: play <path> [wmplayer|edge] [-fs]$($C.Reset)"
@@ -15,7 +22,13 @@ if (-not $Path) {
     return
 }
 
-if (-not (Assert-ToolkitAction -Verb "force-play video" -Command "play $Path" -Config $Config -Arguments $Arguments)) { return }
+if (-not $Force) {
+    if ($PSCmdlet.ShouldProcess("Target $($Config.IP)", "Force-play video '$Path'")) {
+        if (-not (Request-ToolkitConfirmation -Verb "force-play video" -Command "play $Path" -Config $Config -Arguments $Arguments)) { return }
+    } else {
+        return
+    }
+}
 
 $IP = $Config.IP
 $User = $Config.User
@@ -24,21 +37,28 @@ $FileName = Split-Path $Path -Leaf
 $PublicPath = "C:\Users\Public\$FileName"
 
 Write-Host "[play] Copying to Public folder for cross-user access..." -ForegroundColor Cyan
-$CopyCmd = "scp -i `"$Key`" `"$Path`" $User@$IP:`"$PublicPath`""
-$ExitCode = & powershell -NoProfile -Command $CopyCmd; $LASTEXITCODE
-if ($ExitCode -ne 0) { Write-Host "[FAIL] SCP copy failed." -ForegroundColor Red; return }
+
+# Use Start-Process with argument array for safe execution (avoids injection)
+$ScpArgs = @("-i", $Key, $Path, "${User}@${IP}:${PublicPath}")
+$ScpProc = Start-Process -FilePath "scp" -ArgumentList $ScpArgs -NoNewWindow -Wait -PassThru
+if ($ScpProc.ExitCode -ne 0) { Write-Host "[FAIL] SCP copy failed." -ForegroundColor Red; return }
 
 Write-Host "[play] Launching on target via Scheduled Task..." -ForegroundColor Cyan
-$LoggedInUserCmd = "ssh $User@$IP -i $Key `(Get-CimInstance Win32_ComputerSystem).UserName`"
-$LoggedInUser = & powershell -NoProfile -Command $LoggedInUserCmd
+
+# Get logged-in user via SSH
+$SshArgs = @("-i", $Key, "${User}@${IP}", "(Get-CimInstance Win32_ComputerSystem).UserName")
+$SshProc = Start-Process -FilePath "ssh" -ArgumentList $SshArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput "loggedin.txt"
+$LoggedInUser = (Get-Content "loggedin.txt" -ErrorAction SilentlyContinue).Trim()
+if (-not $LoggedInUser) { Write-Host "[FAIL] Could not determine logged-in user." -ForegroundColor Red; return }
+Remove-Item "loggedin.txt" -ErrorAction SilentlyContinue
 
 if ($Player -eq 'edge') {
     $EdgePath = 'file:///C:/Users/Public/' + $FileName
-    $ActionArg = "--start-fullscreen `"`$EdgePath`"`"
-    $Exe = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+    $ActionArg = "--start-fullscreen `"$EdgePath`""
+    $Exe = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
 } else {
-    $ActionArg = "`"`$PublicPath`" /fullscreen"
-    $Exe = "C:\Program Files\Windows Media Player\wmplayer.exe"
+    $ActionArg = "`"$PublicPath`" /fullscreen"
+    $Exe = "${env:ProgramFiles}\Windows Media Player\wmplayer.exe"
 }
 
 $TaskScript = @"
@@ -51,11 +71,12 @@ Unregister-ScheduledTask -TaskName `"ForceVideo_$FileName`" -Confirm:`$false
 "@
 
 $Encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($TaskScript))
-$SSHCmd = "ssh -i `$Key $User@$IP powershell -NoProfile -WindowStyle Hidden -EncodedCommand $Encoded"
-& powershell -NoProfile -Command $SSHCmd
+$SshExecArgs = @("-i", $Key, "$User@$IP", "powershell", "-NoProfile", "-WindowStyle", "Hidden", "-EncodedCommand", $Encoded)
+Start-Process -FilePath "ssh" -ArgumentList $SshExecArgs -NoNewWindow -Wait
 
 Write-Host "[play] Cleaning up remote file..." -ForegroundColor Cyan
-$CleanupCmd = "ssh -i `"$Key`" $User@$IP Remove-Item `"$PublicPath`" -Force"
-& powershell -NoProfile -Command $CleanupCmd
+$CleanupArgs = @("-i", $Key, "$User@$IP", "Remove-Item", "`"$PublicPath`"", "-Force")
+Start-Process -FilePath "ssh" -ArgumentList $CleanupArgs -NoNewWindow -Wait
 
 [PSCustomObject]@{ Action='play'; File=$FileName; Player=$Player; Status='Completed' } | Format-ToolOutput -Format $Format
+

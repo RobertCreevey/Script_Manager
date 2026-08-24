@@ -1,7 +1,7 @@
 # Type: Listener
 # Description: Continuously monitors a target for online/offline state changes and alerts (toast+beep) on transition, with optional chain on recovery.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
+$C = Get-ToolkitColors
 $Chain = if ($Arguments) { $Arguments -join " " } else { $null }
 $Target = if ($Config) { $Config.IP } else { "127.0.0.1" }
 Write-Host "[netmon] Monitoring $Target for state changes (Ctrl+C to stop)..." -ForegroundColor Cyan
@@ -24,3 +24,4 @@ try {
         Start-Sleep -Seconds 5
     }
 } finally { Write-Host "[netmon] Stopped." -ForegroundColor Yellow }
+

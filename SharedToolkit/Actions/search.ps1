@@ -2,7 +2,7 @@
 # Description: Searches across all installed toolkit actions, commands, and help text.
 param($Config, [array]$Arguments)
 
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $Query = $Arguments -join ' '
 $AllToolkits = @("SSHToolkit", "NetToolkit", "MediaToolkit", "SecToolkit", "FileToolkit", "SharedToolkit")
 $Results = @()

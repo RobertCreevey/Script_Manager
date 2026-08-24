@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Lists all connected displays/monitors with resolution, refresh rate, and primary display flag.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 Write-Host "[monitors] Connected displays..." -ForegroundColor Cyan
 try {
     Add-Type -AssemblyName System.Windows.Forms
@@ -16,3 +16,4 @@ try {
 } catch {
     Write-Host "[FAIL] Monitor enum failed: $_" -ForegroundColor Red
 }
+

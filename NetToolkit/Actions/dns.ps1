@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Flushes the local DNS cache and optionally resolves a hostname against a specific DNS server.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 if ($ArgsOnly -contains "-flush") {
     Clear-DnsClientCache -ErrorAction SilentlyContinue
@@ -26,3 +26,4 @@ if ($ArgsOnly.Count -eq 0) {
     Clear-DnsClientCache -ErrorAction SilentlyContinue
     Write-Host "[OK] DNS client cache flushed." -ForegroundColor Green
 }
+

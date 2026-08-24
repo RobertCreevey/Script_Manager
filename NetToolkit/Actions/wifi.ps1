@@ -2,7 +2,7 @@
 # Description: Lists saved WiFi profiles on the local machine and shows the cleartext password for a named profile.
 param($Config, [array]$Arguments)
 $Arguments = @($Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $Name = if ($Arguments[0]) { $Arguments[0] } else { $null }
 Write-Host "[wifi] Saved profiles..." -ForegroundColor Cyan
 try {
@@ -20,3 +20,4 @@ try {
 } catch {
     Write-Host "[FAIL] WiFi enum failed: $_" -ForegroundColor Red
 }
+

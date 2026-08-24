@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Manages cloud storage (S3, Blob Storage, Cloud Storage) - list, sync, cp, rm.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table", "-r", "-R") })
 $Format = "table"
 if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
@@ -44,7 +44,7 @@ switch ($Sub) {
     }
     'rm' {
         if (-not $Target) { Write-Host "$($C.Warn)[ERROR] Usage: storage rm <bucket/obj> [-r]$($C.Reset)" ; return }
-        if (-not (Assert-ToolkitAction -Verb "delete storage object" -Command "rm $Target" -Config $Config -Arguments $Arguments)) { return }
+        if (-not (Request-ToolkitConfirmation -Verb "delete storage object" -Command "rm $Target" -Config $Config -Arguments $Arguments)) { return }
         switch ($Provider) {
             'aws'  { & aws s3 rm $Target $CommonArgs @(if($Recursive){"--recursive"}) }
             'azure' { & az storage blob delete --container-name (Split-Path $Target -Parent) --name (Split-Path $Target -Leaf) --auth-mode login }
@@ -61,3 +61,4 @@ switch ($Sub) {
     }
     default { Write-Host "$($C.Warn)[ERROR] Usage: storage [ls|cp|sync|rm|mb] ...$($C.Reset)" }
 }
+

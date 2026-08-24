@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Shows Windows Defender status: real-time protection, antispyware, network protection, and signature age.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 Write-Host "[defender] Windows Defender status..." -ForegroundColor Cyan
 try {
     $Status = Get-MpComputerStatus -ErrorAction SilentlyContinue
@@ -16,3 +16,4 @@ try {
 } catch {
     Write-Host "[FAIL] Could not read Defender status: $_" -ForegroundColor Red
 }
+

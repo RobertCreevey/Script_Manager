@@ -1,7 +1,7 @@
 # Type: Listener
 # Description: Continuously updates the console window title with a compact realtime status (clock, CPU, RAM, context) — the 'top appbar'.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
+$C = Get-ToolkitColors
 $Interval = if ($Arguments[0] -and $Arguments[0] -match '^\d+$') { [int]$Arguments[0] } else { 3 }
 $Ctx = if ($Config) { "$($Config.User)@$($Config.IP)" } else { "local" }
 Write-Host "$($C.Warn)[appbar] Updating window title every ${Interval}s (Ctrl+C to stop).$($C.Reset)"
@@ -15,3 +15,4 @@ try {
         Start-Sleep -Seconds $Interval
     }
 } finally { Write-Host "$($C.Warn)[appbar] stopped.$($C.Reset)" }
+

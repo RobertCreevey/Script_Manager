@@ -2,7 +2,7 @@
 # Description: Interactive REPL shell for toolkit commands with history and tab completion.
 param($Config, [array]$Arguments)
 
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $HistoryFile = "$env:USERPROFILE\Documents\SSHToolkit_ShellHistory.log"
 $Prompt = "tk> "
 

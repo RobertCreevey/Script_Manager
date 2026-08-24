@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Manages Docker images (list, pull, push, build, tag, rmi, prune).
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f", "-json", "-csv", "-raw", "-table", "-a", "--all") })
 $Format = "table"
 if ($Arguments -contains '-json') { $Format = 'json' } elseif ($Arguments -contains '-csv') { $Format = 'csv' } elseif ($Arguments -contains '-raw') { $Format = 'raw' }
@@ -33,7 +33,7 @@ switch ($Sub) {
     }
     'push' {
         if (-not $Target) { Write-Host "$($C.Warn)[ERROR] Usage: images push <image>[:tag]$($C.Reset)" ; return }
-        if (-not (Assert-ToolkitAction -Verb "push image" -Command "docker push $Target" -Config $Config -Arguments $Arguments)) { return }
+        if (-not (Request-ToolkitConfirmation -Verb "push image" -Command "docker push $Target" -Config $Config -Arguments $Arguments)) { return }
         & $BaseCmd push $Target
     }
     'build' {
@@ -49,11 +49,11 @@ switch ($Sub) {
     'rmi' {
         if (-not $Target) { Write-Host "$($C.Warn)[ERROR] Usage: images rmi <image>[:tag] [-f]$($C.Reset)" ; return }
         $Force = $Arguments -contains '-f'
-        if (-not (Assert-ToolkitAction -Verb "remove image" -Command "docker rmi $Target" -Config $Config -Arguments $Arguments)) { return }
+        if (-not (Request-ToolkitConfirmation -Verb "remove image" -Command "docker rmi $Target" -Config $Config -Arguments $Arguments)) { return }
         & $BaseCmd rmi @(if($Force){"-f"}) $Target
     }
     'prune' {
-        if (-not (Assert-ToolkitAction -Verb "prune unused images" -Command "docker image prune" -Config $Config -Arguments $Arguments)) { return }
+        if (-not (Request-ToolkitConfirmation -Verb "prune unused images" -Command "docker image prune" -Config $Config -Arguments $Arguments)) { return }
         & $BaseCmd image prune @(if($All){"-a"}) -f
     }
     'history' {
@@ -62,3 +62,4 @@ switch ($Sub) {
     }
     default { Write-Host "$($C.Warn)[ERROR] Usage: images [ls|pull|push|build|tag|rmi|prune|history] ...$($C.Reset)" }
 }
+

@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Smart interactive alert: shows a popup with action buttons, requires confirmation detailing exactly what will be done, then fires the chosen chain. Supports presets (diskfull, offline) or free-form args.
 param($Config, [array]$Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
+$C = Get-ToolkitColors
 
 $Presets = @{
     diskfull = @{
@@ -51,13 +51,15 @@ if ($Map -and $Map[$Choice]) {
     if ($ChainFile) {
         $Preview = Format-ChainPreview $ChainFile
         $Ctx = if ($Config) { "$($Config.User)@$($Config.IP)" } else { "local" }
-        $Confirmed = Invoke-ToolConfirm -Problem $Problem -WillDo ("Will run chain '$TargetChain':`n$Preview") -Target $Ctx -Dangerous
+        $Confirmed = Confirm-ToolkitAction -Problem $Problem -WillDo ("Will run chain '$TargetChain':`n$Preview") -Target $Ctx -Dangerous
         if (-not $Confirmed) { Write-Host "$($C.Warn)Alert action cancelled by user.$($C.Reset)" -ForegroundColor Yellow; return }
     }
     Write-Host "$($C.Param)→ running chain '$TargetChain'$($C.Reset)"
     try { Invoke-UniversalToolkitRouter -Action "chain" -ForwardedArgs @("run", $TargetChain, "-Force") } catch {
-        Invoke-ToolError -Message "Alert chain '$TargetChain' failed: $_" -Severity Error -Config $Config
+        Write-ToolkitError -Message "Alert chain '$TargetChain' failed: $_" -Severity Error -Config $Config
     }
 } else {
     Write-Host "$($C.Info)[ALERT]$($C.Reset) No action chosen or no chain mapped for '$Choice'." -ForegroundColor Gray
 }
+
+

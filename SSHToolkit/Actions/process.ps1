@@ -9,7 +9,7 @@ $Auth = "-i `"$($Config.Key)`""
 $Target = "$($Config.User)@$($Config.IP)"
 if ($Action -eq "kill") {
     if (-not $Name) { Write-Host "[ERROR] Usage: process <name> kill" -ForegroundColor Red ; return }
-    if (-not (Assert-ToolkitAction -Verb "kill process '$Name'" -Command "taskkill /IM $Name /F" -Config $Config -Arguments $Arguments -Dangerous)) { return }
+    if (-not (Request-ToolkitConfirmation -Verb "kill process '$Name'" -Command "taskkill /IM $Name /F" -Config $Config -Arguments $Arguments -Dangerous)) { return }
     $Cmd = "taskkill /IM $Name /F"
 } elseif ($Name) {
     $Cmd = "tasklist /FI `"IMAGENAME eq $Name`""
@@ -17,3 +17,4 @@ if ($Action -eq "kill") {
     $Cmd = "tasklist"
 }
 & ssh -o ConnectTimeout=8 -o BatchMode=yes $Auth $Target $Cmd
+

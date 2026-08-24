@@ -11,4 +11,5 @@ if ($Arguments[0] -and $Arguments[0] -in $Severities) {
     $Title = if ($Arguments[0]) { $Arguments[0] } else { "SSHToolkit" }
     $Message = if ($Arguments[1]) { ($Arguments[1..($Arguments.Length - 1)] -join " ") } else { "" }
 }
-Invoke-ToolNotify -Title $Title -Message $Message -Severity $Severity -Config $Config
+Send-ToolkitNotification -Title $Title -Message $Message -Severity $Severity -Config $Config
+

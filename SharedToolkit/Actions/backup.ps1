@@ -2,7 +2,7 @@
 # Description: Backs up or restores all toolkit configuration (profiles + chains) to/from a timestamped JSON bundle.
 param($Config, [array]$Arguments)
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $Sub = if ($ArgsOnly[0]) { $ArgsOnly[0].ToLower() } else { "backup" }
 $BackupDir = "$env:USERPROFILE\Documents\SSHToolkit_Backups"
 
@@ -79,3 +79,4 @@ $TotalProfiles = ($Bundle.Toolkits.PSObject.Properties | ForEach-Object { $_.Val
 $TotalChains = ($Bundle.Toolkits.PSObject.Properties | ForEach-Object { $_.Value.Chains.Count } | Measure-Object -Sum).Sum
 Write-Host "[OK] Backup saved: $($C.Str)$(Split-Path $BackupFile -Leaf)$($C.Reset)" -ForegroundColor Green
 Write-Host "  $($C.Param)$($Bundle.Toolkits.Count) toolkits$($C.Reset), $($C.Param)$TotalProfiles profiles$($C.Reset), $($C.Param)$TotalChains chains$($C.Reset)"
+

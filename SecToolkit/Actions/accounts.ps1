@@ -2,7 +2,7 @@
 # Description: Lists local users and groups on the machine, showing name, enabled state, last logon, and group membership.
 param($Config, [array]$Arguments)
 $Arguments = @($Arguments)
-$C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{}}
+$C = Get-ToolkitColors
 $Mode = if ($Arguments[0]) { $Arguments[0].ToLower() } else { "users" }
 Write-Host "[accounts] Local $Mode..." -ForegroundColor Cyan
 try {
@@ -23,3 +23,4 @@ try {
 } catch {
     Write-Host "[FAIL] Could not enumerate accounts: $_" -ForegroundColor Red
 }
+
