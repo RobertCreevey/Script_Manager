@@ -25,6 +25,12 @@
         'Format-ToolOutput'
         'Get-ToolkitColors'
         'Get-ActionArguments'
+        'Write-ToolkitLog'
+        'Rotate-LogFile'
+        'Invoke-SSHCommand'
+        'Invoke-SCPTransfer'
+        'Mask-Secrets'
+        'New-ToolkitError'
     )
     AliasesToExport = @()
     CmdletsToExport = @()

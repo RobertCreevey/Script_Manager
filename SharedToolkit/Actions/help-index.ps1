@@ -264,6 +264,53 @@ switch ($Topic) {
         Write-Host "  wts = WTSSendMessage API (targets Session 1 directly)"
         Write-Host ""
     }
+    'examples' {
+        Write-Host ""
+        Write-Host "===== AUTO-GENERATED EXAMPLES =====" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host "Generated from toolkit.json parameter definitions:" -ForegroundColor Yellow
+        Write-Host ""
+        
+        $All = Get-AllToolkits
+        foreach ($Tk in $All) {
+            $M = $Tk.Manifest
+            if ($M.actions) {
+                foreach ($Act in $M.actions.PSObject.Properties.Name) {
+                    $Aliases = $M.actions.$Act -join ', '
+                    Write-Host "  $($C.Host)[$($Tk.Name)]$($C.Reset) $($C.Action)$Act$($C.Reset) [$Aliases]"
+                    
+                    # Generate example from parameters
+                    $Example = "$Act"
+                    if ($M.parameters -and $M.parameters[$Act]) {
+                        $Params = $M.parameters[$Act]
+                        foreach ($Param in $Params.PSObject.Properties.Name) {
+                            $ParamAliases = $Params.$Param -join ', '
+                            $FirstAlias = $Params.$Param[0]
+                            $Example += " -$FirstAlias <$Param>"
+                        }
+                    }
+                    # Add common switches
+                    $Example += " [-json|-csv|-raw|-table] [-Force]"
+                    Write-Host "    $($C.Str)$Example$($C.Reset)"
+                    
+                    # If there are subcommands (like storage ls/cp/sync), show them
+                    $ActionContent = $null
+                    $ActionFile = "$($Tk.Path)\Actions\$Act.ps1"
+                    if (Test-Path $ActionFile) {
+                        $Content = Get-Content $ActionFile -Raw -ErrorAction SilentlyContinue
+                        if ($Content -match 'switch\s*\(\$Sub\)') {
+                            $Subs = [regex]::Matches($Content, '''(\w+)''\s*\{') | ForEach-Object { $_.Groups[1].Value } | Where-Object { $_ -ne 'default' } | Select-Object -Unique
+                            if ($Subs) {
+                                Write-Host "    Subcommands: $($Subs -join ', ')"
+                            }
+                        }
+                    }
+                    Write-Host ""
+                }
+            }
+        }
+        Write-Host ""
+    }
     'troubleshooting' {
         Write-Host ""
         Write-Host "===== TROUBLESHOOTING =====" -ForegroundColor Cyan

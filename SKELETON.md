@@ -421,3 +421,216 @@ Import-Module NetToolkit -ErrorAction SilentlyContinue
 # ...
 Initialize-ToolkitCompletion
 ```
+
+---
+
+## Usage Examples
+
+### SSH LAN Administration
+```powershell
+# Create profile for target machine
+New-Target -Name server1 -IP 10.0.0.50 -User admin -Key "C:\keys\id_rsa"
+
+# Use profile alias to run actions
+server1 play "C:\Videos\intro.mp4"           # Force-play video on target screen
+server1 snap screenshot.png                   # Take remote screenshot
+server1 lock                                  # Lock workstation
+server1 msg "System maintenance in 5 min"     # Send LAN message
+server1 popup "Reboot now?" "Maintenance" 30  # Yes/No popup with 30s timeout
+server1 shutdown restart                      # Restart target
+server1 pull "C:\Remote\file.txt" "C:\Local\" # Download file from target
+server1 push "C:\Local\script.ps1" "C:\Remote\" # Upload file to target
+```
+
+### Cross-Toolkit Chaining
+```powershell
+# Define a deployment chain
+server1 chain new deploy `
+  NetToolkit::wol ; `
+  SharedToolkit::toast "Wake-on-LAN sent" ; `
+  SSHToolkit::play "C:\Videos\boot.mp4" ; `
+  DockerToolkit::compose up -d
+
+# Run chain (with confirmation unless -Force)
+server1 chain run deploy -Force
+
+# One-off cross-toolkit dispatch
+server1 dispatch NetToolkit portscan 10.0.0.100
+server1 dispatch DockerToolkit ps
+server1 dispatch GitToolkit status
+```
+
+### Cloud Management
+```powershell
+# Create cloud profile
+New-CloudProfile -Name aws-prod -Provider aws -Region us-east-1 -Profile production
+
+# Use profile
+aws-prod instances -json                    # List EC2 instances as JSON
+aws-prod storage ls my-bucket --prefix logs/ # List S3 objects
+aws-prod fn invoke my-function -payload '{"key":"value"}'
+aws-prod vnet vpcs                          # List VPCs
+aws-prod db list                            # List RDS instances
+aws-prod secrets get db-password            # Get secret value
+aws-prod costs -csv                         # Get billing report as CSV
+```
+
+### Docker Management
+```powershell
+# Create Docker profile
+New-DockerProfile -Name swarm -Host tcp://10.0.0.5:2376 -Context swarm-context
+
+# Container operations
+swarm ps -a                                 # List all containers
+swarm images --filter dangling=true         # List dangling images
+swarm compose up -d --build                 # Start compose stack
+swarm logs my-container -f --tail 50        # Follow logs
+swarm exec my-container powershell          # Interactive shell
+swarm prune -a --volumes                    # Clean everything
+swarm stats --no-stream                     # Resource usage snapshot
+swarm inspect my-container -json            # Full container details
+swarm build -t myapp:latest ./app           # Build image
+swarm pull myapp:latest                     # Pull image
+swarm push myapp:latest                     # Push image
+swarm system df                             # Disk usage
+```
+
+### Git Operations
+```powershell
+# Create Git profile
+New-GitProfile -Name work -Path "C:\Projects" -User "John Doe" -Email "john@company.com"
+
+# Repository operations
+work status                                 # Show working tree status
+work diff --cached                          # Show staged changes
+work commit -m "feat: add feature" -a       # Commit all changes
+work push origin main                       # Push to remote
+work pull --rebase                          # Pull with rebase
+work log --oneline -10 --graph              # Pretty log
+work branch create feature/login            # Create & switch branch
+work merge feature/login --no-ff            # Merge with no fast-forward
+work tag create v1.0.0 -m "Release 1.0.0"   # Annotated tag
+work stash push -m "WIP: experimental"      # Stash changes
+work rebase start main --interactive        # Interactive rebase
+work remote add upstream https://github.com/org/repo.git
+work clone https://github.com/org/repo.git  # Clone repository
+work add -A                                 # Stage all changes
+work reset --hard HEAD~1                    # Hard reset
+work restore --staged file.txt              # Unstage file
+work clean -fd                              # Remove untracked files
+work config get user.name                   # Get config
+work blame file.txt -L 10,20                # Show line authors
+work show HEAD                              # Show commit details
+work bisect start --bad HEAD --good v1.0.0  # Binary search for bug
+```
+
+### Network Diagnostics
+```powershell
+# Create network profile
+New-NetProfile -Name router -Host 10.0.0.1
+
+# Network operations
+router wol aa:bb:cc:dd:ee:ff                # Wake-on-LAN
+router sweep 10.0.0.0/24                    # Ping sweep
+router portscan 10.0.0.50 1-1000            # Port scan
+router traceroute 8.8.8.8                   # Traceroute
+router dns example.com --type MX            # DNS lookup
+router arp 10.0.0.50                        # ARP lookup
+router wifi MySSID                          # Show WiFi profile
+router gateway                              # Show default gateway
+router connections --state ESTABLISHED      # Active connections
+router publicip                             # Show public IP
+router macvendor aa:bb:cc:dd:ee:ff          # MAC vendor lookup
+```
+
+### Shared Utilities (Available from any profile)
+```powershell
+ani toast "Title" "Message" 10             # Toast notification (10s)
+ani beep 1000 500                          # Beep (1000Hz, 500ms)
+ani speak "Hello world"                    # Text-to-speech
+ani clip "text to copy"                    # Copy to clipboard
+ani open "https://example.com"             # Open URL/file
+ani now                                    # Current date/time
+ani sys                                    # System info
+ani hash file.txt -algorithm SHA256        # File checksum
+ani net 8.8.8.8                            # Ping test
+ani shot screenshot.png                    # Local screenshot
+ani timer 60                               # Countdown timer
+ani battery                                # Battery status
+ani procs                                  # Process list
+ani svc                                    # Service list
+ani theme dark                             # Switch color theme
+ani alias list                             # List user aliases
+ani events                                 # Show event log
+ani notify "Warning" "Disk full" -Severity Warn
+ani ask "Continue?"                        # Yes/No prompt
+ani alert "Critical error"                 # Alert dialog
+ani dashboard                              # System dashboard
+ani registry                               # List registered toolkits
+ani dispatch DockerToolkit ps              # Cross-toolkit dispatch
+ani backup                                 # Backup profiles/chains
+ani restore backup.zip                     # Restore from backup
+ani schedule add daily-backup "0 2 * * *" "ani chain run backup"
+ani history                                # Command history
+ani search "docker"                        # Search all actions
+ani logs -f                                # Follow logs
+ani health                                 # Health check dashboard
+ani profiles list                          # List all profiles
+ani shell                                  # Interactive REPL
+ani chain list                             # List chains
+ani chain run deploy -Force                # Run chain
+```
+
+### Profile Configuration
+```powershell
+# View profile config
+server1 config view
+
+# Update profile values
+server1 config set IP 10.0.0.100
+server1 config set User newadmin
+server1 config set Key "C:\keys\new_id_rsa"
+
+# Profile management across toolkits
+profiles list                              # List all profiles
+profiles show -name server1                # Show profile details
+profiles export -name server1 -json        # Export as JSON
+profiles create -name newtarget -toolkit SSHToolkit -IP 10.0.0.1 -User admin
+profiles delete -name oldtarget
+```
+
+### Output Formats
+```powershell
+# All actions support -json, -csv, -raw, -table
+server1 instances -json                    # JSON output
+server1 instances -csv                     # CSV output
+server1 instances -raw                     # Raw text (pipe-friendly)
+server1 instances -table                   # Formatted table (default)
+
+# Pipeline usage
+Get-Process | Format-ToolOutput -Format json -Properties Name,Id,CPU
+Get-Service | Format-ToolOutput -Format csv
+Get-ChildItem | Format-ToolOutput -Format raw
+```
+
+### Tab Completion Setup
+```powershell
+# In your $PROFILE:
+Import-Module SharedToolkit
+Import-Module SSHToolkit
+Import-Module NetToolkit
+Import-Module MediaToolkit
+Import-Module FileToolkit
+Import-Module SecToolkit
+Import-Module CloudToolkit
+Import-Module DockerToolkit
+Import-Module GitToolkit
+
+# Register completions for ALL profile aliases
+Initialize-ToolkitCompletion
+
+# Now tab completion works for:
+server1 <TAB>          # Actions: play, snap, lock, msg, ...
+server1 instances <TAB> # Parameters: -json, -csv, -filter, ...
+ani chain <TAB>        # Chains: deploy, backup, wakeplay, ...
+```
