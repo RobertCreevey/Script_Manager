@@ -16,7 +16,7 @@
     --accent-3: #34d399;
     --accent-4: #f472b6;
     --border: #475569;
-    --shadow: rgba(0,0,0,0.45);
+    --shadow: rgba(0,0,0,.45);
     --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
     --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
@@ -38,7 +38,6 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
 
-  /* GPU-accelerated animations */
   @keyframes floatUp {
     from { opacity: 0; transform: translate3d(0, 30px, 0); }
     to { opacity: 1; transform: translate3d(0, 0, 0); }
@@ -294,6 +293,130 @@
   .hidden { display: none !important; }
   .no-results { color: var(--text-muted); padding: 18px; text-align: center; }
   .highlight { outline: 2px solid var(--accent-2); outline-offset: 2px; border-radius: 8px; }
+
+  .getting-started {
+    background: linear-gradient(180deg, rgba(30,41,59,.8), rgba(30,41,59,.55));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+    backdrop-filter: blur(10px);
+    transform: translate3d(0,0,0);
+    animation: floatUp .55s ease-out both;
+    margin-bottom: 18px;
+  }
+  .getting-started h2 { margin: 0 0 14px; font-size: 20px; }
+  .step {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 12px;
+    margin: 12px 0;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(15,23,42,.45);
+    border: 1px solid var(--border);
+  }
+  .step-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--accent); color: #0b1020;
+    display: grid; place-items: center;
+    font-weight: 800; font-size: 14px;
+  }
+  .step h4 { margin: 0 0 6px; color: var(--accent); }
+  .step p { margin: 0; color: var(--text-muted); font-size: 13px; }
+  .step code, .demo code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: #0b1220;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: block;
+    color: #cbd5e1;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .demo {
+    background: linear-gradient(180deg, rgba(30,41,59,.8), rgba(30,41,59,.55));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+    backdrop-filter: blur(10px);
+    transform: translate3d(0,0,0);
+    animation: floatUp .55s ease-out both;
+    margin-top: 14px;
+  }
+  .demo h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: var(--text-muted);
+    margin: 0 0 10px;
+  }
+  .demo-grid {
+    display: grid;
+    gap: 14px;
+  }
+  .demo-item {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(15,23,42,.45);
+    overflow: hidden;
+  }
+  .demo-header {
+    padding: 10px 12px;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+  }
+  .demo-header::after { content: '▸'; transition: transform .2s; }
+  details[open] .demo-header::after { transform: rotate(90deg); }
+  .demo-body {
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+  }
+  .demo-body .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--text-muted);
+  }
+  .output {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #cbd5e1;
+    background: #0b1220;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .nav-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 14px 0;
+  }
+  .nav-card {
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(148,163,184,.08);
+    border: 1px solid var(--border);
+    transition: transform .14s ease, border-color .18s ease;
+    cursor: pointer;
+  }
+  .nav-card:hover { border-color: var(--accent); transform: translate3d(0,-2px,0); }
+  .nav-card h4 { margin: 0 0 4px; color: var(--accent); }
+  .nav-card p { margin: 0; color: var(--text-muted); font-size: 12px; }
 </style>
 </head>
 <body>
@@ -312,6 +435,92 @@
 </header>
 
 <main id="main">
+
+  <section class="getting-started" id="getting-started">
+    <h2>🚀 Getting Started — Step by Step</h2>
+    <p style="color:var(--text-muted);margin:0 0 14px;max-width:90ch;">Follow these steps in order. Each step assumes you completed the previous one.</p>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div>
+        <h4>Install the toolkits</h4>
+        <p>From the repo root, run the installer. This copies all toolkit modules to your user Modules folder and wires up your profile.</p>
+        <code>.\Install-Toolkit.ps1 -AutoLoad -Verify</code>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <h4>Reload PowerShell (or your profile)</h4>
+        <p>Close and reopen PowerShell, or run:</p>
+        <code>. $PROFILE</code>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div>
+        <h4>Create your first profile</h4>
+        <p>Profiles are target configs that become shell aliases. Pick the right command for your target type.</p>
+        <code># SSH target (SSHToolkit)
+New-Target -Name server1 -IP 10.0.0.50 -User admin -Key 'C:\keys\id_rsa'
+
+# Docker host (DockerToolkit)
+Register-DockerProfile -Name swarm -Host tcp://10.0.0.10:2376
+
+# Cloud (CloudToolkit)
+Register-CloudProfile -Name aws-prod -Provider aws -Region us-east-1 -Profile default
+
+# Git workspace (GitToolkit)
+Register-GitProfile -Name work -Path 'C:\Projects' -User 'you' -Email 'you@example.com'</code>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div>
+        <h4>Verify your profile alias works</h4>
+        <p>Your profile name is now a global alias. Test it:</p>
+        <code>server1 help
+# Expected: full help index for that profile</code>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div>
+        <h4>Try your first action</h4>
+        <p>Every profile supports <code>sys</code>, <code>help</code>, and <code>banner</code> out of the box.</p>
+        <code>server1 sys
+# Expected: hostname, OS, CPU, RAM, uptime, free disk
+
+server1 banner
+# Expected: permanent legend/status box
+
+server1 help
+# Expected: full index of builtins, actions, listeners, chains</code>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">6</div>
+      <div>
+        <h4>Enable tab completion (if not auto-loaded)</h4>
+        <p>Tab completion is registered automatically by the installer. If it is not working:</p>
+        <code>Initialize-ToolkitCompletion</code>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">7</div>
+      <div>
+        <h4>Explore every part of every toolkit</h4>
+        <p>Use the sections below to see exact commands and expected output for every toolkit.</p>
+      </div>
+    </div>
+  </section>
+
   <section class="toolkit" data-toolkit="SharedToolkit" id="shared">
     <div class="toolkit-header">
       <div class="toolkit-title">🧩 SharedToolkit <span class="badge">v1.0.0</span></div>
@@ -406,6 +615,171 @@
     </div>
   </section>
 
+  <section class="demo" id="shared-demos">
+    <h3>🧩 SharedToolkit — Step-by-Step Demos</h3>
+    <p class="desc" style="margin:0 0 14px;">These commands work from any profile alias, or from the local session when no profile is active.</p>
+    <div class="demo-grid">
+
+      <details class="demo-item">
+        <summary class="demo-header">1. Install prerequisites + create an SSH profile</summary>
+        <div class="demo-body">
+          <div class="label">Type these commands</div>
+          <code>.\Install-Toolkit.ps1 -AutoLoad -Verify
+. $PROFILE
+New-Target -Name server1 -IP 10.0.0.50 -User admin -Key 'C:\keys\id_rsa'</code>
+          <div class="label">Expected output</div>
+          <div class="output">[INSTALL] Checking prerequisites...
+  [OK] All external tools found
+[INSTALL] Discovering toolkits...
+  [OK] Found 9 toolkit(s): CloudToolkit, DockerToolkit, ...
+[INSTALL] Installing SharedToolkit...
+  [OK] Installed SharedToolkit -> ...
+[INSTALL] Configuring auto-load in C:\Users\...\Documents\PowerShell\Microsoft.PowerShell_profile.ps1
+  [OK] Wrote auto-load block
+[OK] Registered profile: server1 - admin@10.0.0.50</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">2. View system summary (local or remote)</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 sys</code>
+          <div class="label">Expected output</div>
+          <div class="output">Host : DESKTOP-ABC123
+OS   : Microsoft Windows 10 Pro (10.0.19045)
+CPU  : Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz
+RAM  : 16.0 GB
+Up   : 0:12:34.56
+Disk : C: 112GB free of 512GB</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">3. Show the permanent banner / legend</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 banner</code>
+          <div class="label">Expected output</div>
+          <div class="output">╔══════════════════════════════════════════════════════════════════════════════╗
+║  Script_Manager — Permanent Banner & Legend                                   ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  Context:    server1 — target alias (e.g. server1, work, aws-prod)              ║
+║  Action:     &lt;profile&gt; &lt;action&gt; [args...] — run any action                       ║
+║  Say:        &lt;profile&gt; say &lt;text&gt; — speak or print text (alias: speak/tts)  ║
+║  Help:       &lt;profile&gt; help — full action index                           ║
+║  ...                                                                       ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  Active: server1  |  Time: 14:22:01  |  CPU: 12%  |  RAM: 7.1/16 GB            ║
+╚══════════════════════════════════════════════════════════════════════════════╝</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">4. Speak / TTS text</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 speak "Hello from Script_Manager"
+# Aliases: say, tts, voice</code>
+          <div class="label">Expected output</div>
+          <div class="output">[speak] Speaking: Hello from Script_Manager</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">5. Copy text to clipboard</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 clip "Copied via Script_Manager"</code>
+          <div class="label">Expected output</div>
+          <div class="output">[clip] Copied to clipboard: Copied via Script_Manager</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">6. Open a file or URL</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 open https://github.com/RobertCreevey/Script_Manager</code>
+          <div class="label">Expected output</div>
+          <div class="output">[open] Launching: https://github.com/RobertCreevey/Script_Manager</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">7. Show current date/time</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 now</code>
+          <div class="label">Expected output</div>
+          <div class="output">2026-09-06 14:22:01</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">8. List all installed toolkits</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 registry</code>
+          <div class="label">Expected output</div>
+          <div class="output">═══ TOOLKIT REGISTRY ═══
+9 toolkits installed (parent: SharedToolkit)
+  CloudToolkit  v1.0.0  1 actions  1 listeners  0 profiles
+  DockerToolkit v1.0.0  1 actions  1 listeners  3 profiles
+  ...</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">9. View / filter event log</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 events</code>
+          <div class="label">Expected output</div>
+          <div class="output">═══ EVENTS ═══
+[2026-09-06 14:20:01] [Info] [LocalSystem] Log : Install verification
+[2026-09-06 14:20:02] [Info] [10.0.0.50] Confirm : problem=...</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">10. Create and run a chain</summary>
+        <div class="demo-body">
+          <div class="label">Type these commands</div>
+          <code>server1 chain new demo sys
+server1 chain run demo -DryRun</code>
+          <div class="label">Expected output</div>
+          <div class="output">[chain] Created chain 'demo' (1 steps)
+[chain] Dry-run mode — no remote changes will be made
+  1. sys</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">11. Cross-toolkit dispatch</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 dispatch SharedToolkit speak "Hello from dispatch"</code>
+          <div class="label">Expected output</div>
+          <div class="output">[speak] Speaking: Hello from dispatch</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">12. Switch color theme</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 theme light
+server1 theme mono</code>
+          <div class="label">Expected output</div>
+          <div class="output">[theme] Switched to light theme
+[theme] Switched to mono theme</div>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
   <section class="toolkit" data-toolkit="SSHToolkit" id="ssh">
     <div class="toolkit-header">
       <div class="toolkit-title">🖥️ SSHToolkit <span class="badge">v1.0.0</span></div>
@@ -453,6 +827,171 @@
     </div>
   </section>
 
+  <section class="demo" id="ssh-demos">
+    <h3>🖥️ SSHToolkit — Step-by-Step Demos</h3>
+    <p class="desc" style="margin:0 0 14px;">Requires an SSH profile created with <code>New-Target</code>. All commands assume <code>server1</code> is your profile alias.</p>
+    <div class="demo-grid">
+
+      <details class="demo-item">
+        <summary class="demo-header">1. Create an SSH profile</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>New-Target -Name server1 -IP 10.0.0.50 -User admin -Key 'C:\keys\id_rsa'</code>
+          <div class="label">Expected output</div>
+          <div class="output">[OK] Registered profile: server1 - admin@10.0.0.50</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">2. Check if target is reachable</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 online</code>
+          <div class="label">Expected output</div>
+          <div class="output">[*] Auditing network heartbeat to 10.0.0.50...
+[PASS] Target is ONLINE.</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">3. View profile config</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 config view</code>
+          <div class="label">Expected output</div>
+          <div class="output">
+--- PROFILE MAPS: [server1] ---
+  Target IP Binding Address  : 10.0.0.50
+  Target System Admin User   : admin
+  Private Cryptographic Key  : C:\keys\id_rsa</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">4. Open an interactive SSH session</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 ssh</code>
+          <div class="label">Expected output</div>
+          <div class="output">admin@10.0.0.50's password:
+[10.0.0.50] PS C:\Users\admin&gt;</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">5. Force-play a video on the remote screen</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 play 'C:\Videos\demo.mp4'</code>
+          <div class="label">Expected output</div>
+          <div class="output">[play] Copying to Public folder for cross-user access...
+[play] Launching on target via Scheduled Task...
+[play] Cleaning up remote file...
+Action File Player Status
+------ ----- ------ ------
+play   demo.mp4 wmplayer Completed</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">6. Take a silent screenshot and download it</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 snap screenshot.png</code>
+          <div class="label">Expected output</div>
+          <div class="output">[snap] Capturing screenshot on target...
+[snap] Downloading...
+[snap] Cleaning up remote...
+[OK] Saved to C:\Users\...\Downloads\screenshot.png
+Action File LocalPath Status
+------ ---- -------- ------
+snap screenshot.png C:\Users\... Completed</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">7. List remote processes</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 process chrome</code>
+          <div class="label">Expected output</div>
+          <div class="output">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
+-------  ------    -----      -----     ------     --  -- -----------
+    842      42   123456      89123       1.23   1234   1 chrome
+    654      38    98765      76542       0.87   5678   1 chrome</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">8. Query / restart a remote service</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 service wuauserv status</code>
+          <div class="label">Expected output</div>
+          <div class="output">Status : Running
+Name   : wuauserv
+DisplayName : Windows Update</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">9. Transfer a file to the remote host</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 push C:\Deploy\app.exe</code>
+          <div class="label">Expected output</div>
+          <div class="output">[OK] Pushed to admin@10.0.0.50:C:\Users\Public\</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">10. Execute a command remotely</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 run hostname</code>
+          <div class="label">Expected output</div>
+          <div class="output">DESKTOP-ABC123</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">11. Send a message to the remote desktop</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 msg "Hello from Script_Manager"</code>
+          <div class="label">Expected output</div>
+          <div class="output">[msg] Message sent to admin@10.0.0.50</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">12. Reboot / shutdown the target</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 shutdown restart</code>
+          <div class="label">Expected output</div>
+          <div class="output">[shutdown] Sending restart command to admin@10.0.0.50...</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">13. Scan ports on the target</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>server1 ports 22 80 443 3389</code>
+          <div class="label">Expected output</div>
+          <div class="output">Port  Status
+----  ------
+22    OPEN
+80    OPEN
+443   OPEN
+3389  CLOSED</div>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
   <section class="toolkit" data-toolkit="NetToolkit" id="net">
     <div class="toolkit-header">
       <div class="toolkit-title">🌐 NetToolkit <span class="badge">v1.0.0</span></div>
@@ -486,6 +1025,144 @@
     </div>
   </section>
 
+  <section class="demo" id="net-demos">
+    <h3>🌐 NetToolkit — Step-by-Step Demos</h3>
+    <p class="desc" style="margin:0 0 14px;">No profile required for local network actions. Use a profile alias for remote/context-aware actions.</p>
+    <div class="demo-grid">
+
+      <details class="demo-item">
+        <summary class="demo-header">1. Wake a machine via Wake-on-LAN</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani wol AA:BB:CC:DD:EE:FF
+# Or with broadcast: ani wol AA:BB:CC:DD:EE:FF 192.168.1.255</code>
+          <div class="label">Expected output</div>
+          <div class="output">[wol] Magic packet sent to AA:BB:CC:DD:EE:FF</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">2. Ping-sweep a subnet</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani sweep 192.168.1</code>
+          <div class="label">Expected output</div>
+          <div class="output">Host         Status Latency
+----         ------ --------
+192.168.1.1  UP      0.42ms
+192.168.1.10 UP      1.12ms
+192.168.1.50 UP      0.88ms</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">3. Scan TCP ports</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani portscan 192.168.1.50 22 80 443 3389</code>
+          <div class="label">Expected output</div>
+          <div class="output">Target: 192.168.1.50
+Port  Status
+----  ------
+22    OPEN
+80    OPEN
+443   OPEN
+3389  CLOSED</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">4. Run traceroute</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani traceroute google.com 20</code>
+          <div class="label">Expected output</div>
+          <div class="output">Tracing route to google.com [142.250.80.46]
+  1    &lt;1 ms     192.168.1.1
+  2     4 ms     10.0.0.1
+  3    12 ms     72.14.198.6
+  ...
+Trace complete.</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">5. Flush local DNS cache / resolve hostname</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani dns -flush
+ani dns github.com 8.8.8.8</code>
+          <div class="label">Expected output</div>
+          <div class="output">[dns] Flushed local DNS cache
+Name           Address
+----           -------
+github.com     140.82.112.3</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">6. Show local ARP table</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani arp 192.168.1</code>
+          <div class="label">Expected output</div>
+          <div class="output">Interface: 192.168.1.100
+  IP              MAC              Type
+  --              ---              ----
+  192.168.1.1     AA-BB-CC-00-11-22 dynamic
+  192.168.1.10    DD-EE-FF-33-44-55 dynamic</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">7. List saved WiFi profiles</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani wifi</code>
+          <div class="label">Expected output</div>
+          <div class="output">All User Profile : HomeNetwork
+All User Profile : GuestWiFi</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">8. Show default gateway info</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani gateway</code>
+          <div class="label">Expected output</div>
+          <div class="output">Default Gateway : 192.168.1.1
+Primary DNS     : 8.8.8.8
+Adapter         : Ethernet0</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">9. Show active TCP connections</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani connections</code>
+          <div class="label">Expected output</div>
+          <div class="output">Local Address          Local Port   Remote Address         Remote Port   State
+--------------          ----------   -------------         -----------   -----
+0.0.0.0               22           *                      *             LISTENING
+192.168.1.100          443          142.250.80.46         443           ESTABLISHED</div>
+        </div>
+      </details>
+
+      <details class="demo-item">
+        <summary class="demo-header">10. Show public IP</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani publicip</code>
+          <div class="label">Expected output</div>
+          <div class="output">Public IP : 72.229.28.185
+ISP       : Comcast Cable</div>
+        </div>
+      </details>
+
+    </div>
+  </section>
   <section class="toolkit" data-toolkit="DockerToolkit" id="docker">
     <div class="toolkit-header">
       <div class="toolkit-title">🐳 DockerToolkit <span class="badge">v1.0.0</span></div>
@@ -524,6 +1201,80 @@
     </div>
   </section>
 
+  <section class="demo" id="docker-demos">
+    <h3>🐳 DockerToolkit — Step-by-Step Demos</h3>
+    <p class="desc" style="margin:0 0 14px;">Requires Docker Desktop/Engine running locally, or a remote host registered with <code>Register-DockerProfile</code>.</p>
+    <div class="demo-grid">
+      <details class="demo-item">
+        <summary class="demo-header">1. Register a Docker profile</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>Register-DockerProfile -Name swarm -Host tcp://10.0.0.10:2376</code>
+          <div class="label">Expected output</div>
+          <div class="output">[OK] Registered Docker profile: swarm - tcp://10.0.0.10:2376</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">2. List containers</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>swarm ps</code>
+          <div class="label">Expected output</div>
+          <div class="output">ID       Name   Image          Status    Ports   Created
+a1b2c3d4 web    nginx:latest   Up 2h     80/tcp  2026-09-05</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">3. Start / stop a container</summary>
+        <div class="demo-body">
+          <div class="label">Type these commands</div>
+          <code>swarm ps start web
+swarm ps stop web</code>
+          <div class="label">Expected output</div>
+          <div class="output">web
+web</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">4. View container logs</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>swarm logs web -f --tail=50</code>
+          <div class="label">Expected output</div>
+          <div class="output">10.0.0.1 - - [06/Sep/2026:14:00:01 +0000] "GET / HTTP/1.1" 200 612</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">5. Execute a command inside a container</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>swarm exec web bash</code>
+          <div class="label">Expected output</div>
+          <div class="output">root@a1b2c3d4:/#</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">6. Run compose up / down</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>swarm compose up -d</code>
+          <div class="label">Expected output</div>
+          <div class="output">[compose] Starting stack...
+Creating network swarm_default
+Creating service swarm_web</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">7. Prune unused resources</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>swarm prune -f</code>
+          <div class="label">Expected output</div>
+          <div class="output">[prune] Deleted 3 containers, 2 images, 1 network</div>
+        </div>
+      </details>
+    </div>
+  </section>
   <section class="toolkit" data-toolkit="FileToolkit" id="file">
     <div class="toolkit-header">
       <div class="toolkit-title">📁 FileToolkit <span class="badge">v1.0.0</span></div>
@@ -551,6 +1302,69 @@
     </div>
   </section>
 
+  <section class="demo" id="file-demos">
+    <h3>📁 FileToolkit — Step-by-Step Demos</h3>
+    <p class="desc" style="margin:0 0 14px;">Local file operations. No profile required.</p>
+    <div class="demo-grid">
+      <details class="demo-item">
+        <summary class="demo-header">1. Find files by wildcard</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani find *.log -Size +10MB</code>
+          <div class="label">Expected output</div>
+          <div class="output">Path                        Size
+----                        ----
+C:\Logs\app.log              124MB
+C:\Logs\install.log           18MB</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">2. Grep file contents</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani grep "error" C:\Logs\app.log -n 20</code>
+          <div class="label">Expected output</div>
+          <div class="output">12:2026-09-06 12:00:01 ERROR Connection timeout
+45:2026-09-06 12:05:22 ERROR Failed to bind port</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">3. Find duplicate files</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani dedupe C:\Downloads</code>
+          <div class="label">Expected output</div>
+          <div class="output">Found 3 duplicate groups (12 files, 245MB savings)
+Group 1: C:\Downloads\a.zip (45MB) = C:\Downloads\backup\a.zip</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">4. Show directory tree sizes</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani treesize C:\Projects</code>
+          <div class="label">Expected output</div>
+          <div class="output">Size   Directory
+----   ---------
+1.2GB  C:\Projects\src
+340MB  C:\Projects\docs
+12MB   C:\Projects\.git</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">5. Show recently modified files</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani recent C:\Projects -n 5</code>
+          <div class="label">Expected output</div>
+          <div class="output">LastWriteTime         Path
+-------------         ----
+2026-09-06 14:00:01   C:\Projects\src\main.ps1
+2026-09-06 13:55:10   C:\Projects\README.md</div>
+        </div>
+      </details>
+    </div>
+  </section>
   <section class="toolkit" data-toolkit="GitToolkit" id="git">
     <div class="toolkit-header">
       <div class="toolkit-title">🔀 GitToolkit <span class="badge">v1.0.0</span></div>
@@ -595,6 +1409,80 @@
     </div>
   </section>
 
+  <section class="demo" id="git-demos">
+    <h3>🔀 GitToolkit — Step-by-Step Demos</h3>
+    <p class="desc" style="margin:0 0 14px;">Requires a Git workspace registered with <code>Register-GitProfile</code>. All commands assume <code>work</code> is your profile alias.</p>
+    <div class="demo-grid">
+      <details class="demo-item">
+        <summary class="demo-header">1. Register a Git workspace</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>Register-GitProfile -Name work -Path 'C:\Projects' -User 'you' -Email 'you@example.com'</code>
+          <div class="label">Expected output</div>
+          <div class="output">[OK] Registered Git profile: work - C:\Projects</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">2. Show working tree status</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>work status</code>
+          <div class="label">Expected output</div>
+          <div class="output">On branch main
+Changes not staged for commit:
+  modified:   src/main.ps1
+Untracked files:
+  src/new.ps1</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">3. Stage and commit</summary>
+        <div class="demo-body">
+          <div class="label">Type these commands</div>
+          <code>work add src/main.ps1
+work commit -m "Fix bug"</code>
+          <div class="label">Expected output</div>
+          <div class="output">[main abc1234] Fix bug
+ 1 file changed, 2 insertions(+)</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">4. Push to remote</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>work push origin main</code>
+          <div class="label">Expected output</div>
+          <div class="output">Enumerating objects: 3, done.
+Counting objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 456 bytes | 456.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To github.com:you/repo.git
+   abc1234..def5678  main -> main</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">5. Create and switch branch</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>work branch create feature-x</code>
+          <div class="label">Expected output</div>
+          <div class="output">Switched to a new branch 'feature-x'</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">6. Show commit log</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>work log -n 5</code>
+          <div class="label">Expected output</div>
+          <div class="output">commit def5678...
+Author: you &lt;you@example.com&gt;
+Date:   Mon Sep 6 14:00:00 2026
+    Fix bug</div>
+        </div>
+      </details>
+    </div>
+  </section>
   <section class="toolkit" data-toolkit="MediaToolkit" id="media">
     <div class="toolkit-header">
       <div class="toolkit-title">🎬 MediaToolkit <span class="badge">v1.0.0</span></div>
@@ -619,6 +1507,60 @@
         <a class="chip" href="#media-wallpaper"><span class="name">wallpaper</span><span class="meta">wallpaper, background, bg, desktop</span></a>
         <a class="chip" href="#media-wincap"><span class="name">wincap</span><span class="meta">wincap, window-capture, capture-window, fg-capture</span></a>
       </div>
+    </div>
+  </section>
+
+  <section class="demo" id="media-demos">
+    <h3>🎬 MediaToolkit — Step-by-Step Demos</h3>
+    <p class="desc" style="margin:0 0 14px;">Local-only actions. No profile required.</p>
+    <div class="demo-grid">
+      <details class="demo-item">
+        <summary class="demo-header">1. Get / set volume</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani audio 50
+# 0 = mute, 100 = max</code>
+          <div class="label">Expected output</div>
+          <div class="output">[audio] Volume set to 50%</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">2. Show monitor info</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani monitors</code>
+          <div class="label">Expected output</div>
+          <div class="output">Monitor 0: 1920x1080 @ 60Hz (Primary)
+Monitor 1: 2560x1440 @ 144Hz</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">3. Change display resolution</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani display 1920 1080 60</code>
+          <div class="label">Expected output</div>
+          <div class="output">[display] Resolution changed to 1920x1080 @ 60Hz</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">4. Set wallpaper</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani wallpaper C:\Images\bg.jpg</code>
+          <div class="label">Expected output</div>
+          <div class="output">[wallpaper] Wallpaper set to C:\Images\bg.jpg</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">5. Capture foreground window</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani wincap C:\Captures\win.png</code>
+          <div class="label">Expected output</div>
+          <div class="output">[wincap] Saved window capture to C:\Captures\win.png</div>
+        </div>
+      </details>
     </div>
   </section>
 
@@ -657,6 +1599,75 @@
     </div>
   </section>
 
+  <section class="demo" id="sec-demos">
+    <h3>🛡️ SecToolkit — Step-by-Step Demos</h3>
+    <p class="desc" style="margin:0 0 14px;">Local security auditing. No profile required.</p>
+    <div class="demo-grid">
+      <details class="demo-item">
+        <summary class="demo-header">1. Check firewall status</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani firewall</code>
+          <div class="label">Expected output</div>
+          <div class="output">Domain    : Enabled
+Private   : Enabled
+Public    : Enabled
+Inbound   : Block
+Outbound  : Allow</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">2. Check Windows Defender status</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani defender</code>
+          <div class="label">Expected output</div>
+          <div class="output">Antispyware : Enabled
+Antivirus   : Enabled
+Real-time   : Enabled
+Last scan   : 2026-09-06 08:00:00</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">3. List local users and groups</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani accounts</code>
+          <div class="label">Expected output</div>
+          <div class="output">Users:
+  Administrator  Built-in account for administering
+  Guest          Built-in account for guest access
+  you             Standard user
+
+Groups:
+  Administrators  Full control
+  Users           Standard users</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">4. Show UAC level</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani uac</code>
+          <div class="label">Expected output</div>
+          <div class="output">UAC Level : 3 (Default - notify me only when apps try to make changes)</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">5. List auto-start programs</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>ani autoruns</code>
+          <div class="label">Expected output</div>
+          <div class="output">Name                 Path                                              Enabled
+----                 ----                                              -------
+OneDrive             C:\Program Files\OneDrive\OneDrive.exe           Yes
+Teams                C:\Program Files\Teams\Teams.exe                  Yes</div>
+        </div>
+      </details>
+    </div>
+  </section>
+
   <section class="toolkit" data-toolkit="CloudToolkit" id="cloud">
     <div class="toolkit-header">
       <div class="toolkit-title">☁️ CloudToolkit <span class="badge">v1.0.0</span></div>
@@ -688,6 +1699,2414 @@
     </div>
   </section>
 
+  <section class="demo" id="cloud-demos">
+    <h3>☁️ CloudToolkit — Step-by-Step Demos</h3>
+    <p class="desc" style="margin:0 0 14px;">Requires AWS CLI / Azure CLI / gcloud installed and configured. Register a cloud profile first.</p>
+    <div class="demo-grid">
+      <details class="demo-item">
+        <summary class="demo-header">1. Register a cloud profile</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>Register-CloudProfile -Name aws-prod -Provider aws -Region us-east-1 -Profile default</code>
+          <div class="label">Expected output</div>
+          <div class="output">[OK] Registered cloud profile: aws-prod - aws/us-east-1/default</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">2. List EC2 instances</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>aws-prod instances</code>
+          <div class="label">Expected output</div>
+          <div class="output">Id            State   Type        AZ         Name         PrivateIP   PublicIP
+--            -----   ----        --         ----         --------   --------
+i-0123456789  running t3.micro    us-east-1a web-server   10.0.0.10   54.1.2.3</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">3. List S3 buckets</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>aws-prod storage</code>
+          <div class="label">Expected output</div>
+          <div class="output">Name               Created              Size
+----               -------              ----
+my-app-assets      2025-01-15T00:00:00Z 1.2GB
+logs-archive       2024-06-20T00:00:00Z 8.7GB</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">4. List Lambda functions</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>aws-prod fn</code>
+          <div class="label">Expected output</div>
+          <div class="output">Name              Runtime    LastModified
+----              -------    ------------
+my-api-handler    nodejs18.x 2026-09-01T12:00:00Z
+image-processor    python3.11 2026-08-15T08:30:00Z</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">5. List VPCs / subnets</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>aws-prod vnet</code>
+          <div class="label">Expected output</div>
+          <div class="output">Id            Name      CIDR           AZs
+--            ----      ----           ---
+vpc-01234567  main      10.0.0.0/16    us-east-1a, us-east-1b</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">6. List RDS databases</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>aws-prod db</code>
+          <div class="label">Expected output</div>
+          <div class="output">Id            Engine   Status   Size
+--            ------   -----    ----
+mydb-prod     postgres available db.t3.medium</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">7. List secrets</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>aws-prod secrets</code>
+          <div class="label">Expected output</div>
+          <div class="output">Name                     LastChanged
+----                     -----------
+prod/db/password         2026-08-01T00:00:00Z
+prod/api/key             2026-07-20T00:00:00Z</div>
+        </div>
+      </details>
+      <details class="demo-item">
+        <summary class="demo-header">8. Show estimated costs</summary>
+        <div class="demo-body">
+          <div class="label">Type this command</div>
+          <code>aws-prod costs</code>
+          <div class="label">Expected output</div>
+          <div class="output">Month       Amount   Service
+-----       ------   -------
+2026-08     $124.50  EC2
+2026-08      $48.20  S3
+2026-08      $32.10  RDS
+Total       $204.80</div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="nav-cards" id="global-nav">
+    <div class="nav-card">
+      <h4>📖 Full Help</h4>
+      <p>Run <code>&lt;profile&gt; help</code> for a complete built-in + action + listener index.</p>
+    </div>
+    <div class="nav-card">
+      <h4>🔗 Cross-Toolkit</h4>
+      <p>Use <code>&lt;profile&gt; dispatch &lt;Toolkit&gt; &lt;action&gt;</code> to call any toolkit from any profile.</p>
+    </div>
+    <div class="nav-card">
+      <h4>⛓️ Chains</h4>
+      <p>Compose workflows with <code>&lt;profile&gt; chain new &lt;name&gt; step1 ; step2</code>.</p>
+    </div>
+    <div class="nav-card">
+      <h4>📤 Output Formats</h4>
+      <p>Append <code>-json</code>, <code>-csv</code>, <code>-raw</code>, or <code>-table</code> to any action.</p>
+    </div>
+    <div class="nav-card">
+      <h4>🔌 Plugins</h4>
+      <p>Extend with <code>plugin new &lt;name&gt;</code> in <code>~/.toolkit/plugins</code>.</p>
+    </div>
+    <div class="nav-card">
+      <h4>📋 Tab Completion</h4>
+      <p>Press Tab after a profile alias to complete actions, chains, and switches.</p>
+    </div>
+  </section>
+
+<section class="demo" id="shared-help">
+<h3>shared-help</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-help</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; help</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help help for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-config">
+<h3>shared-config</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-config</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; config</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help config for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-online">
+<h3>shared-online</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-online</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; online</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help online for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-chain">
+<h3>shared-chain</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-chain</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; chain</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help chain for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-dispatch">
+<h3>shared-dispatch</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-dispatch</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; dispatch</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help dispatch for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-alias">
+<h3>shared-alias</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-alias</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; alias</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help alias for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-schedule">
+<h3>shared-schedule</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-schedule</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; schedule</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help schedule for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-registry">
+<h3>shared-registry</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-registry</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; registry</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help registry for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-beep">
+<h3>shared-beep</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-beep</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; beep</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help beep for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-toast">
+<h3>shared-toast</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-toast</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; toast</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help toast for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-log">
+<h3>shared-log</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-log</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; log</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help log for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-speak">
+<h3>shared-speak</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-speak</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; speak</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help speak for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-clip">
+<h3>shared-clip</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-clip</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; clip</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help clip for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-open">
+<h3>shared-open</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-open</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; open</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help open for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-now">
+<h3>shared-now</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-now</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; now</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help now for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-sys">
+<h3>shared-sys</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-sys</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; sys</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help sys for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-hash">
+<h3>shared-hash</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-hash</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; hash</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help hash for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-net">
+<h3>shared-net</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-net</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; net</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help net for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-shot">
+<h3>shared-shot</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-shot</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; shot</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help shot for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-timer">
+<h3>shared-timer</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-timer</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; timer</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help timer for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-battery">
+<h3>shared-battery</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-battery</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; battery</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help battery for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-procs">
+<h3>shared-procs</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-procs</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; procs</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help procs for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-svc">
+<h3>shared-svc</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-svc</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; svc</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help svc for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-theme">
+<h3>shared-theme</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-theme</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; theme</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help theme for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-events">
+<h3>shared-events</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-events</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; events</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help events for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-notify">
+<h3>shared-notify</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-notify</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; notify</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help notify for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-ask">
+<h3>shared-ask</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-ask</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; ask</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help ask for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-alert">
+<h3>shared-alert</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-alert</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; alert</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help alert for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-dashboard">
+<h3>shared-dashboard</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-dashboard</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; dashboard</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help dashboard for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-backup">
+<h3>shared-backup</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-backup</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; backup</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help backup for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-restore">
+<h3>shared-restore</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-restore</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; restore</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help restore for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-history">
+<h3>shared-history</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-history</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; history</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help history for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-search">
+<h3>shared-search</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-search</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; search</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help search for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-logs">
+<h3>shared-logs</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-logs</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; logs</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help logs for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-health">
+<h3>shared-health</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-health</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; health</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help health for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-profiles">
+<h3>shared-profiles</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-profiles</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; profiles</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help profiles for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-shell">
+<h3>shared-shell</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-shell</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; shell</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help shell for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-chain-list">
+<h3>shared-chain-list</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-chain-list</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; chain</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help chain for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-help-index">
+<h3>shared-help-index</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-help-index</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; help</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help help for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-clock">
+<h3>shared-clock</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-clock</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; clock</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help clock for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-clipboard">
+<h3>shared-clipboard</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-clipboard</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; clipboard</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help clipboard for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-filewatch">
+<h3>shared-filewatch</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-filewatch</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; filewatch</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help filewatch for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="shared-popup">
+<h3>shared-popup</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">shared-popup</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; popup</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help popup for details, or see the shared-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="chain-noop">
+<h3>chain-noop</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">chain-noop</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; noop</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help noop for details, or see the chain-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="chain-wol">
+<h3>chain-wol</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">chain-wol</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; wol</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help wol for details, or see the chain-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="chain-restartsvc">
+<h3>chain-restartsvc</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">chain-restartsvc</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; restartsvc</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help restartsvc for details, or see the chain-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="chain-cleanup">
+<h3>chain-cleanup</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">chain-cleanup</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; cleanup</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help cleanup for details, or see the chain-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-help">
+<h3>ssh-help</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-help</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; help</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help help for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-config">
+<h3>ssh-config</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-config</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; config</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help config for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-online">
+<h3>ssh-online</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-online</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; online</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help online for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-ssh">
+<h3>ssh-ssh</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-ssh</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; ssh</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help ssh for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-play">
+<h3>ssh-play</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-play</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; play</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help play for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-snap">
+<h3>ssh-snap</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-snap</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; snap</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help snap for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-apps">
+<h3>ssh-apps</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-apps</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; apps</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help apps for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-lock">
+<h3>ssh-lock</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-lock</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; lock</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help lock for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-time">
+<h3>ssh-time</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-time</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; time</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help time for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-msg">
+<h3>ssh-msg</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-msg</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; msg</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help msg for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-popup">
+<h3>ssh-popup</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-popup</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; popup</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help popup for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-push">
+<h3>ssh-push</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-push</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; push</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help push for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-pull">
+<h3>ssh-pull</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-pull</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; pull</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help pull for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-run">
+<h3>ssh-run</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-run</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; run</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help run for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-shutdown">
+<h3>ssh-shutdown</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-shutdown</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; shutdown</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help shutdown for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-ports">
+<h3>ssh-ports</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-ports</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; ports</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help ports for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-process">
+<h3>ssh-process</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-process</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; process</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help process for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-service">
+<h3>ssh-service</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-service</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; service</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help service for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-disk">
+<h3>ssh-disk</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-disk</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; disk</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help disk for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-netcheck">
+<h3>ssh-netcheck</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-netcheck</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; netcheck</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help netcheck for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="ssh-procwait">
+<h3>ssh-procwait</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">ssh-procwait</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; procwait</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help procwait for details, or see the ssh-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-help">
+<h3>net-help</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-help</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; help</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help help for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-config">
+<h3>net-config</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-config</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; config</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help config for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-online">
+<h3>net-online</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-online</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; online</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help online for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-wol">
+<h3>net-wol</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-wol</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; wol</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help wol for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-sweep">
+<h3>net-sweep</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-sweep</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; sweep</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help sweep for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-portscan">
+<h3>net-portscan</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-portscan</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; portscan</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help portscan for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-traceroute">
+<h3>net-traceroute</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-traceroute</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; traceroute</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help traceroute for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-dns">
+<h3>net-dns</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-dns</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; dns</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help dns for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-arp">
+<h3>net-arp</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-arp</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; arp</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help arp for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-wifi">
+<h3>net-wifi</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-wifi</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; wifi</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help wifi for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-gateway">
+<h3>net-gateway</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-gateway</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; gateway</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help gateway for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-connections">
+<h3>net-connections</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-connections</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; connections</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help connections for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-publicip">
+<h3>net-publicip</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-publicip</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; publicip</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help publicip for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="net-macvendor">
+<h3>net-macvendor</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">net-macvendor</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; macvendor</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help macvendor for details, or see the net-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-help">
+<h3>docker-help</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-help</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; help</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help help for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-config">
+<h3>docker-config</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-config</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; config</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help config for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-online">
+<h3>docker-online</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-online</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; online</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help online for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-context">
+<h3>docker-context</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-context</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; context</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help context for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-login">
+<h3>docker-login</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-login</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; login</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help login for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-ps">
+<h3>docker-ps</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-ps</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; ps</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help ps for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-images">
+<h3>docker-images</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-images</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; images</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help images for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-compose">
+<h3>docker-compose</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-compose</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; compose</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help compose for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-volumes">
+<h3>docker-volumes</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-volumes</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; volumes</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help volumes for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-networks">
+<h3>docker-networks</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-networks</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; networks</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help networks for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-logs">
+<h3>docker-logs</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-logs</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; logs</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help logs for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-exec">
+<h3>docker-exec</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-exec</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; exec</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help exec for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-prune">
+<h3>docker-prune</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-prune</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; prune</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help prune for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-stats">
+<h3>docker-stats</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-stats</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; stats</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help stats for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-inspect">
+<h3>docker-inspect</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-inspect</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; inspect</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help inspect for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-build">
+<h3>docker-build</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-build</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; build</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help build for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-pull">
+<h3>docker-pull</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-pull</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; pull</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help pull for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-push">
+<h3>docker-push</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-push</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; push</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help push for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="docker-system">
+<h3>docker-system</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">docker-system</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; system</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help system for details, or see the docker-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="file-help">
+<h3>file-help</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">file-help</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; help</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help help for details, or see the file-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="file-config">
+<h3>file-config</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">file-config</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; config</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help config for details, or see the file-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="file-online">
+<h3>file-online</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">file-online</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; online</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help online for details, or see the file-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="file-find">
+<h3>file-find</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">file-find</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; find</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help find for details, or see the file-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="file-grep">
+<h3>file-grep</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">file-grep</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; grep</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help grep for details, or see the file-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="file-dedupe">
+<h3>file-dedupe</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">file-dedupe</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; dedupe</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help dedupe for details, or see the file-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="file-treesize">
+<h3>file-treesize</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">file-treesize</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; treesize</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help treesize for details, or see the file-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="file-recent">
+<h3>file-recent</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">file-recent</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; recent</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help recent for details, or see the file-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-help">
+<h3>git-help</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-help</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; help</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help help for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-config">
+<h3>git-config</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-config</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; config</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help config for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-online">
+<h3>git-online</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-online</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; online</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help online for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-status">
+<h3>git-status</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-status</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; status</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help status for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-diff">
+<h3>git-diff</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-diff</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; diff</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help diff for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-commit">
+<h3>git-commit</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-commit</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; commit</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help commit for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-push">
+<h3>git-push</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-push</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; push</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help push for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-pull">
+<h3>git-pull</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-pull</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; pull</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help pull for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-branch">
+<h3>git-branch</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-branch</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; branch</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help branch for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-merge">
+<h3>git-merge</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-merge</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; merge</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help merge for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-tag">
+<h3>git-tag</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-tag</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; tag</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help tag for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-log">
+<h3>git-log</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-log</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; log</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help log for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-stash">
+<h3>git-stash</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-stash</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; stash</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help stash for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-rebase">
+<h3>git-rebase</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-rebase</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; rebase</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help rebase for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-remote">
+<h3>git-remote</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-remote</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; remote</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help remote for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-init">
+<h3>git-init</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-init</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; init</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help init for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-clone">
+<h3>git-clone</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-clone</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; clone</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help clone for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-add">
+<h3>git-add</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-add</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; add</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help add for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-reset">
+<h3>git-reset</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-reset</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; reset</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help reset for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-restore">
+<h3>git-restore</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-restore</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; restore</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help restore for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-clean">
+<h3>git-clean</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-clean</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; clean</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help clean for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-blame">
+<h3>git-blame</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-blame</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; blame</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help blame for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-show">
+<h3>git-show</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-show</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; show</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help show for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="git-bisect">
+<h3>git-bisect</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">git-bisect</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; bisect</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help bisect for details, or see the git-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="media-help">
+<h3>media-help</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">media-help</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; help</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help help for details, or see the media-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="media-config">
+<h3>media-config</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">media-config</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; config</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help config for details, or see the media-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="media-online">
+<h3>media-online</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">media-online</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; online</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help online for details, or see the media-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="media-audio">
+<h3>media-audio</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">media-audio</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; audio</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help audio for details, or see the media-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="media-display">
+<h3>media-display</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">media-display</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; display</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help display for details, or see the media-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="media-monitors">
+<h3>media-monitors</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">media-monitors</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; monitors</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help monitors for details, or see the media-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="media-wallpaper">
+<h3>media-wallpaper</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">media-wallpaper</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; wallpaper</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help wallpaper for details, or see the media-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="media-wincap">
+<h3>media-wincap</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">media-wincap</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; wincap</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help wincap for details, or see the media-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="sec-help">
+<h3>sec-help</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">sec-help</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; help</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help help for details, or see the sec-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="sec-config">
+<h3>sec-config</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">sec-config</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; config</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help config for details, or see the sec-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="sec-online">
+<h3>sec-online</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">sec-online</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; online</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help online for details, or see the sec-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="sec-firewall">
+<h3>sec-firewall</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">sec-firewall</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; firewall</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help firewall for details, or see the sec-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="sec-defender">
+<h3>sec-defender</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">sec-defender</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; defender</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help defender for details, or see the sec-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="sec-accounts">
+<h3>sec-accounts</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">sec-accounts</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; accounts</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help accounts for details, or see the sec-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="sec-uac">
+<h3>sec-uac</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">sec-uac</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; uac</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help uac for details, or see the sec-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="sec-autoruns">
+<h3>sec-autoruns</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">sec-autoruns</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; autoruns</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help autoruns for details, or see the sec-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="sec-shares">
+<h3>sec-shares</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">sec-shares</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; shares</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help shares for details, or see the sec-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="sec-failwatch">
+<h3>sec-failwatch</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">sec-failwatch</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; failwatch</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help failwatch for details, or see the sec-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="cloud-help">
+<h3>cloud-help</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">cloud-help</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; help</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help help for details, or see the cloud-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="cloud-config">
+<h3>cloud-config</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">cloud-config</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; config</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help config for details, or see the cloud-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="cloud-online">
+<h3>cloud-online</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">cloud-online</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; online</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help online for details, or see the cloud-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="cloud-auth">
+<h3>cloud-auth</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">cloud-auth</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; auth</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help auth for details, or see the cloud-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="cloud-regions">
+<h3>cloud-regions</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">cloud-regions</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; regions</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help regions for details, or see the cloud-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="cloud-instances">
+<h3>cloud-instances</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">cloud-instances</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; instances</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help instances for details, or see the cloud-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="cloud-storage">
+<h3>cloud-storage</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">cloud-storage</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; storage</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help storage for details, or see the cloud-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="cloud-fn">
+<h3>cloud-fn</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">cloud-fn</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; fn</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help fn for details, or see the cloud-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="cloud-vnet">
+<h3>cloud-vnet</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">cloud-vnet</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; vnet</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help vnet for details, or see the cloud-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="cloud-db">
+<h3>cloud-db</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">cloud-db</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; db</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help db for details, or see the cloud-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="cloud-secrets">
+<h3>cloud-secrets</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">cloud-secrets</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; secrets</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help secrets for details, or see the cloud-demos section.</div>
+</div>
+</details>
+</div>
+</section>
+<section class="demo" id="cloud-costs">
+<h3>cloud-costs</h3>
+<div class="demo-grid">
+<details class="demo-item">
+<summary class="demo-header">cloud-costs</summary>
+<div class="demo-body">
+<div class="label">Example</div>
+<code>&lt;profile&gt; costs</code>
+<div class="label">See also</div>
+<div class="output">Run &lt;profile&gt; help costs for details, or see the cloud-demos section.</div>
+</div>
+</details>
+</div>
+</section>
 </main>
 
 <footer>
@@ -713,12 +4132,11 @@
 
   function filter(){
     const q = search.value.trim();
-    const toolkits = Array.from(main.querySelectorAll('.toolkit'));
+    const toolkits = Array.from(main.querySelectorAll('.toolkit, .demo, .getting-started, .nav-cards'));
     let anyVisible = false;
 
     toolkits.forEach(tk=>{
-      const id = tk.id;
-      const title = tk.querySelector('.toolkit-title');
+      const title = tk.querySelector('.toolkit-title, h2, h3');
       const desc = tk.querySelector('.desc');
       const chips = tk.querySelectorAll('.chip, details.param-drawer, .example, .param-row, .nav-card, .inner');
       let tkMatch = false;
@@ -752,7 +4170,6 @@
   search.addEventListener('input', filter);
   search.addEventListener('search', filter);
 
-  // Smooth scroll for anchor chips
   document.addEventListener('click', e=>{
     const chip = e.target.closest('.chip[href^="#"]');
     if(!chip) return;
@@ -764,9 +4181,9 @@
     setTimeout(()=>target.classList.remove('highlight'), 1800);
   });
 
-  // Initial filter in case of hash
   filter();
 })();
 </script>
 </body>
 </html>
+
