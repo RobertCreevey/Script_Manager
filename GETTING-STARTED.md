@@ -1,7 +1,7 @@
-# Getting Started with Toolkit
+# Getting Started with Script_Manager
 
-A 5-minute walkthrough to get the Toolkit suite installed, create your first
-target, and start using help. If you have questions, see the full [README.md](README.md).
+A 5-minute walkthrough to get Script_Manager installed, create your first
+profile, and start using the help system.
 
 ## 1. Install
 
@@ -16,72 +16,88 @@ That copies the modules to your `Documents\PowerShell\Modules`, wires up your
 `$PROFILE` for auto-load, and verifies each module imports. New toolkits are
 picked up automatically on the next install.
 
-Want to preview first or install somewhere else?
+Preview first or install to a custom location:
 
 ```powershell
-.\Install-Toolkit.ps1 -Destination .\LocalModules -DryRun      # preview, no writes
-.\Install-Toolkit.ps1 -Toolkits SSH,Net,Docker -AutoLoad      # subset by short name
-.\Install-Toolkit.ps1 -Toolkits SSHToolkit                    # ...or full module name
+.\Install-Toolkit.ps1 -Destination .\LocalModules -DryRun
+.\Install-Toolkit.ps1 -Toolkits SSH,Net,Docker -AutoLoad
 ```
 
 ## 2. Reload
 
-Either restart PowerShell, or run:
+Restart PowerShell, or run:
 
 ```powershell
-. $PROFILE        # dot-source to load modules in the current session
+. $PROFILE
 ```
 
-## 3. Understand the idea
+## 3. Create your first profile
 
-- **Profiles** = JSON configs that become shell aliases, e.g. `server1`, `ani`,
-  `aws-prod`. Each points the toolkit at a machine / cloud / container host.
-- **Actions** = space-separated commands run against a profile: `server1 sys`.
-- **Dispatch** = one-off calls across toolkits: `server1 dispatch DockerToolkit ps`.
-- **Chaining** = compose actions: `server1 chain new deploy ... ; ` then `server1 chain run deploy`.
-
-## 4. Create a target (your first profile)
+Each toolkit has its own profile command:
 
 ```powershell
+# SSH target
 New-Target -Name server1 -IP 10.0.0.50 -User admin -Key 'C:\keys\id_rsa'
+
+# Docker host
+Register-DockerProfile -Name swarm -Host tcp://10.0.0.10:2376
+
+# Cloud
+Register-CloudProfile -Name aws-prod -Provider aws -Region us-east-1
+
+# Git workspace
+Register-GitProfile -Name work -Path 'C:\Projects' -User 'you' -Email 'you@example.com'
 ```
 
-That creates the alias `server1`, so `server1 <action>` now routes over SSH to
-that machine.
+That creates a global alias, so `<profile> <action>` now routes to that context.
 
-## 5. Get help (don't memorize commands)
+## 4. Use it
+
+```powershell
+server1 sys                        # remote system summary
+server1 snap screenshot.png        # silent remote screenshot
+server1 play 'C:\Videos\demo.mp4'  # force-play video on remote screen
+server1 config view                # inspect profile config
+```
+
+## 5. Get help (don’t memorize commands)
 
 Every profile exposes a built-in `help` system sourced from `toolkit.json`:
 
 ```powershell
-server1 help                       # full index (builtins, actions, listeners)
+server1 help                       # full index
 server1 help sys                   # help for one action
-server1 help-index actions         # every action across toolkits
+server1 help-index actions         # every action across all toolkits
 server1 help-index toolkits        # every installed toolkit + version
 server1 registry                   # same, as a data table
 ```
 
-> Tip: `help-index` with no argument opens an interactive picker (`/?` and `-h`
-> also work as shortcuts to `help`).
-
-## 6. Try it
+## 6. Compose with chains
 
 ```powershell
-server1 sys                        # remote system summary
-server1 snap screenshot.png        # silent remote screenshot -> local file
-server1 play 'C:\Videos\demo.mp4'  # force-play a video on the remote screen
+server1 chain new deploy `
+  NetToolkit::wol ; `
+  SharedToolkit::toast 'WOL sent' ; `
+  DockerToolkit::compose up -d
+
+server1 chain run deploy -Force
 ```
 
-## 7. Extend with a plugin
-
-Plugins live in `~/.toolkit/plugins` and **auto-load** on module import. Add
-your own in seconds:
+## 7. Cross-toolkit dispatch
 
 ```powershell
-plugin new Hello                      # scaffolds ~/.toolkit/plugins/Hello.ps1
-plugin load Hello                     # load it in the current session
-Hello                                 # run its default action
-plugin run Hello args...              # pass arguments
+server1 dispatch NetToolkit wol
+server1 dispatch SharedToolkit toast 'Hello from dispatch'
+```
+
+## 8. Extend with a plugin
+
+Plugins live in `~/.toolkit/plugins` and auto-load on module import.
+
+```powershell
+plugin new Hello
+plugin load Hello
+Hello
 ```
 
 See [Plugins.md](docs/Plugins.md) for the plugin authoring contract.
@@ -91,5 +107,6 @@ See [Plugins.md](docs/Plugins.md) for the plugin authoring contract.
 - `The term 'server1' is not recognized` → run `. $PROFILE`, or confirm
   `Import-Module SSHToolkit` is in your profile.
 - SSH actions fail → confirm `ssh`/`scp` are on PATH and the key is reachable.
-- Tab completion not working → confirm `Initialize-ToolkitCompletion` ran (the
-  installer adds it; `. $PROFILE` re-runs it).
+- Tab completion not working → confirm `Initialize-ToolkitCompletion` ran.
+- Path-not-found errors after moving the repo → the framework now discovers
+  installed toolkits dynamically via `PSModulePath`; no hard-coded paths remain.
