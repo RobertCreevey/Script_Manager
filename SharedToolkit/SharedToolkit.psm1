@@ -1592,5 +1592,69 @@ function Set-ToolkitPrompt {
 
 if (-not $env:TOOLKIT_NO_PROMPT) { Set-ToolkitPrompt }
 
+function New-ToolkitDirectAliases {
+    <#
+    .SYNOPSIS
+        Creates direct global aliases for all toolkit actions so they can be
+        invoked without a profile prefix, e.g. `say 'hello'` instead of
+        `server1 say 'hello'`.
+    .DESCRIPTION
+        Discovers every action script under SharedToolkit and installed child
+        toolkit Actions folders, then registers a global alias for each
+        canonical name and declared alias. When invoked, the action runs in
+        local mode (no target Config) and receives the caller's arguments.
+        Toolkit-qualified dispatch remains available as `Toolkit::action`.
+    #>
+    [CmdletBinding()]
+    param()
+    if ($script:__ToolkitDirectAliasesInitialized) { return }
+    $script:__ToolkitDirectAliasesInitialized = $true
+
+    $seen = @{}
+    $toolkits = @(Get-Module -ListAvailable -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -like '*Toolkit' } |
+        Select-Object -Unique -ExpandProperty Name | Sort-Object)
+
+    foreach ($tk in $toolkits) {
+        $tkPath = Get-ToolkitInstallPath -ToolkitName $tk
+        if (-not $tkPath) { continue }
+        $manifest = $null
+        try { $manifest = Get-Content (Join-Path $tkPath 'toolkit.json') -Raw | ConvertFrom-Json -ErrorAction Stop } catch {}
+
+        $actionsDir = Join-Path $tkPath 'Actions'
+        if (-not (Test-Path $actionsDir)) { continue }
+
+        Get-ChildItem $actionsDir -Filter '*.ps1' -ErrorAction SilentlyContinue | ForEach-Object {
+            $base = $_.BaseName
+            if ($base -eq 'alias-resolver') { return }
+
+            $names = @($base)
+            if ($manifest -and $manifest.actions -and $manifest.actions.$base) {
+                $names += @($manifest.actions.$base | Where-Object { $_ -ne $base })
+            }
+
+            foreach ($n in $names) {
+                if ($seen[$n]) { continue }
+                $seen[$n] = $true
+
+                $scriptPath = $_.FullName
+                $aliasName = $n
+                $funcName = "Toolkit_Direct_$($n)"
+
+                try {
+                    $sb = [scriptblock]::Create(@"
+param([array]`$Arguments = @())
+& '$scriptPath' -Config `$null -Arguments @(`$Arguments)
+"@)
+                    New-Item -Path "function:global:$funcName" -Value $sb -Force | Out-Null
+                    New-Alias -Name $aliasName -Value $funcName -Force -Scope Global | Out-Null
+                } catch {}
+            }
+        }
+    }
+}
+
+New-ToolkitDirectAliases | Out-Null
+
 New-Alias -Name plugin -Value Invoke-PluginAction -Force -Scope Global
 Export-ModuleMember -Function * -Alias plugin

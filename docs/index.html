@@ -417,6 +417,136 @@
   .nav-card:hover { border-color: var(--accent); transform: translate3d(0,-2px,0); }
   .nav-card h4 { margin: 0 0 4px; color: var(--accent); }
   .nav-card p { margin: 0; color: var(--text-muted); font-size: 12px; }
+
+  /* Fixed bottom nav dock */
+  .bottom-dock {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(15,23,42,.85);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(14px) saturate(140%);
+    box-shadow: 0 10px 30px var(--shadow);
+  }
+  .dock-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform .12s ease, background .18s ease, color .18s ease, border-color .18s ease;
+    text-decoration: none;
+    font-family: var(--font);
+  }
+  .dock-item:hover {
+    color: var(--text);
+    background: rgba(148,163,184,.12);
+    border-color: var(--border);
+    transform: translate3d(0,-2px,0);
+  }
+  .dock-item.primary {
+    color: var(--accent);
+    border-color: rgba(56,189,248,.35);
+    background: rgba(56,189,248,.08);
+  }
+  .dock-sep {
+    width: 1px;
+    background: var(--border);
+    margin: 4px 4px;
+  }
+
+  /* Auto-hiding side drawer */
+  .side-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 280px;
+    background: rgba(15,23,42,.92);
+    border-right: 1px solid var(--border);
+    backdrop-filter: blur(14px) saturate(140%);
+    z-index: 200;
+    transform: translate3d(-100%,0,0);
+    transition: transform .22s ease;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow: 0 0 40px var(--shadow);
+  }
+  .side-drawer.open { transform: translate3d(0,0,0); }
+  .drawer-toggle {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 210;
+    width: 38px; height: 38px; border-radius: 12px;
+    background: rgba(15,23,42,.85);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(14px) saturate(140%);
+    color: var(--text);
+    display: grid; place-items: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: transform .14s ease, border-color .18s ease;
+  }
+  .drawer-toggle:hover { border-color: var(--accent); transform: translate3d(0,-1px,0); }
+  .drawer-section { display: flex; flex-direction: column; gap: 6px; }
+  .drawer-section h4 {
+    margin: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: var(--text-muted);
+  }
+  .drawer-link {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    transition: background .14s ease, border-color .14s ease;
+  }
+  .drawer-link:hover {
+    background: rgba(148,163,184,.10);
+    border-color: var(--border);
+    color: var(--accent);
+  }
+  .drawer-link code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent-3);
+  }
+  .drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    z-index: 190;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .22s ease;
+  }
+  .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+
+  /* Scroll offset for fixed elements */
+  body { scroll-padding-top: 84px; }
+  @media (max-width: 640px) {
+    .bottom-dock { left: 8px; right: 8px; transform: none; border-radius: 18px; }
+    .side-drawer { width: 85%; }
+  }
 </style>
 </head>
 <body>
@@ -461,8 +591,8 @@
     <div class="step">
       <div class="step-num">3</div>
       <div>
-        <h4>Create your first profile</h4>
-        <p>Profiles are target configs that become shell aliases. Pick the right command for your target type.</p>
+        <h4>Optional: create a profile for remote targets</h4>
+        <p>Profiles are only needed for remote/target-specific actions. For local actions, you can skip this and run commands directly. Create a profile when you need to target a remote machine or service.</p>
         <code># SSH target (SSHToolkit)
 New-Target -Name server1 -IP 10.0.0.50 -User admin -Key 'C:\keys\id_rsa'
 
@@ -480,26 +610,35 @@ Register-GitProfile -Name work -Path 'C:\Projects' -User 'you' -Email 'you@examp
     <div class="step">
       <div class="step-num">4</div>
       <div>
-        <h4>Verify your profile alias works</h4>
-        <p>Your profile name is now a global alias. Test it:</p>
-        <code>server1 help
-# Expected: full help index for that profile</code>
+        <h4>Run actions directly (no profile needed)</h4>
+        <p>All actions are available as direct commands. Local actions like <code>sys</code>, <code>speak</code>, and <code>beep</code> run on the local machine by default.</p>
+        <code>sys
+# Expected: hostname, OS, CPU, RAM, uptime, free disk
+
+speak 'Hello world'
+# Expected: speaks text aloud (alias: say, tts, voice)
+
+beep
+# Expected: system beep tone
+
+registry
+# Expected: list of all installed toolkits</code>
       </div>
     </div>
 
     <div class="step">
       <div class="step-num">5</div>
       <div>
-        <h4>Try your first action</h4>
-        <p>Every profile supports <code>sys</code>, <code>help</code>, and <code>banner</code> out of the box.</p>
+        <h4>Run actions through a profile (remote targets)</h4>
+        <p>When you need to target a remote machine, prefix the action with your profile alias.</p>
         <code>server1 sys
-# Expected: hostname, OS, CPU, RAM, uptime, free disk
-
-server1 banner
-# Expected: permanent legend/status box
+# Expected: hostname, OS, CPU, RAM, uptime, free disk (remote)
 
 server1 help
-# Expected: full index of builtins, actions, listeners, chains</code>
+# Expected: full index of builtins, actions, listeners, chains
+
+server1 banner
+# Expected: permanent legend/status box for that profile</code>
       </div>
     </div>
 
@@ -516,7 +655,7 @@ server1 help
       <div class="step-num">7</div>
       <div>
         <h4>Explore every part of every toolkit</h4>
-        <p>Use the sections below to see exact commands and expected output for every toolkit.</p>
+        <p>Use the sections below to see exact commands and expected output for every toolkit. Commands work both directly and through profile aliases.</p>
       </div>
     </div>
   </section>
@@ -1867,482 +2006,40 @@ Total       $204.80</div>
 </details>
 </div>
 </section>
-<section class="demo" id="shared-chain">
-<h3>shared-chain</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-chain</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; chain</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help chain for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-dispatch">
-<h3>shared-dispatch</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-dispatch</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; dispatch</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help dispatch for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-alias">
-<h3>shared-alias</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-alias</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; alias</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help alias for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-schedule">
-<h3>shared-schedule</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-schedule</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; schedule</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help schedule for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-registry">
-<h3>shared-registry</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-registry</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; registry</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help registry for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-beep">
-<h3>shared-beep</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-beep</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; beep</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help beep for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-toast">
-<h3>shared-toast</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-toast</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; toast</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help toast for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-log">
-<h3>shared-log</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-log</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; log</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help log for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-speak">
-<h3>shared-speak</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-speak</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; speak</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help speak for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-clip">
-<h3>shared-clip</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-clip</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; clip</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help clip for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-open">
-<h3>shared-open</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-open</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; open</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help open for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-now">
-<h3>shared-now</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-now</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; now</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help now for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-sys">
-<h3>shared-sys</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-sys</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; sys</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help sys for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-hash">
-<h3>shared-hash</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-hash</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; hash</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help hash for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-net">
-<h3>shared-net</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-net</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; net</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help net for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-shot">
-<h3>shared-shot</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-shot</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; shot</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help shot for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-timer">
-<h3>shared-timer</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-timer</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; timer</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help timer for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-battery">
-<h3>shared-battery</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-battery</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; battery</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help battery for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-procs">
-<h3>shared-procs</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-procs</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; procs</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help procs for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-svc">
-<h3>shared-svc</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-svc</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; svc</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help svc for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-theme">
-<h3>shared-theme</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-theme</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; theme</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help theme for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-events">
-<h3>shared-events</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-events</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; events</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help events for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-notify">
-<h3>shared-notify</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-notify</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; notify</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help notify for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-ask">
-<h3>shared-ask</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-ask</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; ask</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help ask for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-alert">
-<h3>shared-alert</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-alert</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; alert</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help alert for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-dashboard">
-<h3>shared-dashboard</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-dashboard</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; dashboard</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help dashboard for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-backup">
-<h3>shared-backup</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-backup</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; backup</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help backup for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-restore">
-<h3>shared-restore</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-restore</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; restore</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help restore for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-history">
-<h3>shared-history</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-history</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; history</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help history for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-search">
-<h3>shared-search</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-search</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; search</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help search for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-logs">
-<h3>shared-logs</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-logs</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; logs</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help logs for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-health">
-<h3>shared-health</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-health</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; health</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help health for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-profiles">
-<h3>shared-profiles</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-profiles</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; profiles</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help profiles for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="shared-shell">
-<h3>shared-shell</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-shell</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; shell</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help shell for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
+<section\ class="demo"\ id="shared-chain">\r\n<h3>shared-chain</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ chain\ list</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">demo\ \(1\ steps\)\ \[shared]\nwol\ \(3\ steps\)\ \[shared]\nrestartsvc\ \(3\ steps\)\ \[shared]</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ chain\ new\ demo\ sys</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[OK]\ Chain\ 'demo'\ created\ with\ 1\ steps\.</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">3\.\ server1\ chain\ run\ demo\ -DryRun</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">CHAIN:\ demo\ \ \(1\ steps\)\n\ \ 1\.\ sys\n\nDRY\ RUN\ —\ no\ steps\ executed\.</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">4\.\ server1\ chain\ run\ demo\ -Force</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">CHAIN:\ demo\ \ \(1\ steps\)\n\ \ 1\.\ sys\n\n\[OK]\ Chain\ 'demo'\ completed\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-dispatch">\r\n<h3>shared-dispatch</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ dispatch\ SharedToolkit\ speak\ 'Hello'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[speak]\ Speaking:\ Hello</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ dispatch\ SSHToolkit\ sys</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Host\ :\ DESKTOP-ABC123\nOS\ \ \ :\ Microsoft\ Windows\ 11\ Pro\ \(10\.0\.26200\)\n\.\.\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-alias">\r\n<h3>shared-alias</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ C</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">u</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-schedule">\r\n<h3>shared-schedule</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ N</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-registry">\r\n<h3>shared-registry</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ registry</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">═══\ TOOLKIT\ REGISTRY\ ═══\n9\ toolkits\ installed\ \(parent:\ SharedToolkit\)\n\ \ SharedToolkit\ v1\.0\.0\ \ 31\ actions\ \ 4\ listeners\ \ 0\ profiles\n\ \ SSHToolkit\ \ \ v1\.0\.0\ \ 15\ actions\ \ 2\ listeners\ \ 2\ profiles\n\ \ \.\.\.</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ registry\ SSHToolkit</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">═══\ TOOLKIT:\ SSHToolkit\ ═══\ v1\.0\.0\nLAN\ SSH\ administration\ -\ profiles,\ remote\ actions,\ file\ transfer,\ visual\ interaction\n\nPROFILES\ \(2\):\n\ \ server1\n\ \ demo\n\nACTIONS\ \(15\):\n\ \ help,\ config,\ online,\ ssh,\ play,\ snap,\ apps,\ lock,\ time,\ msg,\ popup,\ push,\ pull,\ run,\ shutdown,\ ports,\ process,\ service,\ disk\n\nLISTENERS\ \(2\):\n\ \ netcheck,\ procwait</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-beep">\r\n<h3>shared-beep</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ beep</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[beep]\ Emitting\ beep\ tone\.\.\.</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ beep\ 1000\ 200</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[beep]\ Emitting\ beep\ tone\.\.\.</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">3\.\ server1\ beep\ 2000\ 500\ C:\\Windows\\Media\\chimes\.wav</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[beep]\ Playing\ custom\ WAV:\ C:\\Windows\\Media\\chimes\.wav</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-toast">\r\n<h3>shared-toast</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">t</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-log">\r\n<h3>shared-log</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">l</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-speak">\r\n<h3>shared-speak</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">s</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-clip">\r\n<h3>shared-clip</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">c</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-open">\r\n<h3>shared-open</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ open\ https://github\.com</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[open]\ Launching:\ https://github\.com</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ open\ C:\\Windows\\notepad\.exe</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[open]\ Launching:\ C:\\Windows\\notepad\.exe</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-now">\r\n<h3>shared-now</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ now</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">2026-09-07\ 00:15:06</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ now\ 'HH:mm'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">00:15</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">3\.\ server1\ now\ clip</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">2026-09-07\ 00:15:06\n\[now]\ Copied\ to\ clipboard\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-sys">\r\n<h3>shared-sys</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ H</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-hash">\r\n<h3>shared-hash</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">h</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-net">\r\n<h3>shared-net</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ net\ 8\.8\.8\.8</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[net]\ Pinging\ 8\.8\.8\.8\.\.\.\nReply\ from\ 8\.8\.8\.8:\ bytes=32\ time=14ms\ TTL=118</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ net\ 8\.8\.8\.8\ -Count\ 5</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[net]\ Pinging\ 8\.8\.8\.8\.\.\.\nReply\ from\ 8\.8\.8\.8:\ bytes=32\ time=12ms\ TTL=118\nReply\ from\ 8\.8\.8\.8:\ bytes=32\ time=15ms\ TTL=118</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-shot">\r\n<h3>shared-shot</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">s</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-timer">\r\n<h3>shared-timer</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">t</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-battery">\r\n<h3>shared-battery</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">b</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-procs">\r\n<h3>shared-procs</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ procs</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Name\ \ \ \ \ \ \ \ \ \ Id\ \ \ CPU\(s\)\ \ \ MB\n----\ \ \ \ \ \ \ \ \ \ --\ \ \ ------\ \ \ --\nfirefox\ \ \ \ \ \ 8336\ \ 12983\ \ \ \ 0\nkilo\ \ \ \ \ \ \ \ \ 13140\ \ 3756\ \ \ \ 80</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ procs\ powershell</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Name\ \ \ \ \ \ \ \ \ \ Id\ \ \ CPU\(s\)\ \ \ MB\n----\ \ \ \ \ \ \ \ \ \ --\ \ \ ------\ \ \ --\npowershell\ \ \ 9196\ \ 1843\ \ \ \ 14</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">3\.\ server1\ procs\ chrome\ -Top\ 5</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Name\ \ \ \ \ \ \ \ \ \ Id\ \ \ CPU\(s\)\ \ \ MB\n----\ \ \ \ \ \ \ \ \ \ --\ \ \ ------\ \ \ --\nchrome\ \ \ \ \ \ \ 1234\ \ 1234\ \ \ \ 123</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-svc">\r\n<h3>shared-svc</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ svc\ wuauserv\ status</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Name\ \ \ Status\ \ \ DisplayName\n----\ \ \ ------\ \ \ -----------\nwuauserv\ Running\ \ Windows\ Update</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ svc\ wuauserv\ start</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[svc]\ Starting\ wuauserv\.\.\.\nName\ \ \ Status\ \ \ DisplayName\n----\ \ \ ------\ \ \ -----------\nwuauserv\ Running\ \ Windows\ Update</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">3\.\ server1\ svc\ wuauserv\ stop</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[svc]\ Stopping\ wuauserv\.\.\.\nName\ \ \ Status\ \ \ DisplayName\n----\ \ \ ------\ \ \ -----------\nwuauserv\ Stopped\ Windows\ Update</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-theme">\r\n<h3>shared-theme</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ theme</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Available\ themes:\ default,\ light,\ mono\nUsage:\ theme\ &lt;name&gt;\ \ \ \(current\ applied\ at\ module\ import\ is\ 'default'\)</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ theme\ light</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[OK]\ Theme\ set\ to\ 'light'\.</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">3\.\ server1\ theme\ mono</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[OK]\ Theme\ set\ to\ 'mono'\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-events">\r\n<h3>shared-events</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ events</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">===\ Recent\ Events\ \(ring\ buffer,\ last\ 20\)\ ===\n\(no\ events\ yet\)\n===\ Persisted\ log\ tail\ ===\n\(no\ log\ file\)</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ events\ 50</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">===\ Recent\ Events\ \(ring\ buffer,\ last\ 50\)\ ===\n\[2026-09-06\ 14:00:01]\ \[LocalSystem]\ Log\ :\ Install\ verification</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-notify">\r\n<h3>shared-notify</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ notify\ info\ 'Test'\ 'Message'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[NOTIFY]\ \(info\)\ Test\ :\ Message</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ notify\ warn\ 'Warning'\ 'Low\ disk'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[NOTIFY]\ \(warn\)\ Warning\ :\ Low\ disk</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">3\.\ server1\ notify\ critical\ 'Alert'\ 'Disk\ full'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[NOTIFY]\ \(critical\)\ Alert\ :\ Disk\ full</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-ask">\r\n<h3>shared-ask</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ ask\ 'Continue\?'\ 'Confirm'\ 'Yes,No'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[ask]\ Choose\ an\ action:\ \[0]\ Yes\ \ \[1]\ No</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ ask\ 'Delete\ file\?'\ 'Confirm'\ 'Yes,No,Cancel'\ 'No'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[ask]\ Choose\ an\ action:\ \[0]\ Yes\ \ \[1]\ No\ \ \[2]\ Cancel</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-alert">\r\n<h3>shared-alert</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ alert\ diskfull</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[ALERT]\ Raising\ interactive\ alert\.\.\.\n\[Disk\ Space\ Alert]\nProblem:\ Target\ disk\ is\ critically\ low\n\[0]\ Cleanup\ \ \[1]\ RestartSvc\ \ \[2]\ Ignore</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ alert\ offline</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[ALERT]\ Raising\ interactive\ alert\.\.\.\n\[Connectivity\ Alert]\nProblem:\ Target\ is\ offline\ /\ unreachable\n\[0]\ Retry\ \ \[1]\ WOL\ \ \[2]\ Abort</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-dashboard">\r\n<h3>shared-dashboard</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">d</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-backup">\r\n<h3>shared-backup</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ A</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">v</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-restore">\r\n<h3>shared-restore</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">r</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-history">\r\n<h3>shared-history</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ history</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[2026-09-06\ 14:00:01]\ \[server1]\ \[run]\ hostname\n\[2026-09-06\ 14:01:22]\ \[server1]\ \[sys]\ </div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ history\ -n\ 50</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[2026-09-06\ 14:00:01]\ \[server1]\ \[run]\ hostname\n\[2026-09-06\ 14:01:22]\ \[server1]\ \[sys]\ \n\.\.\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-search">\r\n<h3>shared-search</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ S</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-logs">\r\n<h3>shared-logs</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ =</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">=</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-health">\r\n<h3>shared-health</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ ═</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">═</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-profiles">\r\n<h3>shared-profiles</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ T</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="shared-shell">\r\n<h3>shared-shell</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ E</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
 <section class="demo" id="shared-chain-list">
 <h3>shared-chain-list</h3>
 <div class="demo-grid">
@@ -2357,20 +2054,7 @@ Total       $204.80</div>
 </details>
 </div>
 </section>
-<section class="demo" id="shared-help-index">
-<h3>shared-help-index</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">shared-help-index</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; help</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help help for details, or see the shared-demos section.</div>
-</div>
-</details>
-</div>
-</section>
+<section\ class="demo"\ id="shared-help-index">\r\n<h3>shared-help-index</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ U</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">s</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
 <section class="demo" id="shared-clock">
 <h3>shared-clock</h3>
 <div class="demo-grid">
@@ -2483,272 +2167,25 @@ Total       $204.80</div>
 </details>
 </div>
 </section>
-<section class="demo" id="ssh-help">
-<h3>ssh-help</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-help</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; help</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help help for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-config">
-<h3>ssh-config</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-config</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; config</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help config for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-online">
-<h3>ssh-online</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-online</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; online</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help online for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-ssh">
-<h3>ssh-ssh</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-ssh</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; ssh</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help ssh for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-play">
-<h3>ssh-play</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-play</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; play</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help play for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-snap">
-<h3>ssh-snap</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-snap</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; snap</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help snap for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-apps">
-<h3>ssh-apps</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-apps</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; apps</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help apps for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-lock">
-<h3>ssh-lock</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-lock</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; lock</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help lock for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-time">
-<h3>ssh-time</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-time</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; time</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help time for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-msg">
-<h3>ssh-msg</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-msg</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; msg</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help msg for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-popup">
-<h3>ssh-popup</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-popup</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; popup</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help popup for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-push">
-<h3>ssh-push</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-push</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; push</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help push for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-pull">
-<h3>ssh-pull</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-pull</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; pull</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help pull for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-run">
-<h3>ssh-run</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-run</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; run</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help run for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-shutdown">
-<h3>ssh-shutdown</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-shutdown</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; shutdown</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help shutdown for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-ports">
-<h3>ssh-ports</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-ports</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; ports</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help ports for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-process">
-<h3>ssh-process</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-process</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; process</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help process for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-service">
-<h3>ssh-service</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-service</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; service</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help service for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="ssh-disk">
-<h3>ssh-disk</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">ssh-disk</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; disk</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help disk for details, or see the ssh-demos section.</div>
-</div>
-</details>
-</div>
-</section>
+<section\ class="demo"\ id="ssh-help">\r\n<h3>ssh-help</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ =</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">=</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-config">\r\n<h3>ssh-config</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ config\ view</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">---\ PROFILE\ MAPS:\ \[server1]\ ---\n\ \ Target\ IP\ Binding\ Address\ \ :\ 10\.0\.0\.50\n\ \ Target\ System\ Admin\ User\ \ \ :\ admin\n\ \ Private\ Cryptographic\ Key\ \ :\ C:\\keys\\id_rsa</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ config\ set\ User=admin2</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[config]\ Updated\ User=admin2\ for\ profile\ server1</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-online">\r\n<h3>ssh-online</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\*</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-ssh">\r\n<h3>ssh-ssh</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">d</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-play">\r\n<h3>ssh-play</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ play\ 'C:\\Videos\\demo\.mp4'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[play]\ Copying\ to\ Public\ folder\ for\ cross-user\ access\.\.\.\n\[play]\ Launching\ on\ target\ via\ Scheduled\ Task\.\.\.\n\[play]\ Cleaning\ up\ remote\ file\.\.\.\nAction\ File\ Player\ Status\n------\ -----\ ------\ ------\nplay\ \ \ demo\.mp4\ wmplayer\ Completed</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ play\ 'C:\\Videos\\demo\.mp4'\ edge\ -fs</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[play]\ Copying\ to\ Public\ folder\ for\ cross-user\ access\.\.\.\n\[play]\ Launching\ on\ target\ via\ Scheduled\ Task\.\.\.\n\[play]\ Cleaning\ up\ remote\ file\.\.\.\nAction\ File\ Player\ Status\n------\ -----\ ------\ ------\nplay\ \ \ demo\.mp4\ edge\ \ \ \ Completed</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-snap">\r\n<h3>ssh-snap</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">s</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-apps">\r\n<h3>ssh-apps</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ P</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">r</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-lock">\r\n<h3>ssh-lock</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">l</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-time">\r\n<h3>ssh-time</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">t</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-msg">\r\n<h3>ssh-msg</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ msg\ 'Hello\ from\ Script_Manager'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[msg]\ Message\ sent\ to\ admin@10\.0\.0\.50</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ msg\ 'Hello'\ 'Title'\ -Force</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[msg]\ Message\ sent\ to\ admin@10\.0\.0\.50</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-popup">\r\n<h3>ssh-popup</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ popup\ 'Continue\?'\ 'Confirm'\ 'Yes,No'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[popup]\ Sending\ Yes/No\ prompt\ to\ target\.\.\.\nChoice:\ Yes</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ popup\ 'Delete\ file\?'\ 'Warning'\ 'Yes,No,Cancel'\ 'No'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[popup]\ Sending\ Yes/No/Cancel\ prompt\ to\ target\.\.\.\nChoice:\ No</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-push">\r\n<h3>ssh-push</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ push\ C:\\Deploy\\app\.exe</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[OK]\ Pushed\ to\ admin@10\.0\.0\.50:C:\\Users\\Public\\</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ push\ C:\\Deploy\\app\.exe\ C:\\Deploy\\\ -Force</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[OK]\ Pushed\ to\ admin@10\.0\.0\.50:C:\\Deploy\\</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-pull">\r\n<h3>ssh-pull</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ pull\ C:\\Users\\Public\\app\.exe</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[OK]\ Pulled\ to\ C:\\Users\\Rober\\Downloads\\app\.exe</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ pull\ C:\\Users\\Public\\app\.exe\ C:\\Temp\\\ -Force</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[OK]\ Pulled\ to\ C:\\Temp\\app\.exe</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-run">\r\n<h3>ssh-run</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ run\ hostname</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">DESKTOP-ABC123</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ run\ 'dir\ C:\\Users'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Volume\ in\ drive\ C\ has\ no\ label\.\nVolume\ Serial\ Number\ is\ XXXX-XXXX\n\nDirectory\ of\ C:\\Users\n\n01/01/2026\ \ 10:00\ AM\ \ \ \ &lt;DIR&gt;\ \ \ \ \ \ \ \ \ \ \.\n01/01/2026\ \ 10:00\ AM\ \ \ \ &lt;DIR&gt;\ \ \ \ \ \ \ \ \ \ \.\.\n\.\.\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-shutdown">\r\n<h3>ssh-shutdown</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ shutdown\ restart</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[shutdown]\ Sending\ restart\ command\ to\ admin@10\.0\.0\.50\.\.\.</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ shutdown\ shutdown</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[shutdown]\ Sending\ shutdown\ command\ to\ admin@10\.0\.0\.50\.\.\.</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">3\.\ server1\ shutdown\ sleep</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[shutdown]\ Sending\ sleep\ command\ to\ admin@10\.0\.0\.50\.\.\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-ports">\r\n<h3>ssh-ports</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ P</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-process">\r\n<h3>ssh-process</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ process\ chrome</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Handles\ \ NPM\(K\)\ \ \ \ PM\(K\)\ \ \ \ \ \ WS\(K\)\ \ \ \ \ CPU\(s\)\ \ \ \ \ Id\ \ SI\ ProcessName\n-------\ \ ------\ \ \ \ -----\ \ \ \ \ \ -----\ \ \ \ \ ------\ \ \ \ \ --\ \ --\ -----------\n\ \ \ \ 842\ \ \ \ \ \ 42\ \ \ 123456\ \ \ \ \ \ 89123\ \ \ \ \ \ \ 1\.23\ \ \ 1234\ \ \ 1\ chrome\n\ \ \ \ 654\ \ \ \ \ \ 38\ \ \ \ 98765\ \ \ \ \ \ 76542\ \ \ \ \ \ \ 0\.87\ \ \ 5678\ \ \ 1\ chrome</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ process\ chrome\ kill\ -Force</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[process]\ Killing\ chrome\ \(PID\ 1234\)\.\.\.\nHandles\ \ NPM\(K\)\ \ \ \ PM\(K\)\ \ \ \ \ \ WS\(K\)\ \ \ \ \ CPU\(s\)\ \ \ \ \ Id\ \ SI\ ProcessName\n-------\ \ ------\ \ \ \ -----\ \ \ \ \ \ -----\ \ \ \ \ ------\ \ \ \ \ --\ \ --\ -----------\n\ \ \ \ 654\ \ \ \ \ \ 38\ \ \ \ 98765\ \ \ \ \ \ 76542\ \ \ \ \ \ \ 0\.87\ \ \ 5678\ \ \ 1\ chrome</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-service">\r\n<h3>ssh-service</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ server1\ service\ wuauserv\ status</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Status\ :\ Running\nName\ \ \ :\ wuauserv\nDisplayName\ :\ Windows\ Update</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ server1\ service\ wuauserv\ restart</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[service]\ Restarting\ wuauserv\.\.\.\nStatus\ :\ Running\nName\ \ \ :\ wuauserv\nDisplayName\ :\ Windows\ Update</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="ssh-disk">\r\n<h3>ssh-disk</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ D</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
 <section class="demo" id="ssh-netcheck">
 <h3>ssh-netcheck</h3>
 <div class="demo-grid">
@@ -2777,1336 +2214,101 @@ Total       $204.80</div>
 </details>
 </div>
 </section>
-<section class="demo" id="net-help">
-<h3>net-help</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-help</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; help</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help help for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-config">
-<h3>net-config</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-config</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; config</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help config for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-online">
-<h3>net-online</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-online</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; online</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help online for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-wol">
-<h3>net-wol</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-wol</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; wol</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help wol for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-sweep">
-<h3>net-sweep</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-sweep</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; sweep</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help sweep for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-portscan">
-<h3>net-portscan</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-portscan</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; portscan</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help portscan for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-traceroute">
-<h3>net-traceroute</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-traceroute</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; traceroute</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help traceroute for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-dns">
-<h3>net-dns</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-dns</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; dns</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help dns for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-arp">
-<h3>net-arp</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-arp</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; arp</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help arp for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-wifi">
-<h3>net-wifi</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-wifi</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; wifi</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help wifi for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-gateway">
-<h3>net-gateway</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-gateway</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; gateway</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help gateway for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-connections">
-<h3>net-connections</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-connections</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; connections</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help connections for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-publicip">
-<h3>net-publicip</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-publicip</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; publicip</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help publicip for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="net-macvendor">
-<h3>net-macvendor</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">net-macvendor</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; macvendor</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help macvendor for details, or see the net-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-help">
-<h3>docker-help</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-help</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; help</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help help for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-config">
-<h3>docker-config</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-config</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; config</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help config for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-online">
-<h3>docker-online</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-online</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; online</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help online for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-context">
-<h3>docker-context</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-context</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; context</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help context for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-login">
-<h3>docker-login</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-login</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; login</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help login for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-ps">
-<h3>docker-ps</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-ps</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; ps</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help ps for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-images">
-<h3>docker-images</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-images</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; images</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help images for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-compose">
-<h3>docker-compose</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-compose</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; compose</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help compose for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-volumes">
-<h3>docker-volumes</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-volumes</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; volumes</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help volumes for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-networks">
-<h3>docker-networks</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-networks</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; networks</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help networks for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-logs">
-<h3>docker-logs</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-logs</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; logs</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help logs for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-exec">
-<h3>docker-exec</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-exec</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; exec</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help exec for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-prune">
-<h3>docker-prune</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-prune</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; prune</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help prune for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-stats">
-<h3>docker-stats</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-stats</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; stats</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help stats for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-inspect">
-<h3>docker-inspect</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-inspect</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; inspect</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help inspect for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-build">
-<h3>docker-build</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-build</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; build</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help build for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-pull">
-<h3>docker-pull</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-pull</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; pull</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help pull for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-push">
-<h3>docker-push</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-push</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; push</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help push for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="docker-system">
-<h3>docker-system</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">docker-system</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; system</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help system for details, or see the docker-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="file-help">
-<h3>file-help</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">file-help</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; help</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help help for details, or see the file-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="file-config">
-<h3>file-config</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">file-config</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; config</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help config for details, or see the file-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="file-online">
-<h3>file-online</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">file-online</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; online</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help online for details, or see the file-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="file-find">
-<h3>file-find</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">file-find</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; find</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help find for details, or see the file-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="file-grep">
-<h3>file-grep</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">file-grep</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; grep</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help grep for details, or see the file-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="file-dedupe">
-<h3>file-dedupe</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">file-dedupe</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; dedupe</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help dedupe for details, or see the file-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="file-treesize">
-<h3>file-treesize</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">file-treesize</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; treesize</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help treesize for details, or see the file-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="file-recent">
-<h3>file-recent</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">file-recent</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; recent</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help recent for details, or see the file-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-help">
-<h3>git-help</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-help</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; help</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help help for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-config">
-<h3>git-config</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-config</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; config</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help config for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-online">
-<h3>git-online</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-online</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; online</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help online for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-status">
-<h3>git-status</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-status</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; status</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help status for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-diff">
-<h3>git-diff</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-diff</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; diff</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help diff for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-commit">
-<h3>git-commit</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-commit</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; commit</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help commit for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-push">
-<h3>git-push</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-push</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; push</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help push for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-pull">
-<h3>git-pull</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-pull</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; pull</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help pull for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-branch">
-<h3>git-branch</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-branch</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; branch</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help branch for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-merge">
-<h3>git-merge</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-merge</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; merge</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help merge for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-tag">
-<h3>git-tag</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-tag</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; tag</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help tag for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-log">
-<h3>git-log</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-log</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; log</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help log for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-stash">
-<h3>git-stash</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-stash</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; stash</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help stash for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-rebase">
-<h3>git-rebase</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-rebase</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; rebase</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help rebase for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-remote">
-<h3>git-remote</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-remote</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; remote</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help remote for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-init">
-<h3>git-init</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-init</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; init</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help init for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-clone">
-<h3>git-clone</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-clone</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; clone</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help clone for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-add">
-<h3>git-add</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-add</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; add</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help add for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-reset">
-<h3>git-reset</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-reset</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; reset</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help reset for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-restore">
-<h3>git-restore</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-restore</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; restore</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help restore for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-clean">
-<h3>git-clean</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-clean</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; clean</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help clean for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-blame">
-<h3>git-blame</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-blame</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; blame</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help blame for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-show">
-<h3>git-show</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-show</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; show</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help show for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="git-bisect">
-<h3>git-bisect</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">git-bisect</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; bisect</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help bisect for details, or see the git-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="media-help">
-<h3>media-help</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">media-help</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; help</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help help for details, or see the media-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="media-config">
-<h3>media-config</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">media-config</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; config</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help config for details, or see the media-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="media-online">
-<h3>media-online</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">media-online</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; online</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help online for details, or see the media-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="media-audio">
-<h3>media-audio</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">media-audio</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; audio</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help audio for details, or see the media-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="media-display">
-<h3>media-display</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">media-display</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; display</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help display for details, or see the media-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="media-monitors">
-<h3>media-monitors</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">media-monitors</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; monitors</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help monitors for details, or see the media-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="media-wallpaper">
-<h3>media-wallpaper</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">media-wallpaper</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; wallpaper</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help wallpaper for details, or see the media-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="media-wincap">
-<h3>media-wincap</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">media-wincap</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; wincap</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help wincap for details, or see the media-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="sec-help">
-<h3>sec-help</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">sec-help</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; help</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help help for details, or see the sec-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="sec-config">
-<h3>sec-config</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">sec-config</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; config</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help config for details, or see the sec-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="sec-online">
-<h3>sec-online</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">sec-online</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; online</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help online for details, or see the sec-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="sec-firewall">
-<h3>sec-firewall</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">sec-firewall</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; firewall</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help firewall for details, or see the sec-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="sec-defender">
-<h3>sec-defender</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">sec-defender</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; defender</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help defender for details, or see the sec-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="sec-accounts">
-<h3>sec-accounts</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">sec-accounts</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; accounts</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help accounts for details, or see the sec-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="sec-uac">
-<h3>sec-uac</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">sec-uac</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; uac</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help uac for details, or see the sec-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="sec-autoruns">
-<h3>sec-autoruns</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">sec-autoruns</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; autoruns</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help autoruns for details, or see the sec-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="sec-shares">
-<h3>sec-shares</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">sec-shares</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; shares</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help shares for details, or see the sec-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="sec-failwatch">
-<h3>sec-failwatch</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">sec-failwatch</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; failwatch</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help failwatch for details, or see the sec-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="cloud-help">
-<h3>cloud-help</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">cloud-help</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; help</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help help for details, or see the cloud-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="cloud-config">
-<h3>cloud-config</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">cloud-config</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; config</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help config for details, or see the cloud-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="cloud-online">
-<h3>cloud-online</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">cloud-online</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; online</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help online for details, or see the cloud-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="cloud-auth">
-<h3>cloud-auth</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">cloud-auth</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; auth</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help auth for details, or see the cloud-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="cloud-regions">
-<h3>cloud-regions</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">cloud-regions</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; regions</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help regions for details, or see the cloud-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="cloud-instances">
-<h3>cloud-instances</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">cloud-instances</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; instances</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help instances for details, or see the cloud-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="cloud-storage">
-<h3>cloud-storage</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">cloud-storage</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; storage</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help storage for details, or see the cloud-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="cloud-fn">
-<h3>cloud-fn</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">cloud-fn</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; fn</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help fn for details, or see the cloud-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="cloud-vnet">
-<h3>cloud-vnet</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">cloud-vnet</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; vnet</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help vnet for details, or see the cloud-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="cloud-db">
-<h3>cloud-db</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">cloud-db</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; db</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help db for details, or see the cloud-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="cloud-secrets">
-<h3>cloud-secrets</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">cloud-secrets</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; secrets</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help secrets for details, or see the cloud-demos section.</div>
-</div>
-</details>
-</div>
-</section>
-<section class="demo" id="cloud-costs">
-<h3>cloud-costs</h3>
-<div class="demo-grid">
-<details class="demo-item">
-<summary class="demo-header">cloud-costs</summary>
-<div class="demo-body">
-<div class="label">Example</div>
-<code>&lt;profile&gt; costs</code>
-<div class="label">See also</div>
-<div class="output">Run &lt;profile&gt; help costs for details, or see the cloud-demos section.</div>
-</div>
-</details>
-</div>
-</section>
+<section\ class="demo"\ id="net-help">\r\n<h3>net-help</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ =</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">=</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-config">\r\n<h3>net-config</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ -</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">-</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-online">\r\n<h3>net-online</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\*</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-wol">\r\n<h3>net-wol</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ ani\ wol\ AA:BB:CC:DD:EE:FF</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[wol]\ Magic\ packet\ sent\ to\ AA:BB:CC:DD:EE:FF</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ ani\ wol\ AA:BB:CC:DD:EE:FF\ 192\.168\.1\.255</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[wol]\ Magic\ packet\ sent\ to\ AA:BB:CC:DD:EE:FF\ via\ 192\.168\.1\.255</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-sweep">\r\n<h3>net-sweep</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ H</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-portscan">\r\n<h3>net-portscan</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ T</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">a</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-traceroute">\r\n<h3>net-traceroute</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ T</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">r</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-dns">\r\n<h3>net-dns</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ ani\ dns\ -flush</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[dns]\ Flushed\ local\ DNS\ cache</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ ani\ dns\ github\.com\ 8\.8\.8\.8</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Name\ \ \ \ \ \ \ \ \ \ \ Address\n----\ \ \ \ \ \ \ \ \ \ \ -------\ngithub\.com\ \ \ \ \ 140\.82\.112\.3</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-arp">\r\n<h3>net-arp</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ I</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-wifi">\r\n<h3>net-wifi</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ A</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">l</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-gateway">\r\n<h3>net-gateway</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ D</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-connections">\r\n<h3>net-connections</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ L</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-publicip">\r\n<h3>net-publicip</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ P</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">u</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="net-macvendor">\r\n<h3>net-macvendor</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ M</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">A</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-help">\r\n<h3>docker-help</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ =</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">=</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-config">\r\n<h3>docker-config</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ -</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">-</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-online">\r\n<h3>docker-online</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\*</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-context">\r\n<h3>docker-context</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ C</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">u</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-login">\r\n<h3>docker-login</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">l</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-ps">\r\n<h3>docker-ps</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ swarm\ ps</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">ID\ \ \ \ \ \ \ Name\ \ \ Image\ \ \ \ \ \ \ \ \ \ Status\ \ \ \ Ports\ \ \ Created\na1b2c3d4\ web\ \ \ \ nginx:latest\ \ \ Up\ 2h\ \ \ \ \ 80/tcp\ \ 2026-09-05\ne5f6g7h8\ db\ \ \ \ postgres:15\ \ \ \ Up\ 2h\ \ \ \ \ 5432/tcp\ 2026-09-05</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ swarm\ ps\ -a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">ID\ \ \ \ \ \ \ Name\ \ \ Image\ \ \ \ \ \ \ \ \ \ Status\ \ \ \ Ports\ \ \ Created\na1b2c3d4\ web\ \ \ \ nginx:latest\ \ \ Exited\ 0\ \ \ 80/tcp\ \ 2026-09-04\ne5f6g7h8\ db\ \ \ \ postgres:15\ \ \ \ Up\ 2h\ \ \ \ \ 5432/tcp\ 2026-09-05</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">3\.\ swarm\ ps\ start\ web</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">web</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">4\.\ swarm\ ps\ stop\ web</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">web</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">5\.\ swarm\ ps\ restart\ web</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">web</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-images">\r\n<h3>docker-images</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ I</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">D</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-compose">\r\n<h3>docker-compose</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ swarm\ compose\ up\ -d</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[compose]\ Starting\ stack\.\.\.\nCreating\ network\ swarm_default\nCreating\ service\ swarm_web\nCreating\ service\ swarm_db</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ swarm\ compose\ down</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[compose]\ Stopping\ stack\.\.\.\nStopping\ service\ swarm_web\.\.\.\nStopping\ service\ swarm_db\.\.\.\nRemoving\ network\ swarm_default</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-volumes">\r\n<h3>docker-volumes</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ D</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">R</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-networks">\r\n<h3>docker-networks</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ N</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">E</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-logs">\r\n<h3>docker-logs</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ swarm\ logs\ web</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">10\.0\.0\.1\ -\ -\ \[06/Sep/2026:14:00:01\ \+0000]\ "GET\ /\ HTTP/1\.1"\ 200\ 612\n10\.0\.0\.1\ -\ -\ \[06/Sep/2026:14:00:02\ \+0000]\ "GET\ /\ HTTP/1\.1"\ 200\ 612</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ swarm\ logs\ web\ -f\ --tail=50</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[logs]\ Following\ logs\ for\ web\ \(last\ 50\ lines\)\.\.\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-exec">\r\n<h3>docker-exec</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ swarm\ exec\ web\ bash</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">root@a1b2c3d4:/\#</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ swarm\ exec\ web\ ls\ -la</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">total\ 0\ndrwxr-xr-x\ 1\ root\ root\ 0\ Sep\ 6\ 00:00\ \.\ndrwxr-xr-x\ 1\ root\ root\ 0\ Sep\ 6\ 00:00\ \.\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-prune">\r\n<h3>docker-prune</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">p</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-stats">\r\n<h3>docker-stats</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ C</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">O</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-inspect">\r\n<h3>docker-inspect</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ I</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">d</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-build">\r\n<h3>docker-build</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">b</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-pull">\r\n<h3>docker-pull</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">p</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-push">\r\n<h3>docker-push</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">p</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="docker-system">\r\n<h3>docker-system</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ S</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="file-help">\r\n<h3>file-help</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ =</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">=</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="file-config">\r\n<h3>file-config</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ -</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">-</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="file-online">\r\n<h3>file-online</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\*</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="file-find">\r\n<h3>file-find</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ ani\ find\ \*\.log</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Path\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Size\n----\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ----\nC:\\Logs\\app\.log\ \ \ \ \ \ \ \ \ \ \ \ \ \ 124MB\nC:\\Logs\\install\.log\ \ \ \ \ \ \ \ \ \ \ 18MB</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ ani\ find\ \*\.log\ -Size\ \+10MB</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Path\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Size\n----\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ----\nC:\\Logs\\app\.log\ \ \ \ \ \ \ \ \ \ \ \ \ \ 124MB</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">3\.\ ani\ find\ \*\.ps1\ -Recurse</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Path\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Size\n----\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ----\nC:\\Projects\\src\\main\.ps1\ \ \ \ \ 12KB\nC:\\Projects\\src\\util\.ps1\ \ \ \ \ \ 8KB</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="file-grep">\r\n<h3>file-grep</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ ani\ grep\ 'error'\ C:\\Logs\\app\.log</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">12:2026-09-06\ 12:00:01\ ERROR\ Connection\ timeout\n45:2026-09-06\ 12:05:22\ ERROR\ Failed\ to\ bind\ port</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ ani\ grep\ -i\ 'warning'\ C:\\Logs\\\*\.log\ -n\ 20</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">8:2026-09-06\ 11:00:00\ WARNING\ High\ memory\ usage\n23:2026-09-06\ 11:05:00\ WARNING\ Disk\ space\ low</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="file-dedupe">\r\n<h3>file-dedupe</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ F</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="file-treesize">\r\n<h3>file-treesize</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ ani\ treesize\ C:\\Projects</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Size\ \ \ Directory\n----\ \ \ ---------\n1\.2GB\ \ C:\\Projects\\src\n340MB\ \ C:\\Projects\\docs\n12MB\ \ \ C:\\Projects\\\.git</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ ani\ treesize\ C:\\Projects\ -Depth\ 2</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Size\ \ \ Directory\n----\ \ \ ---------\n1\.2GB\ \ C:\\Projects\\src\n340MB\ \ C:\\Projects\\docs\n12MB\ \ \ C:\\Projects\\\.git\n\.\.\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="file-recent">\r\n<h3>file-recent</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ ani\ recent\ C:\\Projects\ -n\ 5</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">LastWriteTime\ \ \ \ \ \ \ \ \ Path\n-------------\ \ \ \ \ \ \ \ \ ----\n2026-09-06\ 14:00:01\ \ \ C:\\Projects\\src\\main\.ps1\n2026-09-06\ 13:55:10\ \ \ C:\\Projects\\README\.md</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ ani\ recent\ C:\\Projects\ -n\ 10\ -Hours\ 24</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">LastWriteTime\ \ \ \ \ \ \ \ \ Path\n-------------\ \ \ \ \ \ \ \ \ ----\n2026-09-06\ 14:00:01\ \ \ C:\\Projects\\src\\main\.ps1\n\.\.\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-help">\r\n<h3>git-help</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ =</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">=</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-config">\r\n<h3>git-config</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ -</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">-</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-online">\r\n<h3>git-online</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\*</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-status">\r\n<h3>git-status</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ work\ status</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">On\ branch\ main\nChanges\ not\ staged\ for\ commit:\n\ \ modified:\ \ \ src/main\.ps1\nUntracked\ files:\n\ \ src/new\.ps1</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ work\ status\ -s</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\ M\ src/main\.ps1\n\?\?\ src/new\.ps1</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-diff">\r\n<h3>git-diff</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ work\ diff</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">@@\ -1,5\ \+1,6\ @@\n\ \#\ Script\ header\n\+New\ line\ added\n\ \#\ More\ content</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ work\ diff\ src/main\.ps1</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">@@\ -10,6\ \+10,8\ @@\n\ function\ Test\(\)\ \{\n\+\ \ \ \ \#\ New\ code\n\ \ \ \ \ Write-Host\ 'test'\n\ }</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-commit">\r\n<h3>git-commit</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ work\ commit\ -m\ 'Fix\ bug'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[main\ abc1234]\ Fix\ bug\n\ 1\ file\ changed,\ 2\ insertions\(\+\)</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ work\ commit\ -m\ 'Fix\ bug'\ -a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[main\ abc1234]\ Fix\ bug\n\ 2\ files\ changed,\ 5\ insertions\(\+\)</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-push">\r\n<h3>git-push</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ E</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-pull">\r\n<h3>git-pull</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ F</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">r</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-branch">\r\n<h3>git-branch</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ work\ branch</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\*\ main\n\ \ feature-x\n\ \ bugfix-123</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ work\ branch\ create\ feature-x</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">Switched\ to\ a\ new\ branch\ 'feature-x'</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">3\.\ work\ branch\ delete\ feature-x</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[branch]\ Deleted\ branch\ 'feature-x'\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-merge">\r\n<h3>git-merge</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ A</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">u</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-tag">\r\n<h3>git-tag</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ work\ tag\ create\ v1\.0\.0\ -m\ 'Release\ 1\.0\.0'</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[tag]\ Created\ tag\ 'v1\.0\.0'</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ work\ tag\ list</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">v1\.0\.0\nv0\.9\.0\nv0\.8\.0</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-log">\r\n<h3>git-log</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ work\ log\ -n\ 5</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">commit\ def5678\.\.\.\nAuthor:\ you\ &lt;you@example\.com&gt;\nDate:\ \ \ Mon\ Sep\ 6\ 14:00:00\ 2026\n\ \ \ \ Fix\ bug\n\ncommit\ abc1234\.\.\.\nAuthor:\ you\ &lt;you@example\.com&gt;\nDate:\ \ \ Sun\ Sep\ 5\ 10:00:00\ 2026\n\ \ \ \ Initial\ commit</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ work\ log\ --oneline</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">def5678\ Fix\ bug\nabc1234\ Initial\ commit</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-stash">\r\n<h3>git-stash</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ work\ stash</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[stash]\ Saved\ working\ directory\ and\ index\ state\n\[stash]\ WIP\ on\ main:\ abc1234\ Initial\ commit</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ work\ stash\ list</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">stash@\{0}:\ WIP\ on\ main:\ abc1234\ Initial\ commit</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-rebase">\r\n<h3>git-rebase</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">r</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-remote">\r\n<h3>git-remote</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ work\ remote\ -v</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">origin\ \ https://github\.com/you/repo\.git\ \(fetch\)\norigin\ \ https://github\.com/you/repo\.git\ \(push\)</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ work\ remote\ add\ upstream\ https://github\.com/other/repo\.git</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[remote]\ Added\ upstream\.</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-init">\r\n<h3>git-init</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">i</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-clone">\r\n<h3>git-clone</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">c</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-add">\r\n<h3>git-add</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ work\ add\ src/main\.ps1</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[add]\ Staged:\ src/main\.ps1</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ work\ add\ \.</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[add]\ Staged:\ src/main\.ps1,\ src/util\.ps1,\ README\.md</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-reset">\r\n<h3>git-reset</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">r</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-restore">\r\n<h3>git-restore</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">r</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-clean">\r\n<h3>git-clean</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">c</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-blame">\r\n<h3>git-blame</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">b</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-show">\r\n<h3>git-show</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ c</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="git-bisect">\r\n<h3>git-bisect</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ w</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">b</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="media-help">\r\n<h3>media-help</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ =</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">=</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="media-config">\r\n<h3>media-config</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ -</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">-</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="media-online">\r\n<h3>media-online</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\*</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="media-audio">\r\n<h3>media-audio</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ ani\ audio</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[audio]\ Current\ volume:\ 50%</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ ani\ audio\ 80</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[audio]\ Volume\ set\ to\ 80%</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">3\.\ ani\ audio\ 0</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[audio]\ Volume\ set\ to\ 0%\ \(muted\)</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="media-display">\r\n<h3>media-display</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ ani\ display</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[display]\ Current:\ 1920x1080\ @\ 60Hz</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ ani\ display\ 2560\ 1440\ 144</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\[display]\ Resolution\ changed\ to\ 2560x1440\ @\ 144Hz</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="media-monitors">\r\n<h3>media-monitors</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ M</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="media-wallpaper">\r\n<h3>media-wallpaper</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="media-wincap">\r\n<h3>media-wincap</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="sec-help">\r\n<h3>sec-help</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ =</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">=</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="sec-config">\r\n<h3>sec-config</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ -</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">-</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="sec-online">\r\n<h3>sec-online</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\*</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="sec-firewall">\r\n<h3>sec-firewall</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ D</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="sec-defender">\r\n<h3>sec-defender</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ A</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="sec-accounts">\r\n<h3>sec-accounts</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ U</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">s</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="sec-uac">\r\n<h3>sec-uac</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ U</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">A</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="sec-autoruns">\r\n<h3>sec-autoruns</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ N</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">a</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="sec-shares">\r\n<h3>sec-shares</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ S</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">h</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="sec-failwatch">\r\n<h3>sec-failwatch</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">n</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ M</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="cloud-help">\r\n<h3>cloud-help</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ =</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">=</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="cloud-config">\r\n<h3>cloud-config</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ -</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">-</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="cloud-online">\r\n<h3>cloud-online</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">\*</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="cloud-auth">\r\n<h3>cloud-auth</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ \[</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">a</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="cloud-regions">\r\n<h3>cloud-regions</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ R</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">e</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="cloud-instances">\r\n<h3>cloud-instances</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ I</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">d</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="cloud-storage">\r\n<h3>cloud-storage</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ N</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">a</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="cloud-fn">\r\n<h3>cloud-fn</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ N</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">a</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="cloud-vnet">\r\n<h3>cloud-vnet</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ I</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">d</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="cloud-db">\r\n<h3>cloud-db</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ I</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">d</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="cloud-secrets">\r\n<h3>cloud-secrets</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ N</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">a</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
+<section\ class="demo"\ id="cloud-costs">\r\n<h3>cloud-costs</h3>\r\n<div\ class="demo-grid">\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">1\.\ a</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">w</div>\r\n</div>\r\n</details>\r\n<details\ class="demo-item">\r\n<summary\ class="demo-header">2\.\ M</summary>\r\n<div\ class="demo-body">\r\n<div\ class="label">Output</div>\r\n<div\ class="output">o</div>\r\n</div>\r\n</details>\r\n</div>\r\n</section>\r\n
 </main>
 
 <footer>
@@ -4181,9 +2383,93 @@ Total       $204.80</div>
     setTimeout(()=>target.classList.remove('highlight'), 1800);
   });
 
+  // Drawer toggle
+  const drawer = document.getElementById('sideDrawer');
+  const backdrop = document.getElementById('drawerBackdrop');
+  const toggleTop = document.getElementById('drawerToggle');
+  const toggleBottom = document.getElementById('drawerToggleBottom');
+
+  function openDrawer(){ drawer.classList.add('open'); backdrop.classList.add('open'); }
+  function closeDrawer(){ drawer.classList.remove('open'); backdrop.classList.remove('open'); }
+
+  toggleTop.addEventListener('click', ()=>{ drawer.classList.contains('open') ? closeDrawer() : openDrawer(); });
+  toggleBottom.addEventListener('click', ()=>{ drawer.classList.contains('open') ? closeDrawer() : openDrawer(); });
+  backdrop.addEventListener('click', closeDrawer);
+  drawer.addEventListener('click', e=>{ if(e.target === drawer) closeDrawer(); });
+
+  // Auto-hide drawer when clicking a link
+  drawer.querySelectorAll('a').forEach(a=>{
+    a.addEventListener('click', ()=>{ closeDrawer(); });
+  });
+
   filter();
 })();
 </script>
+
+<button class="drawer-toggle" id="drawerToggle" title="Navigation">☰</button>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<nav class="side-drawer" id="sideDrawer">
+  <div class="drawer-section">
+    <h4>Getting Started</h4>
+    <a class="drawer-link" href="#getting-started">Install & Setup</a>
+    <a class="drawer-link" href="#shared-demos">SharedToolkit Demos</a>
+  </div>
+  <div class="drawer-section">
+    <h4>Core</h4>
+    <a class="drawer-link" href="#shared">🧩 SharedToolkit</a>
+    <a class="drawer-link" href="#ssh">🖥️ SSHToolkit</a>
+    <a class="drawer-link" href="#net">🌐 NetToolkit</a>
+    <a class="drawer-link" href="#docker">🐳 DockerToolkit</a>
+    <a class="drawer-link" href="#file">📁 FileToolkit</a>
+    <a class="drawer-link" href="#git">🔀 GitToolkit</a>
+    <a class="drawer-link" href="#media">🎬 MediaToolkit</a>
+    <a class="drawer-link" href="#sec">🛡️ SecToolkit</a>
+    <a class="drawer-link" href="#cloud">☁️ CloudToolkit</a>
+  </div>
+  <div class="drawer-section">
+    <h4>Guides</h4>
+    <a class="drawer-link" href="#shared-demos">Step-by-Step Demos</a>
+    <a class="drawer-link" href="#shared-help">SharedToolkit Help</a>
+    <a class="drawer-link" href="#ssh-help">SSHToolkit Help</a>
+    <a class="drawer-link" href="#net-help">NetToolkit Help</a>
+    <a class="drawer-link" href="#docker-help">DockerToolkit Help</a>
+    <a class="drawer-link" href="#file-help">FileToolkit Help</a>
+    <a class="drawer-link" href="#git-help">GitToolkit Help</a>
+    <a class="drawer-link" href="#media-help">MediaToolkit Help</a>
+    <a class="drawer-link" href="#sec-help">SecToolkit Help</a>
+    <a class="drawer-link" href="#cloud-help">CloudToolkit Help</a>
+  </div>
+  <div class="drawer-section">
+    <h4>Quick Links</h4>
+    <a class="drawer-link" href="#shared-chain">Chains</a>
+    <a class="drawer-link" href="#shared-dispatch">Cross-Toolkit</a>
+    <a class="drawer-link" href="#shared-profiles">Profiles</a>
+    <a class="drawer-link" href="#shared-events">Events</a>
+    <a class="drawer-link" href="#shared-theme">Themes</a>
+    <a class="drawer-link" href="#shared-registry">Registry</a>
+  </div>
+</nav>
+
+<div class="bottom-dock">
+  <a class="dock-item primary" href="#getting-started">🏠 Home</a>
+  <div class="dock-sep"></div>
+  <a class="dock-item" href="#shared-demos">🧩 Shared</a>
+  <a class="dock-item" href="#ssh-demos">🖥️ SSH</a>
+  <a class="dock-item" href="#net-demos">🌐 Net</a>
+  <a class="dock-item" href="#docker-demos">🐳 Docker</a>
+  <a class="dock-item" href="#file-demos">📁 File</a>
+  <a class="dock-item" href="#git-demos">🔀 Git</a>
+  <a class="dock-item" href="#media-demos">🎬 Media</a>
+  <a class="dock-item" href="#sec-demos">🛡️ Sec</a>
+  <a class="dock-item" href="#cloud-demos">☁️ Cloud</a>
+  <div class="dock-sep"></div>
+  <a class="dock-item" href="#shared-help">❓ Help</a>
+  <a class="dock-item" href="#shared-chain">⛓️ Chains</a>
+  <a class="dock-item" href="#shared-profiles">👤 Profiles</a>
+  <button class="dock-item" id="drawerToggleBottom" title="More navigation">☰</button>
+</div>
+
 </body>
 </html>
+
 
