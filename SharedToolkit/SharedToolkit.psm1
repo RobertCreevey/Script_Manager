@@ -1,10 +1,24 @@
-
 $global:SharedToolkitPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
 foreach ($Folder in @("Actions", "Listeners", "Aliases", "Chains")) {
     $FullPath = "$global:SharedToolkitPath\$Folder"
     if (-not (Test-Path $FullPath)) { New-Item -ItemType Directory -Path $FullPath -Force | Out-Null }
 }
+
+# alias-resolver.ps1 is a function LIBRARY (Resolve-Alias, Get-CanonicalName,
+# Get-AllNames, New-AliasList, Merge-AliasLists) for authors who already have an
+# alias-list hashtable in hand (e.g. from a loaded toolkit.json). It is
+# dot-sourced into MODULE scope here - not dispatched with `&` like a normal
+# Actions\*.ps1 script - so its Export-ModuleMember call actually takes effect
+# and the functions are real, callable members of SharedToolkit.
+. "$global:SharedToolkitPath\Actions\alias-resolver.ps1"
+
+# Tracks which child toolkit's directory the router currently dispatching a
+# shared action/listener belongs to (mirrors $global:ToolContext, which tracks
+# the active PROFILE). Shared systems that need "the calling toolkit's own
+# folder" - chain/schedule/alert (Chains\) - read this instead of assuming any
+# one toolkit. Each router sets it right alongside $global:ToolContext.
+$global:CurrentToolkitPath = $null
 
 $ESC = [char]27
 
@@ -877,6 +891,137 @@ function Use-SharedAsset {
     return $false
 }
 
+function Resolve-ToolkitActionName {
+    <#
+    .SYNOPSIS
+        Resolves a user-typed action/listener/builtin name to its canonical
+        form using toolkit.json alias lists.
+    .DESCRIPTION
+        Every toolkit.json declares actions/listeners/builtins as alias lists
+        ([canonical, alias1, alias2, ...]) - see toolkit.schema.json. Each
+        router calls this ONCE, right after tracking context and before any
+        '-eq' comparisons, so an alias like 'st' (GitToolkit's "status"),
+        'cfg' (any toolkit's "config"), or 'inst'/'ec2' (CloudToolkit's
+        "instances") reaches the same code path as its canonical name -
+        instead of just being documentation that tab-completion and help
+        happen to also read.
+
+        Checks the CURRENT (child) toolkit's manifest first, then
+        SharedToolkit's manifest (so aliases for shared/global actions like
+        "chain"/"chains"/"workflow" resolve too). Returns the input unchanged
+        if nothing matches, so canonical names and anything the manifest
+        doesn't know about keep working exactly as before.
+    .PARAMETER Name
+        The name as typed by the user.
+    .PARAMETER ToolkitPath
+        Install path of the current child toolkit, e.g. $global:GitToolkitPath.
+        Falls back to $global:CurrentToolkitPath when omitted.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$Name,
+        [string]$ToolkitPath = $global:CurrentToolkitPath
+    )
+    if (-not $Name) { return $Name }
+    $SearchPaths = @($ToolkitPath, $global:SharedToolkitPath) | Where-Object { $_ } | Select-Object -Unique
+    foreach ($Path in $SearchPaths) {
+        $ManifestFile = Join-Path $Path 'toolkit.json'
+        if (-not (Test-Path $ManifestFile)) { continue }
+        try { $Manifest = Get-Content $ManifestFile -Raw | ConvertFrom-Json -ErrorAction Stop } catch { continue }
+        foreach ($Category in @('actions', 'builtins', 'listeners')) {
+            $Section = $Manifest.$Category
+            if (-not $Section) { continue }
+            foreach ($Prop in $Section.PSObject.Properties) {
+                if ($Prop.Value -contains $Name) { return $Prop.Name }
+            }
+        }
+    }
+    return $Name
+}
+
+function Get-ToolkitChainDirs {
+    <#
+    .SYNOPSIS
+        Returns every Chains\ directory that should be searched for chains:
+        the current toolkit's own Chains\ first, then every other installed
+        toolkit's Chains\, then SharedToolkit's.
+    .DESCRIPTION
+        Chains are global by default (any profile can list/run any chain it
+        can see, matching README/SKELETON), but a toolkit can ship its own
+        local Chains\ folder that is checked first. Replaces the old
+        hard-coded "$global:SSHToolkitPath\Chains" lookup used by
+        chain/schedule/alert, so those shared systems behave the same from
+        every toolkit - not only SSHToolkit.
+    .PARAMETER ToolkitPath
+        Install path of the current child toolkit, if known. Falls back to
+        $global:CurrentToolkitPath when omitted.
+    #>
+    [CmdletBinding()]
+    param([string]$ToolkitPath = $global:CurrentToolkitPath)
+    $Dirs = [System.Collections.Generic.List[string]]::new()
+    if ($ToolkitPath) {
+        $OwnChains = Join-Path $ToolkitPath 'Chains'
+        if (Test-Path $OwnChains) { $Dirs.Add($OwnChains) }
+    }
+    $InstalledToolkits = @(Get-Module -ListAvailable -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -like '*Toolkit' } | Select-Object -Unique -ExpandProperty Name)
+    foreach ($Tk in $InstalledToolkits) {
+        $Path = Get-ToolkitInstallPath -ToolkitName $Tk
+        if ($Path) {
+            $ChainDir = Join-Path $Path 'Chains'
+            if ((Test-Path $ChainDir) -and ($Dirs -notcontains $ChainDir)) { $Dirs.Add($ChainDir) }
+        }
+    }
+    if ($global:SharedToolkitPath) {
+        $SharedChains = Join-Path $global:SharedToolkitPath 'Chains'
+        if ((Test-Path $SharedChains) -and ($Dirs -notcontains $SharedChains)) { $Dirs.Add($SharedChains) }
+    }
+    return $Dirs
+}
+
+function Invoke-ToolkitContextAction {
+    <#
+    .SYNOPSIS
+        Re-invokes an action/listener/builtin against a profile/context,
+        regardless of which toolkit owns that context.
+    .DESCRIPTION
+        Shared systems - chain (local, non "Toolkit::"-prefixed steps), alert,
+        history replay, and the clipboard/filewatch listeners - all need to
+        re-enter "the current router" to run a bare action. Every toolkit
+        names its router function differently (Invoke-GitToolkitRouter,
+        Invoke-CloudToolkitRouter, SSHToolkit's Invoke-UniversalToolkitRouter,
+        ...), so this resolves whichever router is ACTUALLY bound to
+        $ContextName's profile alias and calls that - instead of hard-coding
+        one toolkit's router. This is what makes chains/listeners work
+        identically whether they were started from an SSH, Git, Cloud,
+        Docker, ... profile.
+    .PARAMETER ContextName
+        The profile alias to act as. Defaults to the active $global:ToolContext.
+    .PARAMETER Action
+        Action/listener/builtin name to invoke.
+    .PARAMETER ForwardedArgs
+        Arguments to forward.
+    #>
+    [CmdletBinding()]
+    param(
+        [string]$ContextName = $global:ToolContext,
+        [Parameter(Mandatory = $true)][string]$Action,
+        [array]$ForwardedArgs = @()
+    )
+    $C = Get-ToolkitColors
+    if (-not $ContextName) {
+        Write-Host "$($C.Crit)[ERROR] No active profile context to run '$Action' against.$($C.Reset)"
+        return
+    }
+    $Cmd = Get-Command $ContextName -ErrorAction SilentlyContinue
+    if (-not $Cmd) {
+        Write-Host "$($C.Crit)[ERROR] '$ContextName' is not a recognized profile alias.$($C.Reset)"
+        return
+    }
+    $Router = if ($Cmd.CommandType -eq 'Alias') { $Cmd.Definition } else { $Cmd.Name }
+    & $Router -Action $Action -ForwardedArgs $ForwardedArgs
+}
+
 $global:ToolCommandLog = "$env:USERPROFILE\Documents\SSHToolkit_CommandHistory.log"
 
 function Write-ToolCommand {
@@ -1035,7 +1180,7 @@ function Initialize-ToolkitCompletion {
 
     Register-ArgumentCompleter -CommandName "chain" -ParameterName Name -ScriptBlock {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-        $ChainDirs = @(Get-ToolkitChainDirs)
+        $ChainDirs = Get-ToolkitChainDirs
         foreach ($d in $ChainDirs) {
             if (Test-Path $d) {
                 Get-ChildItem "$d\*.json" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
@@ -1369,5 +1514,3 @@ function $PluginName {
 
 New-Alias -Name plugin -Value Invoke-PluginAction -Force -Scope Global
 Export-ModuleMember -Function * -Alias plugin
-
-

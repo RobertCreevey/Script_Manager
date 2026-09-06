@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Lists, creates, or runs named chains of steps; each step is an action executed in the current profile context.
 param($Config, [array]$Arguments)
-$ChainDirs = @(Get-ToolkitChainDirs)
+$ChainDirs = Get-ToolkitChainDirs
 $Sub = if ($Arguments[0]) { $Arguments[0] } else { "list" }
 $Name = if ($Arguments[1]) { $Arguments[1] } else { $null }
 $C = Get-ToolkitColors
@@ -107,5 +107,3 @@ if ($Sub -eq "run") {
 }
 
 Write-Host "[ERROR] Usage: chain [list|new|run] <name> ..." -ForegroundColor Red
-
-

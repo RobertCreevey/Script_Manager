@@ -37,7 +37,6 @@
     "profiles": ["profiles", "profile-mgr", "targets"],
     "shell": ["shell", "repl", "interactive"],
     "chain": ["chain", "chains", "workflow", "pipeline"],
-    "alias-resolver": ["alias-resolver", "resolve-alias", "canonical"],
     "help-index": ["help-index", "help-full", "all-help"]
   },
   "parameters": {
