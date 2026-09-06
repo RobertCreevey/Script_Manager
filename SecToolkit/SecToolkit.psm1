@@ -19,7 +19,7 @@ function Invoke-SecToolkitRouter {
     $ContextName = $MyInvocation.InvocationName
     $C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
     $ProfileFile = "$global:SecToolkitPath\Profiles\$ContextName.json"
-    if (-not (Test-Path $ProfileFile)) { Write-Host "$($C.Warn)[ERROR] Profile missing for '$ContextName'$($C.Reset)" ; return }
+    if (-not (Test-Path $ProfileFile)) { Write-Host "$($C.Crit)[ERROR] Profile missing for '$ContextName'$($C.Reset)" ; return }
     $Config = Get-Content $ProfileFile | ConvertFrom-Json
     $ForwardedArgs = @($ForwardedArgs)
     $global:ToolContext = $ContextName
@@ -37,7 +37,7 @@ function Invoke-SecToolkitRouter {
             Write-Host "----------------------------`n"
             return
         }
-        Write-Host "$($C.Warn)[ERROR] Usage: $ContextName config view$($C.Reset)"
+        Write-Host "$($C.Crit)[ERROR] Usage: $ContextName config view$($C.Reset)"
         return
     }
 
@@ -48,7 +48,7 @@ function Invoke-SecToolkitRouter {
     $SharedFound = Invoke-SharedAsset -Type "Actions" -AssetName $Action -Config $Config -ForwardedArgs $ForwardedArgs
     if ($SharedFound) { return }
 
-    Write-Host "$($C.Warn)[ERROR] could not resolve '$Action'$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] could not resolve '$Action'$($C.Reset)"
 }
 
 Get-ChildItem "$global:SecToolkitPath\Profiles\*.json" -ErrorAction SilentlyContinue | ForEach-Object {

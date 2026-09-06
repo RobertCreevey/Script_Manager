@@ -9,9 +9,9 @@ $BackupDir = "$env:USERPROFILE\Documents\SSHToolkit_Backups"
 if ($Sub -eq "restore") {
     $File = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { $null }
     if (-not $File) {
-        if (-not (Test-Path $BackupDir)) { Write-Host "$($C.Warn)[ERROR] No backups found.$($C.Reset)" ; return }
+        if (-not (Test-Path $BackupDir)) { Write-Host "$($C.Crit)[ERROR] No backups found.$($C.Reset)" ; return }
         $Backups = Get-ChildItem $BackupDir -Filter "*.json" | Sort-Object LastWriteTime -Descending
-        if (-not $Backups) { Write-Host "$($C.Warn)[ERROR] No backups found.$($C.Reset)" ; return }
+        if (-not $Backups) { Write-Host "$($C.Crit)[ERROR] No backups found.$($C.Reset)" ; return }
         Write-Host "$($C.Sys)Available backups:$($C.Reset)"
         $Idx = 0
         foreach ($B in $Backups) { $Idx++; Write-Host "  $($C.Param)$Idx$($C.Reset) $($C.Str)$($B.Name)$($C.Reset) ($([math]::Round($B.Length/1KB,1))KB)" }
@@ -23,10 +23,10 @@ if ($Sub -eq "restore") {
         $Backups = Get-ChildItem $BackupDir -Filter "*.json" | Sort-Object LastWriteTime -Descending
         $File = $Backups[[int]$File - 1].FullName
     }
-    if (-not (Test-Path $File)) { Write-Host "$($C.Warn)[ERROR] Backup file not found: $File$($C.Reset)" ; return }
+    if (-not (Test-Path $File)) { Write-Host "$($C.Crit)[ERROR] Backup file not found: $File$($C.Reset)" ; return }
     try {
         $Bundle = Get-Content $File -Raw | ConvertFrom-Json
-    } catch { Write-Host "$($C.Warn)[ERROR] Could not parse backup: $_$($C.Reset)" ; return }
+    } catch { Write-Host "$($C.Crit)[ERROR] Could not parse backup: $_$($C.Reset)" ; return }
     $Restored = 0
     foreach ($ToolkitBundle in $Bundle.Toolkits.PSObject.Properties) {
         $ToolkitName = $ToolkitBundle.Name
@@ -50,9 +50,9 @@ if ($Sub -eq "restore") {
 }
 
 if ($Sub -eq "list") {
-    if (-not (Test-Path $BackupDir)) { Write-Host "$($C.Warn)[ERROR] No backups found.$($C.Reset)" ; return }
+    if (-not (Test-Path $BackupDir)) { Write-Host "$($C.Crit)[ERROR] No backups found.$($C.Reset)" ; return }
     $Backups = Get-ChildItem $BackupDir -Filter "*.json" | Sort-Object LastWriteTime -Descending
-    if (-not $Backups) { Write-Host "$($C.Warn)[ERROR] No backups found.$($C.Reset)" ; return }
+    if (-not $Backups) { Write-Host "$($C.Crit)[ERROR] No backups found.$($C.Reset)" ; return }
     Write-Host "$($C.Sys)Available backups:$($C.Reset)"
     foreach ($B in $Backups) { Write-Host "  $($C.Str)$($B.Name)$($C.Reset) ($([math]::Round($B.Length/1KB,1))KB)" }
     return
@@ -69,7 +69,7 @@ foreach ($Folder in $ToolkitFolders) {
     if ($Profiles.Count -eq 0 -and $Chains.Count -eq 0) { continue }
     $TData = [ordered]@{ Profiles = [ordered]@{}; Chains = [ordered]@{} }
     foreach ($P in $Profiles) { $TData.Profiles[$P.BaseName] = Get-Content $P.FullName -Raw | ConvertFrom-Json }
-    foreach ($C in $Chains) { $TData.Chains[$C.BaseName] = Get-Content $C.FullName -Raw | ConvertFrom-Json }
+    foreach ($Ch in $Chains) { $TData.Chains[$Ch.BaseName] = Get-Content $Ch.FullName -Raw | ConvertFrom-Json }
     $Bundle.Toolkits[$TName] = $TData
 }
 $Timestamp = Get-Date -Format "yyyyMMdd_HHmmss"

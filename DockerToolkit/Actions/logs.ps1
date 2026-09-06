@@ -18,7 +18,7 @@ $Timestamps = $ArgsOnly -contains '--timestamps'
 $Details = $ArgsOnly -contains '--details'
 
 if (-not $Container) {
-    Write-Host "$($C.Warn)[ERROR] Usage: logs <container> [-f] [--tail N] [--since TIME] [--until TIME] [--timestamps] [--details]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: logs <container> [-f] [--tail N] [--since TIME] [--until TIME] [--timestamps] [--details]$($C.Reset)"
     return
 }
 

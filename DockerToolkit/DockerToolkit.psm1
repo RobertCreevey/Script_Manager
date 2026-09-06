@@ -31,7 +31,7 @@ function Invoke-DockerToolkitRouter {
     if ($Inv -ne 'Invoke-DockerToolkitRouter') { $ContextName = $Inv } else { $ContextName = $global:ToolContext }
     $C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
     $ProfileFile = "$global:DockerToolkitPath\Profiles\$ContextName.json"
-    if (-not (Test-Path $ProfileFile)) { Write-Host "$($C.Warn)[ERROR] Profile registry missing for '$ContextName'$($C.Reset)" ; return }
+    if (-not (Test-Path $ProfileFile)) { Write-Host "$($C.Crit)[ERROR] Profile registry missing for '$ContextName'$($C.Reset)" ; return }
     $Config = Get-Content $ProfileFile | ConvertFrom-Json
     $ForwardedArgs = @($ForwardedArgs)
     $global:ToolContext = $ContextName
@@ -75,11 +75,11 @@ function Invoke-DockerToolkitRouter {
                 $Config | ConvertTo-Json | Out-File $ProfileFile -Force
                 Write-Host "[OK] Saved $($C.Param)$K$($C.Reset) = $($C.Str)$V$($C.Reset)" -ForegroundColor Green
             } else {
-                Write-Host "$($C.Warn)[ERROR] Invalid key: Host, Context, Registry, Namespace.$($C.Reset)"
+                Write-Host "$($C.Crit)[ERROR] Invalid key: Host, Context, Registry, Namespace.$($C.Reset)"
             }
             return
         }
-        Write-Host "$($C.Warn)[ERROR] Usage: $ContextName config view | config set [Host|Context|Registry|Namespace] [value]$($C.Reset)"
+        Write-Host "$($C.Crit)[ERROR] Usage: $ContextName config view | config set [Host|Context|Registry|Namespace] [value]$($C.Reset)"
         return
     }
 
@@ -94,14 +94,14 @@ function Invoke-DockerToolkitRouter {
         switch ($Sub) {
             'ls'  { & docker context ls }
             'use' { & docker context use $ForwardedArgs[1] }
-            default { Write-Host "$($C.Warn)[ERROR] Usage: context [ls|use <name>]$($C.Reset)" }
+            default { Write-Host "$($C.Crit)[ERROR] Usage: context [ls|use <name>]$($C.Reset)" }
         }
         return
     }
 
     if ($Action -eq "login") {
         $Registry = if ($ForwardedArgs[0]) { $ForwardedArgs[0] } else { $Config.Registry }
-        if (-not $Registry) { Write-Host "$($C.Warn)[ERROR] Usage: login <registry> or set config Registry$($C.Reset)" ; return }
+        if (-not $Registry) { Write-Host "$($C.Crit)[ERROR] Usage: login <registry> or set config Registry$($C.Reset)" ; return }
         & docker $DockerHost $DockerContext login $Registry
         return
     }
@@ -119,7 +119,7 @@ function Invoke-DockerToolkitRouter {
     $SharedListener = Invoke-SharedAsset -Type "Listeners" -AssetName $Action -Config $Config -ForwardedArgs $ForwardedArgs
     if ($SharedListener) { return }
 
-    Write-Host "$($C.Warn)[ERROR] could not resolve '$Action'$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] could not resolve '$Action'$($C.Reset)"
     Invoke-ToolEvent -Name "UnknownAction" -Data "$ContextName : $Action" -Config $Config
 }
 

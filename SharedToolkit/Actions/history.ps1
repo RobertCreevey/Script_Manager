@@ -6,22 +6,22 @@ $C = Get-ToolkitColors
 $Sub = if ($ArgsOnly[0]) { "$($ArgsOnly[0])".ToLower() } else { "show" }
 
 if ($Sub -eq "clear") {
-    try { "" | Set-Content $global:ToolCommandLog -Force; Write-Host "[OK] Command history cleared." -ForegroundColor Green } catch { Write-Host "$($C.Warn)[ERROR] Could not clear history: $_$($C.Reset)" }
+    try { "" | Set-Content $global:ToolCommandLog -Force; Write-Host "[OK] Command history cleared." -ForegroundColor Green } catch { Write-Host "$($C.Crit)[ERROR] Could not clear history: $_$($C.Reset)" }
     return
 }
 
 if ($Sub -eq "run" -and $ArgsOnly[1] -and $ArgsOnly[1] -match '^\d+$') {
     $TargetIdx = [int]$ArgsOnly[1]
-    if (-not (Test-Path $global:ToolCommandLog)) { Write-Host "$($C.Warn)[ERROR] No command history found.$($C.Reset)" ; return }
+    if (-not (Test-Path $global:ToolCommandLog)) { Write-Host "$($C.Crit)[ERROR] No command history found.$($C.Reset)" ; return }
     $Lines = Get-Content $global:ToolCommandLog | Where-Object { $_ -match '^\[\d{4}-\d{2}-\d{2}' }
     $TargetLine = $Lines[$TargetIdx - 1]
-    if (-not $TargetLine) { Write-Host "$($C.Warn)[ERROR] No command at index $TargetIdx.$($C.Reset)" ; return }
+    if (-not $TargetLine) { Write-Host "$($C.Crit)[ERROR] No command at index $TargetIdx.$($C.Reset)" ; return }
     if ($TargetLine -match '^\[.+?\] \[(.+?)\] \[.+?\] (\w+) (.*)$') {
         $Ctx = $Matches[1]; $Action = $Matches[2]; $ArgsStr = $Matches[3]
         Write-Host "$($C.Info)Replaying #$TargetIdx : $($C.Action)$Action$($C.Reset) $($C.Str)$ArgsStr$($C.Reset)" -ForegroundColor Cyan
         $ArgsArr = @($ArgsStr -split ' ')
         try { Invoke-UniversalToolkitRouter -Action $Action -ForwardedArgs $ArgsArr } catch {
-            Write-Host "$($C.Warn)[ERROR] Replay failed: $_$($C.Reset)"
+            Write-Host "$($C.Crit)[ERROR] Replay failed: $_$($C.Reset)"
         }
     }
     return
@@ -30,7 +30,7 @@ if ($Sub -eq "run" -and $ArgsOnly[1] -and $ArgsOnly[1] -match '^\d+$') {
 $SearchTerm = if ($Sub -eq "search" -and $ArgsOnly[1]) { $ArgsOnly[1] } else { $null }
 $Count = if ($ArgsOnly | Where-Object { $_ -eq "-n" }) { $Nidx = $ArgsOnly.IndexOf("-n"); if ($Nidx -ge 0 -and $Nidx + 1 -lt $ArgsOnly.Count) { [int]$ArgsOnly[$Nidx + 1] } else { 20 } } else { 20 }
 
-if (-not (Test-Path $global:ToolCommandLog)) { Write-Host "$($C.Warn)[ERROR] No command history found.$($C.Reset)" ; return }
+if (-not (Test-Path $global:ToolCommandLog)) { Write-Host "$($C.Crit)[ERROR] No command history found.$($C.Reset)" ; return }
 $Lines = Get-Content $global:ToolCommandLog | Where-Object { $_ -match '^\[\d{4}-\d{2}-\d{2}' }
 if ($SearchTerm) { $Lines = $Lines | Where-Object { $_ -like "*$SearchTerm*" } }
 $Lines = $Lines | Select-Object -Last $Count

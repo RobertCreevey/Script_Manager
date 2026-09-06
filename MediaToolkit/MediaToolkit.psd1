@@ -7,14 +7,8 @@
     PowerShellVersion = '7.0'
     CompatiblePSEditions = @('Core')
     RequiredModules = @('SharedToolkit')
-    FunctionsToExport = @(
-        'Register-MediaProfile'
-        'Invoke-MediaToolkitRouter'
-    )
-    AliasesToExport = @(
-        'thispc'
-        'newmedia'
-    )
+    FunctionsToExport = '*'
+    AliasesToExport = '*'
     PrivateData = @{
         PSData = @{
             Tags = @('toolkit', 'media', 'display', 'audio')
@@ -24,3 +18,4 @@
         }
     }
 }
+

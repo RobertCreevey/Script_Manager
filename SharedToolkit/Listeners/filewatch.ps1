@@ -9,12 +9,12 @@ $ChainName = if ($ArgsOnly[2]) { $ArgsOnly[2] } else { "" }
 $Interval = if ($ArgsOnly[3]) { [int]$ArgsOnly[3] } else { 3 }
 
 if (-not $ChainName) {
-    Write-Host "$($C.Warn)[ERROR] Usage: filewatch <path> <filter> <chain> [interval_secs]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: filewatch <path> <filter> <chain> [interval_secs]$($C.Reset)"
     return
 }
 
 if (-not (Test-Path $Path)) {
-    Write-Host "$($C.Warn)[ERROR] Path not found: $Path$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Path not found: $Path$($C.Reset)"
     return
 }
 

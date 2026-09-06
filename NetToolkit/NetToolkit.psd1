@@ -7,14 +7,8 @@
     PowerShellVersion = '7.0'
     CompatiblePSEditions = @('Core')
     RequiredModules = @('SharedToolkit')
-    FunctionsToExport = @(
-        'Register-NetProfile'
-        'Invoke-NetToolkitRouter'
-    )
-    AliasesToExport = @(
-        'router'
-        'newnet'
-    )
+    FunctionsToExport = '*'
+    AliasesToExport = '*'
     PrivateData = @{
         PSData = @{
             Tags = @('toolkit', 'network', 'lan', 'diagnostics')
@@ -24,3 +18,4 @@
         }
     }
 }
+

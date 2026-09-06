@@ -18,7 +18,7 @@ $CommonArgs = @("--region", $Region, "--profile", $Profile) | Where-Object { $_ 
 
 switch ($Sub) {
     'ls' {
-        if (-not $Target) { Write-Host "$($C.Warn)[ERROR] Usage: storage ls <bucket|container> [prefix]$($C.Reset)" ; return }
+        if (-not $Target) { Write-Host "$($C.Crit)[ERROR] Usage: storage ls <bucket|container> [prefix]$($C.Reset)" ; return }
         $Results = switch ($Provider) {
             'aws'  { & aws s3 ls "s3://$Target" $CommonArgs --recursive:$Recursive }
             'azure' { & az storage blob list --container-name $Target --output table --auth-mode login }
@@ -27,7 +27,7 @@ switch ($Sub) {
         if ($Format -ne 'table') { $Results | Format-ToolOutput -Format $Format } else { $Results }
     }
     'cp' {
-        if (-not $Target -or -not $Dest) { Write-Host "$($C.Warn)[ERROR] Usage: storage cp <src> <dst>$($C.Reset)" ; return }
+        if (-not $Target -or -not $Dest) { Write-Host "$($C.Crit)[ERROR] Usage: storage cp <src> <dst>$($C.Reset)" ; return }
         switch ($Provider) {
             'aws'  { & aws s3 cp $Target $Dest $CommonArgs @(if($Recursive){"--recursive"}) }
             'azure' { & az storage blob upload --container-name (Split-Path $Dest -Parent) --file $Target --name (Split-Path $Dest -Leaf) --auth-mode login }
@@ -35,7 +35,7 @@ switch ($Sub) {
         }
     }
     'sync' {
-        if (-not $Target -or -not $Dest) { Write-Host "$($C.Warn)[ERROR] Usage: storage sync <src> <dst>$($C.Reset)" ; return }
+        if (-not $Target -or -not $Dest) { Write-Host "$($C.Crit)[ERROR] Usage: storage sync <src> <dst>$($C.Reset)" ; return }
         switch ($Provider) {
             'aws'  { & aws s3 sync $Target $Dest $CommonArgs }
             'azure' { Write-Host "$($C.Warn)Azure sync: use 'azcopy' or 'az storage blob sync'$($C.Reset)" }
@@ -43,7 +43,7 @@ switch ($Sub) {
         }
     }
     'rm' {
-        if (-not $Target) { Write-Host "$($C.Warn)[ERROR] Usage: storage rm <bucket/obj> [-r]$($C.Reset)" ; return }
+        if (-not $Target) { Write-Host "$($C.Crit)[ERROR] Usage: storage rm <bucket/obj> [-r]$($C.Reset)" ; return }
         if (-not (Request-ToolkitConfirmation -Verb "delete storage object" -Command "rm $Target" -Config $Config -Arguments $Arguments)) { return }
         switch ($Provider) {
             'aws'  { & aws s3 rm $Target $CommonArgs @(if($Recursive){"--recursive"}) }
@@ -52,13 +52,13 @@ switch ($Sub) {
         }
     }
     'mb' {
-        if (-not $Target) { Write-Host "$($C.Warn)[ERROR] Usage: storage mb <bucket|container>$($C.Reset)" ; return }
+        if (-not $Target) { Write-Host "$($C.Crit)[ERROR] Usage: storage mb <bucket|container>$($C.Reset)" ; return }
         switch ($Provider) {
             'aws'  { & aws s3 mb "s3://$Target" $CommonArgs }
             'azure' { & az storage container create --name $Target --auth-mode login }
             'gcp'  { & gsutil mb "gs://$Target" }
         }
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: storage [ls|cp|sync|rm|mb] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: storage [ls|cp|sync|rm|mb] ...$($C.Reset)" }
 }
 

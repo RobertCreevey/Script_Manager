@@ -33,7 +33,7 @@ function Invoke-CloudToolkitRouter {
     if ($Inv -ne 'Invoke-CloudToolkitRouter') { $ContextName = $Inv } else { $ContextName = $global:ToolContext }
     $C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
     $ProfileFile = "$global:CloudToolkitPath\Profiles\$ContextName.json"
-    if (-not (Test-Path $ProfileFile)) { Write-Host "$($C.Warn)[ERROR] Profile registry missing for '$ContextName'$($C.Reset)" ; return }
+    if (-not (Test-Path $ProfileFile)) { Write-Host "$($C.Crit)[ERROR] Profile registry missing for '$ContextName'$($C.Reset)" ; return }
     $Config = Get-Content $ProfileFile | ConvertFrom-Json
     $ForwardedArgs = @($ForwardedArgs)
     $global:ToolContext = $ContextName
@@ -74,11 +74,11 @@ function Invoke-CloudToolkitRouter {
                 $Config | ConvertTo-Json | Out-File $ProfileFile -Force
                 Write-Host "[OK] Saved $($C.Param)$K$($C.Reset) = $($C.Str)$V$($C.Reset)" -ForegroundColor Green
             } else {
-                Write-Host "$($C.Warn)[ERROR] Invalid key: Provider, Region, Profile, Project, Subscription.$($C.Reset)"
+                Write-Host "$($C.Crit)[ERROR] Invalid key: Provider, Region, Profile, Project, Subscription.$($C.Reset)"
             }
             return
         }
-        Write-Host "$($C.Warn)[ERROR] Usage: $ContextName config view | config set [Provider|Region|Profile|Project|Subscription] [value]$($C.Reset)"
+        Write-Host "$($C.Crit)[ERROR] Usage: $ContextName config view | config set [Provider|Region|Profile|Project|Subscription] [value]$($C.Reset)"
         return
     }
 
@@ -129,7 +129,7 @@ function Invoke-CloudToolkitRouter {
     $SharedListener = Invoke-SharedAsset -Type "Listeners" -AssetName $Action -Config $Config -ForwardedArgs $ForwardedArgs
     if ($SharedListener) { return }
 
-    Write-Host "$($C.Warn)[ERROR] could not resolve '$Action'$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] could not resolve '$Action'$($C.Reset)"
     Invoke-ToolEvent -Name "UnknownAction" -Data "$ContextName : $Action" -Config $Config
 }
 

@@ -22,10 +22,10 @@ if ($Sub -eq "list") {
 
 if ($Sub -eq "remove") {
     $Name = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { $null }
-    if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: schedule remove <chain-name>$($C.Reset)" ; return }
+    if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: schedule remove <chain-name>$($C.Reset)" ; return }
     $TaskName = "$Prefix$Name"
     $Task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-    if (-not $Task) { Write-Host "$($C.Warn)[ERROR] No scheduled task '$Name'.$($C.Reset)" ; return }
+    if (-not $Task) { Write-Host "$($C.Crit)[ERROR] No scheduled task '$Name'.$($C.Reset)" ; return }
     if (-not (Request-ToolkitConfirmation -Verb "remove scheduled chain '$Name'" -Command "Unregister-ScheduledTask $TaskName" -Config $Config -Arguments @($Arguments, "-Force"))) { return }
     Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
     Write-Host "[OK] Removed scheduled chain '$Name'." -ForegroundColor Green
@@ -35,10 +35,10 @@ if ($Sub -eq "remove") {
 if ($Sub -eq "add") {
     $Name = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { $null }
     $IntervalMin = if ($ArgsOnly[2] -and $ArgsOnly[2] -match '^\d+$') { [int]$ArgsOnly[2] } else { $null }
-    if (-not $Name -or -not $IntervalMin) { Write-Host "$($C.Warn)[ERROR] Usage: schedule add <chain-name> <interval-minutes>$($C.Reset)" ; return }
+    if (-not $Name -or -not $IntervalMin) { Write-Host "$($C.Crit)[ERROR] Usage: schedule add <chain-name> <interval-minutes>$($C.Reset)" ; return }
     $ChainFile = $null
     foreach ($d in @("$global:SSHToolkitPath\Chains", "$global:SharedToolkitPath\Chains")) { if (Test-Path "$d\$Name.json") { $ChainFile = "$d\$Name.json"; break } }
-    if (-not $ChainFile) { Write-Host "$($C.Warn)[ERROR] Chain '$Name' not found.$($C.Reset)" ; return }
+    if (-not $ChainFile) { Write-Host "$($C.Crit)[ERROR] Chain '$Name' not found.$($C.Reset)" ; return }
     $TaskName = "$Prefix$Name"
     $LoggedInUser = (Get-CimInstance Win32_ComputerSystem).UserName
     $ExecCmd = "pwsh -NoProfile -Command `"& { Import-Module SSHToolkit -ErrorAction SilentlyContinue; Invoke-UniversalToolkitRouter -Action 'chain' -ForwardedArgs @('run','$Name','-Force') }`""
@@ -51,11 +51,11 @@ if ($Sub -eq "add") {
         Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Principal $Principal -Settings $Settings -Force | Out-Null
         Write-Host "[OK] Scheduled '$Name' every ${IntervalMin} minutes." -ForegroundColor Green
     } catch {
-        Write-Host "$($C.Warn)[ERROR] Failed to schedule: $_$($C.Reset)"
+        Write-Host "$($C.Crit)[ERROR] Failed to schedule: $_$($C.Reset)"
     }
     return
 }
 
-Write-Host "$($C.Warn)[ERROR] Usage: schedule [add|list|remove] ...$($C.Reset)"
+Write-Host "$($C.Crit)[ERROR] Usage: schedule [add|list|remove] ...$($C.Reset)"
 
 

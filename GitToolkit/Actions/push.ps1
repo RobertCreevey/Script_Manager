@@ -11,7 +11,7 @@ $Force = $Arguments -contains '-f' -or $Arguments -contains '--force'
 $ForceWithLease = $Arguments -contains '--force-with-lease'
 $Tags = $Arguments -contains '--tags'
 
-if (-not $Remote) { Write-Host "$($C.Warn)[ERROR] Usage: push [remote] [branch] [-f|--force-with-lease] [--tags]$($C.Reset)"; return }
+if (-not $Remote) { Write-Host "$($C.Crit)[ERROR] Usage: push [remote] [branch] [-f|--force-with-lease] [--tags]$($C.Reset)"; return }
 
 $RepoPath = $Config.Path
 Set-Location $RepoPath

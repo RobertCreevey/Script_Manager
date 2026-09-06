@@ -45,7 +45,7 @@ switch ($Sub) {
         & $Cmd
     }
     'drop' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: stash drop <stash@{n}>$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: stash drop <stash@{n}>$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Git repository", "Drop stash '$Name'")) { return }
         & git stash drop $Name
     }
@@ -56,5 +56,5 @@ switch ($Sub) {
         $Out = & $Cmd
         $Out | Format-ToolOutput -Format $Format
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: stash [list|push|pop|apply|drop|show] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: stash [list|push|pop|apply|drop|show] ...$($C.Reset)" }
 }

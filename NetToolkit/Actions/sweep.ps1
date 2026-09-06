@@ -21,6 +21,6 @@ if ($Target -match '^\d{1,3}(\.\d{1,3}){2}$') {
     Write-Host "[ping] $Target (count=$Count)..." -ForegroundColor Cyan
     $R = Test-Connection -ComputerName $Target -Count $Count -ErrorAction SilentlyContinue
     if ($R) { Write-Host "  $($C.Ok)REACHABLE$($C.Reset) : $($C.Str)$Target$($C.Reset) (avg $([math]::Round(($R | Measure-Object ResponseTime -Average).Average,1))ms)" -ForegroundColor Green }
-    else { Write-Host "  $($C.Warn)UNREACHABLE$($C.Reset) : $Target" -ForegroundColor Red }
+    else { Write-Host "  $($C.Crit)UNREACHABLE$($C.Reset) : $Target" }
 }
 

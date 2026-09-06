@@ -16,7 +16,7 @@ $NameStatus = $ArgsOnly -contains '--name-status'
 $Oneline = $ArgsOnly -contains '--oneline'
 
 if (-not $Object) {
-    Write-Host "$($C.Warn)[ERROR] Usage: show <object> [--stat] [-p] [--name-only] [--name-status] [--oneline]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: show <object> [--stat] [-p] [--name-only] [--name-status] [--oneline]$($C.Reset)"
     return
 }
 

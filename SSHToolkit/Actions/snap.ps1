@@ -29,7 +29,7 @@ $SSHCmd = "ssh -i `$Key $User@$IP powershell -NoProfile -WindowStyle Hidden -Enc
 & powershell -NoProfile -Command $SSHCmd
 
 Write-Host "[snap] Downloading..." -ForegroundColor Cyan
-$ScpCmd = "scp -i `"$Key`" $User@$IP:`"$RemotePath`" `"$LocalPath`""
+$ScpCmd = "scp -i `"$Key`" $User@${IP}:`"$RemotePath`" `"$LocalPath`""
 & powershell -NoProfile -Command $ScpCmd
 
 Write-Host "[snap] Cleaning up remote..." -ForegroundColor Cyan

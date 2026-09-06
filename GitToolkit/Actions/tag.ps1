@@ -31,7 +31,7 @@ switch ($Sub) {
         $Out | Format-ToolOutput -Format $Format
     }
     'create' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: tag create <name> [-m message] [-a]$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: tag create <name> [-m message] [-a]$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Git repository", "Create tag '$Name'")) { return }
         $Cmd = "git tag"
         if ($Annotated -or $Message) { $Cmd += " -a" }
@@ -40,13 +40,13 @@ switch ($Sub) {
         & $Cmd
     }
     'delete' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: tag delete <name>$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: tag delete <name>$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Git repository", "Delete tag '$Name'")) { return }
         & git tag -d $Name
     }
     'verify' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: tag verify <name>$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: tag verify <name>$($C.Reset)"; return }
         & git tag -v $Name
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: tag [list|create|delete|verify] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: tag [list|create|delete|verify] ...$($C.Reset)" }
 }

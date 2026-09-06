@@ -27,14 +27,14 @@ switch ($Sub) {
         $Results | Format-ToolOutput -Format $Format
     }
     'create' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: volumes create <name> [--driver <driver>]$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: volumes create <name> [--driver <driver>]$($C.Reset)"; return }
         $Driver = $ArgsOnly | Where-Object { $_ -match '^--driver=' } | ForEach-Object { $_ -replace '--driver=', '' }
         if (-not $Driver) { $Driver = 'local' }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Docker volume", "Create volume '$Name'")) { return }
         & $BaseCmd volume create --driver $Driver $Name
     }
     'rm' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: volumes rm <name> [-f]$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: volumes rm <name> [-f]$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Docker volume", "Remove volume '$Name'")) { return }
         & $BaseCmd volume rm $Name
     }
@@ -43,9 +43,9 @@ switch ($Sub) {
         & $BaseCmd volume prune -f
     }
     'inspect' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: volumes inspect <name> [-json]$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: volumes inspect <name> [-json]$($C.Reset)"; return }
         $Out = & $BaseCmd volume inspect $Name | ConvertFrom-Json
         if ($Format -eq 'json') { $Out | ConvertTo-Json -Depth 5 } else { $Out | Format-List * }
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: volumes [ls|create|rm|prune|inspect] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: volumes [ls|create|rm|prune|inspect] ...$($C.Reset)" }
 }

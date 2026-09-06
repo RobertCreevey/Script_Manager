@@ -27,34 +27,34 @@ switch ($Sub) {
         $Out | Format-ToolOutput -Format $Format
     }
     'add' {
-        if (-not $Name -or -not $Url) { Write-Host "$($C.Warn)[ERROR] Usage: remote add <name> <url>$($C.Reset)"; return }
+        if (-not $Name -or -not $Url) { Write-Host "$($C.Crit)[ERROR] Usage: remote add <name> <url>$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Git repository", "Add remote '$Name'")) { return }
         & git remote add $Name $Url
     }
     'remove' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: remote remove <name>$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: remote remove <name>$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Git repository", "Remove remote '$Name'")) { return }
         & git remote remove $Name
     }
     'rename' {
-        if (-not $Name -or -not $NewName) { Write-Host "$($C.Warn)[ERROR] Usage: remote rename <old> <new>$($C.Reset)"; return }
+        if (-not $Name -or -not $NewName) { Write-Host "$($C.Crit)[ERROR] Usage: remote rename <old> <new>$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Git repository", "Rename remote '$Name' to '$NewName'")) { return }
         & git remote rename $Name $NewName
     }
     'set-url' {
-        if (-not $Name -or -not $Url) { Write-Host "$($C.Warn)[ERROR] Usage: remote set-url <name> <new-url>$($C.Reset)"; return }
+        if (-not $Name -or -not $Url) { Write-Host "$($C.Crit)[ERROR] Usage: remote set-url <name> <new-url>$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Git repository", "Set URL for remote '$Name'")) { return }
         & git remote set-url $Name $Url
     }
     'show' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: remote show <name>$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: remote show <name>$($C.Reset)"; return }
         $Out = & git remote show $Name
         $Out | Format-ToolOutput -Format $Format
     }
     'prune' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: remote prune <name>$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: remote prune <name>$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Git repository", "Prune remote '$Name'")) { return }
         & git remote prune $Name
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: remote [list|add|remove|rename|set-url|show|prune] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: remote [list|add|remove|rename|set-url|show|prune] ...$($C.Reset)" }
 }

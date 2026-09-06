@@ -9,7 +9,7 @@ $Remote = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { $Config.Remote }
 $Branch = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { "" }
 $Rebase = $Arguments -contains '--rebase'
 
-if (-not $Remote) { Write-Host "$($C.Warn)[ERROR] Usage: pull [remote] [branch] [--rebase]$($C.Reset)"; return }
+if (-not $Remote) { Write-Host "$($C.Crit)[ERROR] Usage: pull [remote] [branch] [--rebase]$($C.Reset)"; return }
 
 $RepoPath = $Config.Path
 Set-Location $RepoPath

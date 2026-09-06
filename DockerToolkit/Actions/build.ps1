@@ -17,7 +17,7 @@ $BuildArg = $ArgsOnly | Where-Object { $_ -match '^--build-arg=' } | ForEach-Obj
 $Platform = $ArgsOnly | Where-Object { $_ -match '^--platform=' } | ForEach-Object { $_ -replace '^--platform=', '' }
 
 if (-not $Path) {
-    Write-Host "$($C.Warn)[ERROR] Usage: build <path> [-t name:tag] [-f Dockerfile] [--no-cache] [--target stage] [--build-arg KEY=VAL] [--platform PLATFORM]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: build <path> [-t name:tag] [-f Dockerfile] [--no-cache] [--target stage] [--build-arg KEY=VAL] [--platform PLATFORM]$($C.Reset)"
     return
 }
 

@@ -25,7 +25,7 @@ switch ($Sub) {
         $Results | Format-ToolOutput -Format $Format
     }
     'get' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: secrets get <name> [-json]$($C.Reset)" ; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: secrets get <name> [-json]$($C.Reset)" ; return }
         switch ($Provider) {
             'aws'  { & aws secretsmanager get-secret-value --secret-id $Name $CommonArgs --query SecretString --output text }
             'azure' { & az keyvault secret show --vault-name $ArgsOnly[2] --name $Name --query value -o tsv }
@@ -33,7 +33,7 @@ switch ($Sub) {
         }
     }
     'set' {
-        if (-not $Name -or -not $Value) { Write-Host "$($C.Warn)[ERROR] Usage: secrets set <name> <value>$($C.Reset)" ; return }
+        if (-not $Name -or -not $Value) { Write-Host "$($C.Crit)[ERROR] Usage: secrets set <name> <value>$($C.Reset)" ; return }
         if (-not (Request-ToolkitConfirmation -Verb "create/update secret" -Command "secrets set $Name" -Config $Config -Arguments $Arguments)) { return }
         switch ($Provider) {
             'aws'  { & aws secretsmanager put-secret-value --secret-id $Name --secret-string $Value $CommonArgs }
@@ -41,6 +41,6 @@ switch ($Sub) {
             'gcp'  { echo $Value | & gcloud secrets versions add $Name --data-file=- --project $Project }
         }
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: secrets [list|get|set] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: secrets [list|get|set] ...$($C.Reset)" }
 }
 

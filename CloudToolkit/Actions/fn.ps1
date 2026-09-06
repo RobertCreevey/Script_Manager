@@ -24,7 +24,7 @@ switch ($Sub) {
         $Results | Format-ToolOutput -Format $Format
     }
     'invoke' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: fn invoke <name> [payload.json]$($C.Reset)" ; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: fn invoke <name> [payload.json]$($C.Reset)" ; return }
         $Payload = if ($ArgsOnly[2]) { "file://$($ArgsOnly[2])" } else { '{}' }
         switch ($Provider) {
             'aws'  { & aws lambda invoke --function-name $Name --payload $Payload /dev/stdout $CommonArgs }
@@ -33,7 +33,7 @@ switch ($Sub) {
         }
     }
     'logs' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: fn logs <name> [-f]$($C.Reset)" ; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: fn logs <name> [-f]$($C.Reset)" ; return }
         $Follow = $Arguments -contains '-f'
         switch ($Provider) {
             'aws'  { if ($Follow) { & aws logs tail "/aws/lambda/$Name" --follow $CommonArgs } else { & aws logs tail "/aws/lambda/$Name" $CommonArgs } }
@@ -42,9 +42,9 @@ switch ($Sub) {
         }
     }
     'deploy' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: fn deploy <name> --zip <file> [--handler <handler>] [--runtime <runtime>]$($C.Reset)" ; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: fn deploy <name> --zip <file> [--handler <handler>] [--runtime <runtime>]$($C.Reset)" ; return }
         # Implementation varies by provider - placeholder
         Write-Host "$($C.Warn)Deploy not implemented - use provider CLI directly$($C.Reset)"
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: fn [list|invoke|logs|deploy] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: fn [list|invoke|logs|deploy] ...$($C.Reset)" }
 }

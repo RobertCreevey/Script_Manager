@@ -145,7 +145,7 @@ switch ($Topic) {
     }
     'parameters' {
         if (-not $SubTopic) {
-            Write-Host "$($C.Warn)[ERROR] Usage: help-index parameters <action>$($C.Reset)"
+            Write-Host "$($C.Crit)[ERROR] Usage: help-index parameters <action>$($C.Reset)"
             return
         }
         $All = Get-AllToolkits
@@ -336,7 +336,7 @@ switch ($Topic) {
         Write-Host ""
     }
     default {
-        Write-Host "$($C.Warn)[ERROR] Unknown topic: $Topic$($C.Reset)"
+        Write-Host "$($C.Crit)[ERROR] Unknown topic: $Topic$($C.Reset)"
         Write-Host "Run 'help-index' for topic list"
     }
 }

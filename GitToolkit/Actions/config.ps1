@@ -27,7 +27,7 @@ switch ($Sub) {
         $Out | Format-ToolOutput -Format $Format
     }
     'get' {
-        if (-not $Key) { Write-Host "$($C.Warn)[ERROR] Usage: config get <key> [--local|--global|--system]$($C.Reset)"; return }
+        if (-not $Key) { Write-Host "$($C.Crit)[ERROR] Usage: config get <key> [--local|--global|--system]$($C.Reset)"; return }
         $Cmd = "git config --get"
         if ($Scope -ne 'local') { $Cmd = "git config --$Scope --get" }
         $Cmd += " $Key"
@@ -35,7 +35,7 @@ switch ($Sub) {
         $Out | Format-ToolOutput -Format $Format
     }
     'set' {
-        if (-not $Key -or -not $Value) { Write-Host "$($C.Warn)[ERROR] Usage: config set <key> <value> [--local|--global|--system]$($C.Reset)"; return }
+        if (-not $Key -or -not $Value) { Write-Host "$($C.Crit)[ERROR] Usage: config set <key> <value> [--local|--global|--system]$($C.Reset)"; return }
         $Cmd = "git config"
         if ($Scope -ne 'local') { $Cmd = "git config --$Scope" }
         if ($Unset) { $Cmd += " --unset" }
@@ -44,11 +44,11 @@ switch ($Sub) {
         & $Cmd
     }
     'unset' {
-        if (-not $Key) { Write-Host "$($C.Warn)[ERROR] Usage: config unset <key> [--local|--global|--system]$($C.Reset)"; return }
+        if (-not $Key) { Write-Host "$($C.Crit)[ERROR] Usage: config unset <key> [--local|--global|--system]$($C.Reset)"; return }
         $Cmd = "git config --unset"
         if ($Scope -ne 'local') { $Cmd = "git config --$Scope --unset" }
         $Cmd += " $Key"
         & $Cmd
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: config [list|get|set|unset] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: config [list|get|set|unset] ...$($C.Reset)" }
 }

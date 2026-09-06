@@ -19,7 +19,7 @@ $Bare = $ArgsOnly -contains '--bare'
 $NoCheckout = $ArgsOnly -contains '--no-checkout'
 
 if (-not $Url) {
-    Write-Host "$($C.Warn)[ERROR] Usage: clone <url> [path] [-b branch] [--depth N] [--recursive] [--bare]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: clone <url> [path] [-b branch] [--depth N] [--recursive] [--bare]$($C.Reset)"
     return
 }
 

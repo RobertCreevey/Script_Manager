@@ -17,7 +17,7 @@ $Strategy = $ArgsOnly | Where-Object { $_ -match '^--strategy=' } | ForEach-Obje
 $StrategyOption = $ArgsOnly | Where-Object { $_ -match '^--strategy-option=' } | ForEach-Object { $_ -replace '^--strategy-option=', '' }
 
 if (-not $Branch -and -not $Abort -and -not $Continue) {
-    Write-Host "$($C.Warn)[ERROR] Usage: merge <branch> [--no-ff] [--squash] [--abort] [--continue] [--strategy STRATEGY]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: merge <branch> [--no-ff] [--squash] [--abort] [--continue] [--strategy STRATEGY]$($C.Reset)"
     return
 }
 

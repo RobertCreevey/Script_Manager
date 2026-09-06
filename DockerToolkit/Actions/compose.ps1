@@ -65,5 +65,5 @@ switch ($Sub) {
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Docker Compose project", "Pull images")) { return }
         & powershell -NoProfile -Command $Cmd
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: compose [up|down|ps|logs|build|pull] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: compose [up|down|ps|logs|build|pull] ...$($C.Reset)" }
 }

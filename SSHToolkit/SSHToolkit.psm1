@@ -5,7 +5,7 @@ Import-Module SharedToolkit -ErrorAction SilentlyContinue
 function Register-Target {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$Name,
         [string]$IP = "127.0.0.1",
         [string]$User = $env:USERNAME,
@@ -13,7 +13,7 @@ function Register-Target {
     )
     $ProfileFile = "$global:SSHToolkitPath\Profiles\$Name.json"
     if (-not (Test-Path (Split-Path $ProfileFile))) { New-Item -ItemType Directory -Path (Split-Path $ProfileFile) -Force | Out-Null }
-    [PSCustomObject]@{IP=$IP ; User=$User ; Key=$Key} | ConvertTo-Json | Out-File $ProfileFile -Force
+    [PSCustomObject]@{IP = $IP ; User = $User ; Key = $Key } | ConvertTo-Json | Out-File $ProfileFile -Force
     New-Alias -Name $Name -Value Invoke-UniversalToolkitRouter -Description "Context Profile" -Scope Global -Force
     Export-ModuleMember -Alias $Name
     $C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
@@ -22,12 +22,12 @@ function Register-Target {
 
 function Invoke-UniversalToolkitRouter {
     [CmdletBinding()]
-    param([string]$Action, [Parameter(ValueFromRemainingArguments=$true)]$ForwardedArgs)
+    param([string]$Action, [Parameter(ValueFromRemainingArguments = $true)]$ForwardedArgs)
     $Inv = $MyInvocation.InvocationName
     if ($Inv -ne 'Invoke-UniversalToolkitRouter') { $ContextName = $Inv } else { $ContextName = $global:ToolContext }
     $C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
     $ProfileFile = "$global:SSHToolkitPath\Profiles\$ContextName.json"
-    if (-not (Test-Path $ProfileFile)) { Write-Host "$($C.Warn)[ERROR] Profile registry missing for entity '$ContextName'$($C.Reset)" ; return }
+    if (-not (Test-Path $ProfileFile)) { Write-Host "$($C.Crit)[ERROR] Profile registry missing for entity '$ContextName'$($C.Reset)" ; return }
     $Config = Get-Content $ProfileFile | ConvertFrom-Json
     $ForwardedArgs = @($ForwardedArgs)
     $global:ToolContext = $ContextName
@@ -66,12 +66,13 @@ function Invoke-UniversalToolkitRouter {
                 $Config.$K = $V
                 $Config | ConvertTo-Json | Out-File $ProfileFile -Force
                 Write-Host "[OK] Saved $($C.Param)$K$($C.Reset) = $($C.Str)$V$($C.Reset)" -ForegroundColor Green
-            } else {
-                Write-Host "$($C.Warn)[ERROR] Invalid key: use IP, User, or Key.$($C.Reset)"
+            }
+            else {
+                Write-Host "$($C.Crit)[ERROR] Invalid key: use IP, User, or Key.$($C.Reset)"
             }
             return
         }
-        Write-Host "$($C.Warn)[ERROR] Usage: $ContextName config view | config set [IP|User|Key] [value]$($C.Reset)"
+        Write-Host "$($C.Crit)[ERROR] Usage: $ContextName config view | config set [IP|User|Key] [value]$($C.Reset)"
         return
     }
 
@@ -101,7 +102,7 @@ function Invoke-UniversalToolkitRouter {
     $SharedListener = Invoke-SharedAsset -Type "Listeners" -AssetName $Action -Config $Config -ForwardedArgs $ForwardedArgs
     if ($SharedListener) { return }
 
-    Write-Host "$($C.Warn)[ERROR] could not resolve '$Action'$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] could not resolve '$Action'$($C.Reset)"
     Invoke-ToolEvent -Name "UnknownAction" -Data "$ContextName : $Action" -Config $Config
 }
 

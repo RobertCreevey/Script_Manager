@@ -4,7 +4,7 @@ param($Config, [array]$Arguments)
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $C = Get-ToolkitColors
 if ($ArgsOnly.Count -lt 2) {
-    Write-Host "$($C.Warn)[ERROR] Usage: dispatch <toolkit> <action> [args...]$($C.Reset)" -ForegroundColor Red
+    Write-Host "$($C.Crit)[ERROR] Usage: dispatch <toolkit> <action> [args...]$($C.Reset)" -ForegroundColor Red
     Write-Host "$($C.Str)Example: dispatch NetToolkit wol$($C.Reset)"
     return
 }

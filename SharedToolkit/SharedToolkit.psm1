@@ -9,21 +9,25 @@ foreach ($Folder in @("Actions", "Listeners", "Aliases", "Chains")) {
 $ESC = [char]27
 
 # Built-in color themes. The active one is mirrored into $global:ToolColors and can be switched at runtime.
+# Palette convention: Warn = yellow (warnings / advisory notes), Crit = red
+# (errors). Action/router error paths print [ERROR] via $C.Crit; notes and
+# status lines stay $C.Warn so warnings and errors read as distinct colors.
+# (Migrated from $C.Warn -> $C.Crit across all [ERROR] paths.)
 $global:ToolThemes = [PSCustomObject]@{
     default = [PSCustomObject]@{
-        Host="$ESC[38;5;208m"; Action="$ESC[38;5;81m"; List="$ESC[38;5;119m"; Sys="$ESC[38;5;141m"
-        Param="$ESC[38;5;221m"; Str="$ESC[38;5;210m"; File="$ESC[38;5;45m"; Warn="$ESC[38;5;196m"
-        Ok="$ESC[38;5;120m"; Info="$ESC[38;5;39m"; Crit="$ESC[38;5;197m"; Reset="$ESC[0m"
+        Host = "$ESC[38;5;208m"; Action = "$ESC[38;5;81m"; List = "$ESC[38;5;119m"; Sys = "$ESC[38;5;141m"
+        Param = "$ESC[38;5;221m"; Str = "$ESC[38;5;210m"; File = "$ESC[38;5;45m"; Warn = "$ESC[38;5;226m"
+        Ok = "$ESC[38;5;120m"; Info = "$ESC[38;5;39m"; Crit = "$ESC[38;5;197m"; Step = "$ESC[38;5;51m"; Category = "$ESC[38;5;201m"; Muted = "$ESC[38;5;245m"; Reset = "$ESC[0m"
     }
-    light = [PSCustomObject]@{
-        Host="$ESC[38;5;202m"; Action="$ESC[38;5;25m"; List="$ESC[38;5;28m"; Sys="$ESC[38;5;93m"
-        Param="$ESC[38;5;130m"; Str="$ESC[38;5;232m"; File="$ESC[38;5;31m"; Warn="$ESC[38;5;160m"
-        Ok="$ESC[38;5;22m"; Info="$ESC[38;5;27m"; Crit="$ESC[38;5;124m"; Reset="$ESC[0m"
+    light   = [PSCustomObject]@{
+        Host = "$ESC[38;5;202m"; Action = "$ESC[38;5;25m"; List = "$ESC[38;5;28m"; Sys = "$ESC[38;5;93m"
+        Param = "$ESC[38;5;130m"; Str = "$ESC[38;5;232m"; File = "$ESC[38;5;31m"; Warn = "$ESC[38;5;220m"
+        Ok = "$ESC[38;5;22m"; Info = "$ESC[38;5;27m"; Crit = "$ESC[38;5;124m"; Step = "$ESC[38;5;45m"; Category = "$ESC[38;5;164m"; Muted = "$ESC[38;5;246m"; Reset = "$ESC[0m"
     }
-    mono = [PSCustomObject]@{
-        Host="$ESC[1;37m"; Action="$ESC[1;36m"; List="$ESC[1;32m"; Sys="$ESC[1;35m"
-        Param="$ESC[1;33m"; Str="$ESC[0;37m"; File="$ESC[1;34m"; Warn="$ESC[1;31m"
-        Ok="$ESC[1;32m"; Info="$ESC[1;36m"; Crit="$ESC[1;31m"; Reset="$ESC[0m"
+    mono    = [PSCustomObject]@{
+        Host = "$ESC[1;37m"; Action = "$ESC[1;36m"; List = "$ESC[1;32m"; Sys = "$ESC[1;35m"
+        Param = "$ESC[1;33m"; Str = "$ESC[0;37m"; File = "$ESC[1;34m"; Warn = "$ESC[33m"
+        Ok = "$ESC[1;32m"; Info = "$ESC[1;36m"; Crit = "$ESC[1;31m"; Step = "$ESC[1;36m"; Category = "$ESC[1;35m"; Muted = "$ESC[2m"; Reset = "$ESC[0m"
     }
 }
 
@@ -56,11 +60,11 @@ $global:ToolLogConfig = @{
 }
 
 $global:LogLevels = @{
-    Debug     = 0
-    Info      = 1
-    Warn      = 2
-    Error     = 3
-    Critical  = 4
+    Debug    = 0
+    Info     = 1
+    Warn     = 2
+    Error    = 3
+    Critical = 4
 }
 
 # Module unload cleanup
@@ -73,7 +77,8 @@ function On-ModuleUnload {
                 $Line | Out-File $global:ToolEventLog -Append -ErrorAction SilentlyContinue
             }
         }
-    } catch {}
+    }
+    catch {}
     # Clear global state
     $global:ToolEvents.Clear()
     $global:ToolContext = $null
@@ -81,6 +86,33 @@ function On-ModuleUnload {
 
 # Register cleanup on shell exit
 $null = Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action { On-ModuleUnload } -SupportEvent
+
+# Plugin system auto-discovery.
+# Loaded at MODULE script scope (foreach statement, NOT a ForEach-Object
+# pipeline) so the resulting functions persist in the module and can be
+# exported as commands.
+$PluginRoot = "$env:USERPROFILE\.toolkit\plugins"
+$PluginExportFunctions = @()
+if (Test-Path $PluginRoot) {
+    $pluginFiles = @(Get-ChildItem "$PluginRoot\*.ps1" -ErrorAction SilentlyContinue)
+    foreach ($pf in $pluginFiles) {
+        $before = (Get-ChildItem Function:).Name
+        try {
+            . $pf.FullName
+            $after = (Get-ChildItem Function:).Name
+            $PluginExportFunctions += ($after | Where-Object { $_ -notin $before })
+            # TODO: Route status output through a shared Write-ToolkitStatus helper
+            #       (Install/Ok/Warn/Err/Category) so bootstrap/silent contexts can
+            #       be controlled in one place instead of ad-hoc Write-Host here.
+            if (-not $global:ToolkitSuppressPluginLoad) {
+                Write-Host "[Plugin] Loaded: $($pf.BaseName)" -ForegroundColor DarkCyan
+            }
+        }
+        catch {
+            Write-Host "[Plugin] Failed to load $($pf.BaseName): $_" -ForegroundColor DarkRed
+        }
+    }
+}
 
 # Module-level safety net: any unhandled terminating error is recorded as an event.
 trap {
@@ -97,12 +129,12 @@ function Get-ToolStatus {
     $RamTotal = [math]::Round($Cs.TotalPhysicalMemory / 1GB, 1)
     $Online = if ($Config) { Test-Connection -ComputerName $Config.IP -Count 1 -Quiet } else { $null }
     [PSCustomObject]@{
-        Clock    = Get-Date -Format "HH:mm:ss"
-        CPU      = $Cpu
-        RAMFree  = $RamFree
-        RAMTotal = $RamTotal
-        Context  = if ($Config) { "$($Config.User)@$($Config.IP)" } else { "local" }
-        Online   = $Online
+        Clock     = Get-Date -Format "HH:mm:ss"
+        CPU       = $Cpu
+        RAMFree   = $RamFree
+        RAMTotal  = $RamTotal
+        Context   = if ($Config) { "$($Config.User)@$($Config.IP)" } else { "local" }
+        Online    = $Online
         LastEvent = if ($global:ToolEvents.Count) { $global:ToolEvents[-1].Name } else { $null }
     }
 }
@@ -130,7 +162,8 @@ function Write-ToolkitEvent {
     
     if ($global:ToolLogConfig.JsonFormat) {
         $Line = $LogEntry | ConvertTo-Json -Compress -Depth 3
-    } else {
+    }
+    else {
         $Line = "[$($Ev.Time)] [$($Ev.Level)] [$($Ev.Context)] $($Ev.Name)$(if ($Ev.Data) { ' : ' + $Ev.Data })"
     }
     
@@ -142,8 +175,29 @@ function Write-ToolkitEvent {
         if ($LogFile -and $LogFile.Length -gt ($global:ToolLogConfig.RotateSizeMB * 1MB)) {
             Rotate-LogFile
         }
-    } catch {}
+    }
+    catch {}
     $Ev
+}
+
+# Compatibility shims: router code in SSHToolkit/Cloud/Docker/Git/… invokes these
+# legacy entrypoints. They delegate to the canonical SharedToolkit functions
+# (Get-ToolkitHelp / Write-ToolkitEvent) so help rendering and event emission
+# actually resolve instead of throwing CommandNotFoundException.
+function Invoke-ToolEvent {
+    [CmdletBinding()]
+    param([string]$Name, $Data = $null, $Config = $null)
+    Write-ToolkitEvent -Name $Name -Data $Data -Config $Config
+}
+function Invoke-SharedHelpSystem {
+    [CmdletBinding()]
+    param([string]$Caller, [string]$TargetTopic, [string]$ChildModulePath)
+    Get-ToolkitHelp -Caller $Caller -TargetTopic $TargetTopic -ChildModulePath $ChildModulePath
+}
+function Invoke-SharedAsset {
+    [CmdletBinding()]
+    param([string]$Type, [string]$AssetName, $Config, $ForwardedArgs)
+    Use-SharedAsset -Type $Type -AssetName $AssetName -Config $Config -ForwardedArgs $ForwardedArgs
 }
 
 function Rotate-LogFile {
@@ -174,7 +228,7 @@ function Write-ToolkitLog {
     #>
     [CmdletBinding()]
     param(
-        [ValidateSet('Debug','Info','Warn','Error','Critical')]
+        [ValidateSet('Debug', 'Info', 'Warn', 'Error', 'Critical')]
         [string]$Level = 'Info',
         [string]$Message,
         $Data = $null,
@@ -187,10 +241,10 @@ function Write-ToolkitLog {
     
     # Console output with colors
     $LevelColor = switch ($Level) {
-        'Debug'    { $C.Info }
-        'Info'     { $C.Ok }
-        'Warn'     { $C.Warn }
-        'Error'    { $C.Crit }
+        'Debug' { $C.Info }
+        'Info' { $C.Ok }
+        'Warn' { $C.Warn }
+        'Error' { $C.Crit }
         'Critical' { $C.Crit }
     }
     
@@ -207,7 +261,7 @@ function Write-ToolkitLog {
     Write-ToolkitEvent -Name "Log" -Data "$Level : $Message" -Config $Config -Level $Level
     
     # Also write to command log if it's an action
-    if ($Level -in @('Info','Warn','Error','Critical')) {
+    if ($Level -in @('Info', 'Warn', 'Error', 'Critical')) {
         $LogLine = "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] [$Ctx] [$Level] $Message"
         try { $LogLine | Out-File $global:ToolCommandLog -Append -Encoding utf8 } catch {}
     }
@@ -246,7 +300,7 @@ function Get-ActionArguments {
     return @{
         ArgsOnly = $ArgsOnly
         Switches = $Switches
-        Format = $Switches.Format
+        Format   = $Switches.Format
     }
 }
 
@@ -279,9 +333,9 @@ function Invoke-SSHCommand {
     #>
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         $Config,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$Command,
         [int]$RetryCount = 2,
         [int]$RetryDelay = 2,
@@ -305,7 +359,7 @@ function Invoke-SSHCommand {
         $AttemptStart = Get-Date
         
         try {
-            $Result = @{Success = $false; ExitCode = -1; Output = ""; Error = ""; Duration = 0}
+            $Result = @{Success = $false; ExitCode = -1; Output = ""; Error = ""; Duration = 0 }
             
             if ($CaptureOutput) {
                 $Process = Start-Process -FilePath "ssh" -ArgumentList $SshArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput "ssh_out.txt" -RedirectStandardError "ssh_err.txt"
@@ -313,7 +367,8 @@ function Invoke-SSHCommand {
                 $Result.Output = Get-Content "ssh_out.txt" -Raw -ErrorAction SilentlyContinue
                 $Result.Error = Get-Content "ssh_err.txt" -Raw -ErrorAction SilentlyContinue
                 Remove-Item "ssh_out.txt", "ssh_err.txt" -ErrorAction SilentlyContinue
-            } else {
+            }
+            else {
                 $Process = Start-Process -FilePath "ssh" -ArgumentList $SshArgs -NoNewWindow -Wait -PassThru
                 $Result.ExitCode = $Process.ExitCode
             }
@@ -322,32 +377,33 @@ function Invoke-SSHCommand {
             
             if ($Process.ExitCode -eq 0) {
                 $Result.Success = $true
-                Write-ToolkitLog -Level "Debug" -Message "SSH command succeeded on attempt $Attempt" -Data @{command=$Command; duration=$Result.Duration.TotalSeconds}
+                Write-ToolkitLog -Level "Debug" -Message "SSH command succeeded on attempt $Attempt" -Data @{command = $Command; duration = $Result.Duration.TotalSeconds }
                 return $Result
             }
             
             $LastError = $Result.Error ?? "Exit code: $($Process.ExitCode)"
-            Write-ToolkitLog -Level "Warn" -Message "SSH command failed (attempt $Attempt/$($RetryCount+1))" -Data @{command=$Command; exitCode=$Process.ExitCode; error=$LastError}
+            Write-ToolkitLog -Level "Warn" -Message "SSH command failed (attempt $Attempt/$($RetryCount+1))" -Data @{command = $Command; exitCode = $Process.ExitCode; error = $LastError }
             
-        } catch {
+        }
+        catch {
             $LastError = $_.ToString()
-            Write-ToolkitLog -Level "Error" -Message "SSH command exception" -Data @{command=$Command; exception=$LastError}
+            Write-ToolkitLog -Level "Error" -Message "SSH command exception" -Data @{command = $Command; exception = $LastError }
         }
         
         if ($Attempt -le $RetryCount) {
-            Write-ToolkitLog -Level "Info" -Message "Retrying in $RetryDelay seconds..." -Data @{attempt=$Attempt; maxAttempts=$RetryCount+1}
+            Write-ToolkitLog -Level "Info" -Message "Retrying in $RetryDelay seconds..." -Data @{attempt = $Attempt; maxAttempts = $RetryCount + 1 }
             Start-Sleep -Seconds $RetryDelay
         }
     }
     
     $TotalDuration = (Get-Date) - $StartTime
-    Write-ToolkitLog -Level "Error" -Message "SSH command failed after $($RetryCount+1) attempts" -Data @{command=$Command; totalDuration=$TotalDuration.TotalSeconds; lastError=$LastError}
+    Write-ToolkitLog -Level "Error" -Message "SSH command failed after $($RetryCount+1) attempts" -Data @{command = $Command; totalDuration = $TotalDuration.TotalSeconds; lastError = $LastError }
     
     return @{
-        Success = $false
+        Success  = $false
         ExitCode = -1
-        Output = ""
-        Error = "Failed after $($RetryCount+1) attempts: $LastError"
+        Output   = ""
+        Error    = "Failed after $($RetryCount+1) attempts: $LastError"
         Duration = $TotalDuration.TotalSeconds
         Attempts = $RetryCount + 1
     }
@@ -376,11 +432,11 @@ function Invoke-SCPTransfer {
     #>
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         $Config,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$Source,
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$Destination,
         [int]$RetryCount = 2,
         [int]$RetryDelay = 2,
@@ -406,7 +462,7 @@ function Invoke-SCPTransfer {
         $AttemptStart = Get-Date
         
         try {
-            $Result = @{Success = $false; ExitCode = -1; Output = ""; Error = ""; Duration = 0}
+            $Result = @{Success = $false; ExitCode = -1; Output = ""; Error = ""; Duration = 0 }
             
             $Process = Start-Process -FilePath "scp" -ArgumentList $ScpArgs -NoNewWindow -Wait -PassThru -RedirectStandardOutput "scp_out.txt" -RedirectStandardError "scp_err.txt"
             $Result.ExitCode = $Process.ExitCode
@@ -418,32 +474,33 @@ function Invoke-SCPTransfer {
             
             if ($Process.ExitCode -eq 0) {
                 $Result.Success = $true
-                Write-ToolkitLog -Level "Debug" -Message "SCP transfer succeeded on attempt $Attempt" -Data @{source=$Source; destination=$Destination; duration=$Result.Duration.TotalSeconds}
+                Write-ToolkitLog -Level "Debug" -Message "SCP transfer succeeded on attempt $Attempt" -Data @{source = $Source; destination = $Destination; duration = $Result.Duration.TotalSeconds }
                 return $Result
             }
             
             $LastError = $Result.Error ?? "Exit code: $($Process.ExitCode)"
-            Write-ToolkitLog -Level "Warn" -Message "SCP transfer failed (attempt $Attempt/$($RetryCount+1))" -Data @{source=$Source; destination=$Destination; exitCode=$Process.ExitCode; error=$LastError}
+            Write-ToolkitLog -Level "Warn" -Message "SCP transfer failed (attempt $Attempt/$($RetryCount+1))" -Data @{source = $Source; destination = $Destination; exitCode = $Process.ExitCode; error = $LastError }
             
-        } catch {
+        }
+        catch {
             $LastError = $_.ToString()
-            Write-ToolkitLog -Level "Error" -Message "SCP transfer exception" -Data @{source=$Source; destination=$Destination; exception=$LastError}
+            Write-ToolkitLog -Level "Error" -Message "SCP transfer exception" -Data @{source = $Source; destination = $Destination; exception = $LastError }
         }
         
         if ($Attempt -le $RetryCount) {
-            Write-ToolkitLog -Level "Info" -Message "Retrying in $RetryDelay seconds..." -Data @{attempt=$Attempt; maxAttempts=$RetryCount+1}
+            Write-ToolkitLog -Level "Info" -Message "Retrying in $RetryDelay seconds..." -Data @{attempt = $Attempt; maxAttempts = $RetryCount + 1 }
             Start-Sleep -Seconds $RetryDelay
         }
     }
     
     $TotalDuration = (Get-Date) - $StartTime
-    Write-ToolkitLog -Level "Error" -Message "SCP transfer failed after $($RetryCount+1) attempts" -Data @{source=$Source; destination=$Destination; totalDuration=$TotalDuration.TotalSeconds; lastError=$LastError}
+    Write-ToolkitLog -Level "Error" -Message "SCP transfer failed after $($RetryCount+1) attempts" -Data @{source = $Source; destination = $Destination; totalDuration = $TotalDuration.TotalSeconds; lastError = $LastError }
     
     return @{
-        Success = $false
+        Success  = $false
         ExitCode = -1
-        Output = ""
-        Error = "Failed after $($RetryCount+1) attempts: $LastError"
+        Output   = ""
+        Error    = "Failed after $($RetryCount+1) attempts: $LastError"
         Duration = $TotalDuration.TotalSeconds
         Attempts = $RetryCount + 1
     }
@@ -502,25 +559,25 @@ function New-ToolkitError {
     #>
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)][string]$Code,
-        [Parameter(Mandatory=$true)][string]$Message,
-        [ValidateSet('Connection','Authentication','Permission','Timeout','Validation','Internal')]
+        [Parameter(Mandatory = $true)][string]$Code,
+        [Parameter(Mandatory = $true)][string]$Message,
+        [ValidateSet('Connection', 'Authentication', 'Permission', 'Timeout', 'Validation', 'Internal')]
         [string]$Category = 'Internal',
         $Details = @{},
         $Config = $null
     )
     
     $ErrorObj = [PSCustomObject]@{
-        Code        = $Code
-        Message     = $Message
-        Category    = $Category
-        Details     = $Details
-        Timestamp   = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-        Context     = if ($Config) { $Config.IP } else { "LocalSystem" }
-        StackTrace  = (Get-PSCallStack | Select-Object -First 5 | ForEach-Object { $_.Command }) -join " -> "
+        Code       = $Code
+        Message    = $Message
+        Category   = $Category
+        Details    = $Details
+        Timestamp  = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+        Context    = if ($Config) { $Config.IP } else { "LocalSystem" }
+        StackTrace = (Get-PSCallStack | Select-Object -First 5 | ForEach-Object { $_.Command }) -join " -> "
     }
     
-    Write-ToolkitLog -Level "Error" -Message "${Code}: $Message" -Data @{'code'=$Code; 'category'=$Category; 'details'=$Details} -Config $Config
+    Write-ToolkitLog -Level "Error" -Message "${Code}: $Message" -Data @{'code' = $Code; 'category' = $Category; 'details' = $Details } -Config $Config
     
     return $ErrorObj
 }
@@ -569,7 +626,8 @@ function Read-ToolkitPrompt {
                 Write-ToolkitLog -Level "Info" -Message "PROMPT: $Title : $Message → $Choice" -Config $null
                 return $Choice
             }
-        } catch {
+        }
+        catch {
             Write-ToolkitLog -Level "Warn" -Message "PROMPT: GUI unavailable, using console" -Config $null
         }
     }
@@ -583,12 +641,14 @@ function Read-ToolkitPrompt {
     if ($Default) { Write-Host "$($C.Info)Default (Enter): $Default$($C.Reset)" -ForegroundColor Gray }
     try {
         $Sel = Read-Host "Choose (0-$($Buttons.Count - 1))"
-    } catch {
+    }
+    catch {
         if ($Default) { return $Default } else { return $Buttons[0] }
     }
     try {
         $Sel = Read-Host "Choose (0-$($Buttons.Count - 1))"
-    } catch {
+    }
+    catch {
         if ($Default) { return $Default } else { return $Buttons[0] }
     }
     if ($Sel -eq "" -and $Default) { return $Default }
@@ -610,7 +670,7 @@ function Confirm-ToolkitAction {
     $C = $global:ToolColors
     $Header = if ($Dangerous) { "DANGEROUS ACTION — CONFIRM" } else { "CONFIRM ACTION" }
     Write-Host ""
-    Write-Host "$($C.Warn)═══ $Header ═══$($C.Reset)" -ForegroundColor Red
+    Write-Host "$($C.Crit)═══ $Header ═══$($C.Reset)"
     if ($Problem) {
         Write-Host "$($C.Sys)WHAT'S WRONG:$($C.Reset)"
         Write-Host "  $($C.Str)$Problem$($C.Reset)"
@@ -634,8 +694,9 @@ function Confirm-ToolkitAction {
     $Choice = Read-ToolkitPrompt -Message "Proceed?" -Title $Header -Buttons @("Yes", "No") -Default "No" -Answer $Answer
     $Ok = ($Choice -eq "Yes")
     if ($Ok) {
-        Write-Host "$($C.Ok)Confirmed.$($C.Reset)" -ForegroundColor Green
-    } else {
+        Write-Host "$($C.Ok)Confirmed.$($C.Reset)"
+    }
+    else {
         Write-Host "$($C.Warn)Cancelled by user.$($C.Reset)" -ForegroundColor Yellow
     }
     [void](Write-ToolkitEvent -Name "Confirm" -Data "problem=$Problem choice=$Choice" -Config $null)
@@ -662,7 +723,8 @@ function Format-ChainPreview {
     if (-not (Test-Path $ChainFile)) { return "  (chain file not found: $ChainFile)" }
     try {
         $Chain = Get-Content $ChainFile | ConvertFrom-Json
-    } catch {
+    }
+    catch {
         return "  (failed to parse chain: $_)"
     }
     $Lines = [System.Collections.ArrayList]::new()
@@ -708,12 +770,12 @@ function Send-ToolkitNotification {
 
     # Use new structured logging
     $LogLevel = switch ($Sev) {
-        'debug'    { 'Debug' }
-        'info'     { 'Info' }
-        'warn'     { 'Warn' }
-        'error'    { 'Error' }
+        'debug' { 'Debug' }
+        'info' { 'Info' }
+        'warn' { 'Warn' }
+        'error' { 'Error' }
         'critical' { 'Critical' }
-        default    { 'Info' }
+        default { 'Info' }
     }
     Write-ToolkitLog -Level $LogLevel -Message "$Title : $Message" -Config $Config
     
@@ -752,7 +814,8 @@ function Get-ToolkitHelp {
             Write-Host ""
             Write-Host "[Search results for '$Term']" -ForegroundColor Yellow
             foreach ($H in $Hits) { Write-Host "  $Caller $($C.Action)$($H.Name)$($C.Reset) ($($H.Type)) - $($H.Desc)" }
-        } else { Write-Host "[No matches for '$Term']" -ForegroundColor Red }
+        }
+        else { Write-Host "[No matches for '$Term']" -ForegroundColor Red }
     }
     elseif ($TargetTopic -and $TargetTopic -ne 'help') {
         $FileFound = $null
@@ -770,7 +833,8 @@ function Get-ToolkitHelp {
             if ($Type -eq 'Listener') { Write-Host "$($C.List)$Type$($C.Reset)" } else { Write-Host "$($C.Action)$Type$($C.Reset)" }
             if ($Desc) { Write-Host "Description: $Desc" }
             Write-Host "Syntax: $Caller $($C.Action)$TargetTopic$($C.Reset) $($C.Str)[arguments]$($C.Reset)"
-        } else {
+        }
+        else {
             Write-Host "[ERROR] No component or action matching '$TargetTopic' was found." -ForegroundColor Red
         }
     }
@@ -782,20 +846,20 @@ function Get-ToolkitHelp {
         Write-Host "  $Caller config view - Show profile parameters."
         Write-Host "  $Caller config set [key] [value] - Change profile parameters."
         Write-Host "  $Caller help find <term> - Search actions/listeners by name or description."
-        $ChildActions  = Get-ChildItem "$ChildModulePath\Actions\*.ps1" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
+        $ChildActions = Get-ChildItem "$ChildModulePath\Actions\*.ps1" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
         $SharedActions = Get-ChildItem "$global:SharedToolkitPath\Actions\*.ps1" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
         if ($ChildActions -or $SharedActions) {
             Write-Host ""
             Write-Host "Action Plugins:" -ForegroundColor Yellow
-            foreach ($A in $ChildActions)  { Write-Host "  $Caller $($C.Action)$A$($C.Reset) (SSH-specific)" }
+            foreach ($A in $ChildActions) { Write-Host "  $Caller $($C.Action)$A$($C.Reset) (SSH-specific)" }
             foreach ($A in $SharedActions) { Write-Host "  $Caller $($C.Action)$A$($C.Reset) (Shared)" }
         }
-        $ChildList  = Get-ChildItem "$ChildModulePath\Listeners\*.ps1" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
+        $ChildList = Get-ChildItem "$ChildModulePath\Listeners\*.ps1" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
         $SharedList = Get-ChildItem "$global:SharedToolkitPath\Listeners\*.ps1" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
         if ($ChildList -or $SharedList) {
             Write-Host ""
             Write-Host "Listeners:" -ForegroundColor Yellow
-            foreach ($L in $ChildList)  { Write-Host "  $Caller $($C.List)$L$($C.Reset) (SSH-specific)" }
+            foreach ($L in $ChildList) { Write-Host "  $Caller $($C.List)$L$($C.Reset) (SSH-specific)" }
             foreach ($L in $SharedList) { Write-Host "  $Caller $($C.List)$L$($C.Reset) (Shared)" }
         }
     }
@@ -826,8 +890,8 @@ function Write-ToolCommand {
 function Invoke-CrossToolkitAction {
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory=$true)][string]$Toolkit,
-        [Parameter(Mandatory=$true)][string]$Action,
+        [Parameter(Mandatory = $true)][string]$Toolkit,
+        [Parameter(Mandatory = $true)][string]$Action,
         [array]$Arguments = @(),
         $Config = $null
     )
@@ -844,6 +908,22 @@ function Invoke-CrossToolkitAction {
     $true
 }
 
+function Get-ToolkitInstallPath {
+    <#
+    .SYNOPSIS
+        Returns the on-disk directory of an installed toolkit module, resolved from
+        PSModulePath wherever it was installed (default user path or a custom
+        -Destination that is on PSModulePath).
+    #>
+    [CmdletBinding()]
+    param([string]$ToolkitName)
+    $m = Get-Module -ListAvailable -Name $ToolkitName -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -like '*Toolkit' } |
+    Sort-Object Version -Descending | Select-Object -First 1
+    if ($m) { return Split-Path -Parent $m.Path }
+    return $null
+}
+
 function Initialize-ToolkitCompletion {
     <#
     .SYNOPSIS
@@ -857,35 +937,33 @@ function Initialize-ToolkitCompletion {
         Import-Module NetToolkit
         Initialize-ToolkitCompletion
     #>
-    $ModulesPath = "$env:USERPROFILE\Documents\PowerShell\Modules"
-    $Toolkits = @("SSHToolkit", "NetToolkit", "MediaToolkit", "SecToolkit", "FileToolkit", "CloudToolkit", "DockerToolkit", "GitToolkit")
-    foreach ($Toolkit in $Toolkits) {
-        $ProfilePath = "$env:USERPROFILE\Documents\PowerShell\Modules\$Toolkit\Profiles"
-        if (Test-Path $ProfilePath) {
-            Get-ChildItem "$ProfilePath\*.json" -ErrorAction SilentlyContinue | ForEach-Object {
-                $Alias = $_.BaseName
-                Register-ToolkitArgumentCompleter -AliasName $Alias -ToolkitName $Toolkit
-            }
-        }
-    }
-    # Cross-toolkit dispatch completion (for profile aliases like 'ani dispatch ...')
+    # Discover installed toolkits dynamically across PSModulePath (no hard-coded
+    # list) so completion also covers new toolkits and custom -Destination installs.
+    $Toolkits = @(Get-Module -ListAvailable |
+        Where-Object { $_.Name -like '*Toolkit' } |
+        Select-Object -Unique -ExpandProperty Name | Sort-Object)
+
     $AllAliases = @()
-    $Toolkits = @("SSHToolkit", "NetToolkit", "MediaToolkit", "SecToolkit", "FileToolkit", "CloudToolkit", "DockerToolkit", "GitToolkit")
     foreach ($Toolkit in $Toolkits) {
-        $ProfilePath = "$env:USERPROFILE\Documents\PowerShell\Modules\$Toolkit\Profiles"
-        if (Test-Path $ProfilePath) {
-            Get-ChildItem "$ProfilePath\*.json" -ErrorAction SilentlyContinue | ForEach-Object {
-                $AllAliases += $_.BaseName
-            }
+        $ToolkitPath = Get-ToolkitInstallPath -ToolkitName $Toolkit
+        $ProfilePath = Join-Path $ToolkitPath 'Profiles'
+        if (-not $ToolkitPath -or -not (Test-Path $ProfilePath)) { continue }
+        Get-ChildItem "$ProfilePath\*.json" -ErrorAction SilentlyContinue | ForEach-Object {
+            $Alias = $_.BaseName
+            $AllAliases += $Alias
+            Register-ToolkitArgumentCompleter -AliasName $Alias -ToolkitName $Toolkit
         }
     }
-    # Also add SharedToolkit profile aliases
-    $SharedActions = @("beep", "toast", "log", "speak", "clip", "open", "now", "sys", "hash", "net", "shot", "timer", "battery", "procs", "svc", "theme", "alias", "events", "notify", "ask", "alert", "dashboard", "timer", "battery", "procs", "svc", "registry", "dispatch", "backup", "restore", "schedule", "history", "search", "logs", "health", "profiles", "shell", "dispatch", "alert", "ask")
-    $SharedActions | Select-Object -Unique | ForEach-Object {
-        Register-ArgumentCompleter -CommandName "ani" -ParameterName Action -ScriptBlock {
+    # SharedToolkit's generic dispatcher (e.g. `ani`) accepts -Action.
+    # Register a single fallback Action completer. PowerShell keys completers by
+    # CommandName+ParameterName (re-registration overwrites rather than stacks),
+    # and we guard the flag anyway so re-sourcing the profile is a no-op.
+    if (-not $script:__ToolkitSharedActionCompletionRegistered) {
+        Register-ArgumentCompleter -CommandName 'ani' -ParameterName Action -ScriptBlock {
             param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-            # Fallback - real completion comes from toolkit-specific completers
+            # Fallback - real completion comes from toolkit-specific completers above.
         } | Out-Null
+        $script:__ToolkitSharedActionCompletionRegistered = $true
     }
 
     # Cross-toolkit dispatch completion for all profile aliases
@@ -902,7 +980,7 @@ function Initialize-ToolkitCompletion {
         Register-ArgumentCompleter -CommandName $Alias -ParameterName Toolkit -ScriptBlock {
             param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
             if ($fakeBoundParameter.Action -eq "dispatch" -or $fakeBoundParameter.Action -like "d*") {
-                $Toolkits = @("SSHToolkit", "NetToolkit", "MediaToolkit", "SecToolkit", "FileToolkit", "CloudToolkit", "DockerToolkit", "GitToolkit", "SharedToolkit")
+                $Toolkits = @(Get-Module -ListAvailable | Where-Object { $_.Name -like '*Toolkit' } | Select-Object -Unique -ExpandProperty Name)
                 $Toolkits | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
             }
         } | Out-Null
@@ -911,7 +989,7 @@ function Initialize-ToolkitCompletion {
         Register-ArgumentCompleter -CommandName $Alias -ParameterName Action -ScriptBlock {
             param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
             if ($fakeBoundParameter.Toolkit) {
-                $ActionPath = "$env:USERPROFILE\Documents\PowerShell\Modules\$($fakeBoundParameter.Toolkit)\Actions"
+                $ActionPath = Join-Path (Get-ToolkitInstallPath -ToolkitName $fakeBoundParameter.Toolkit) 'Actions'
                 if (Test-Path $ActionPath) {
                     Get-ChildItem "$ActionPath\*.ps1" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
                 }
@@ -964,7 +1042,7 @@ function Format-ToolOutput {
     #>
     [CmdletBinding()]
     param(
-        [Parameter(ValueFromPipeline=$true, Mandatory=$true)]
+        [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
         $InputObject,
         [ValidateSet('json', 'csv', 'table', 'raw')]
         [string]$Format = 'table',
@@ -983,10 +1061,11 @@ function Format-ToolOutput {
             'json' {
                 $Data | ConvertTo-Json -Depth 4 -Compress
             }
-'csv' {
+            'csv' {
                 if ($Properties) {
                     $Data | Select-Object -Property $Properties | ConvertTo-Csv -NoTypeInformation | Out-String
-                } else {
+                }
+                else {
                     $Data | ConvertTo-Csv -NoTypeInformation | Out-String
                 }
             }
@@ -999,14 +1078,16 @@ function Format-ToolOutput {
                         }
                         $Props -join ' | '
                     }
-                } else {
+                }
+                else {
                     $Data | ForEach-Object { $_ -join ' | ' }
                 }
             }
             default {
                 if ($Properties) {
                     $Data | Format-Table -AutoSize -Property $Properties | Out-String
-                } else {
+                }
+                else {
                     $Data | Format-Table -AutoSize | Out-String
                 }
             }
@@ -1016,7 +1097,8 @@ function Format-ToolOutput {
 
 function Register-ToolkitArgumentCompleter {
     param([string]$AliasName, [string]$ToolkitName)
-    $ActionNames = @(Get-ChildItem "$global:SharedToolkitPath\..\$ToolkitName\Actions\*.ps1" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName)
+    $ToolkitDir = Get-ToolkitInstallPath -ToolkitName $ToolkitName
+    $ActionNames = @(Get-ChildItem "$ToolkitDir\Actions\*.ps1" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName)
     $SubNames = @("config", "help", "online", "ssh", "chain", "history", "registry", "dispatch", "backup", "restore", "schedule", "theme", "alias", "events", "notify", "ask", "alert", "dashboard", "timer", "battery", "sys", "procs", "svc", "net", "hash", "find", "grep", "log", "beep", "toast", "speak", "open", "now", "clip", "shot")
     $AllActions = @($ActionNames + $SubNames) | Select-Object -Unique | Sort-Object
     Register-ArgumentCompleter -CommandName $AliasName -ParameterName Action -ScriptBlock {
@@ -1025,5 +1107,238 @@ function Register-ToolkitArgumentCompleter {
     } | Out-Null
 }
 
-Export-ModuleMember -function Use-SharedAsset, Get-ToolkitHelp, Write-ToolkitEvent, Write-ToolkitError, Send-ToolkitNotification, Read-ToolkitPrompt, Confirm-ToolkitAction, Request-ToolkitConfirmation, Format-ChainPreview, Get-ToolStatus, Invoke-CrossToolkitAction, Get-ToolkitRouter, Write-ToolCommand, Register-ToolkitArgumentCompleter, Initialize-ToolkitCompletion, Format-ToolOutput, Get-ToolkitColors, Get-ActionArguments, Write-ToolkitLog, Rotate-LogFile, Invoke-SSHCommand, Invoke-SCPTransfer, Mask-Secrets, New-ToolkitError
+function Invoke-PluginAction {
+    <#
+    .SYNOPSIS
+        Global plugin management command.
+    .DESCRIPTION
+        Manages user plugins from ~/.toolkit/plugins/
+    .PARAMETER Action
+        Action to perform: list, load, unload, reload, info, new, run
+    .PARAMETER PluginName
+        Specific plugin name to operate on
+    #>
+    [CmdletBinding()]
+    param(
+        [ValidateSet('list', 'load', 'unload', 'reload', 'info', 'new', 'run')]
+        [string]$Action = 'list',
+        [string]$PluginName,
+        [string]$PluginPath,
+        [Parameter(ValueFromRemainingArguments)]
+        [string[]]$PluginArgs,
+        [switch]$Force
+    )
+
+    # ... rest of function
+    $PluginRoot = "$env:USERPROFILE\.toolkit\plugins"
+    $PluginManifest = "$PluginRoot\plugins.json"
+
+    function Write-Step { param([string]$Message) Write-Host "`n[PLUGIN] $Message" -ForegroundColor Cyan }
+    function Write-OK { param([string]$Message) Write-Host "  [OK] $Message" -ForegroundColor Green }
+    function Write-Warn { param([string]$Message) Write-Host "  [WARN] $Message" -ForegroundColor Yellow }
+    function Write-Err { param([string]$Message) Write-Host "  [ERR] $Message" -ForegroundColor Red }
+
+    # Ensure plugin directory exists
+    if (-not (Test-Path $PluginRoot)) {
+        New-Item -ItemType Directory -Path $PluginRoot -Force | Out-Null
+        Write-OK "Created plugin directory: $PluginRoot"
+    }
+
+    # Initialize manifest
+    if (-not (Test-Path $PluginManifest)) {
+        @{} | ConvertTo-Json | Out-File $PluginManifest -Force
+    }
+
+    function Discover-Plugins {
+        $Plugins = @()
+        if (Test-Path $PluginRoot) {
+            Get-ChildItem "$PluginRoot\*.ps1" -ErrorAction SilentlyContinue | ForEach-Object {
+                $Plugin = @{
+                    Name        = $_.BaseName
+                    Path        = $_.FullName
+                    Version     = '1.0.0'
+                    Description = ''
+                    Author      = ''
+                    Actions     = @()
+                    Loaded      = $false
+                }
+                
+                # Parse plugin header
+                $Lines = Get-Content $_.FullName -Head 30 -ErrorAction SilentlyContinue
+                foreach ($Line in $Lines) {
+                    if ($Line -match '^#\s*Version:\s*(.+)$') { $Plugin.Version = $matches[1].Trim() }
+                    elseif ($Line -match '^#\s*Description:\s*(.+)$') { $Plugin.Description = $matches[1].Trim() }
+                    elseif ($Line -match '^#\s*Author:\s*(.+)$') { $Plugin.Author = $matches[1].Trim() }
+                    elseif ($Line -match '^#\s*Action:\s*(.+)$') { $Plugin.Actions += $matches[1].Trim() }
+                }
+                
+                $Plugins += [PSCustomObject]$Plugin
+            }
+        }
+        return $Plugins
+    }
+
+    function Load-Plugin {
+        param([string]$Name)
+        $PluginPath = "$PluginRoot\$Name.ps1"
+        if (-not (Test-Path $PluginPath)) {
+            Write-Err "Plugin not found: $Name"
+            return $false
+        }
+        try {
+            $before = (Get-ChildItem Function:).Name
+            . $PluginPath
+            $after = (Get-ChildItem Function:).Name
+            foreach ($fn in ($after | Where-Object { $_ -notin $before })) {
+                try { Set-Item -Path "Function:Global\$fn" -Value (Get-Item "Function:\$fn").ScriptBlock -Force } catch {}
+            }
+            Write-OK "Loaded plugin: $Name"
+            return $true
+        }
+        catch {
+            Write-Err "Failed to load plugin '$Name': $_"
+            return $false
+        }
+    }
+
+    function Unload-Plugin {
+        param([string]$Name)
+        $PluginPath = "$PluginRoot\$Name.ps1"
+        if (Test-Path $PluginPath) {
+            $Content = Get-Content $PluginPath -Raw
+            $Functions = [regex]::Matches($Content, 'function\s+(\w+)') | ForEach-Object { $_.Groups[1].Value }
+            foreach ($Func in $Functions) {
+                if (Get-Command $Func -ErrorAction SilentlyContinue) {
+                    Remove-Item "Function:Global\$Func" -Force -ErrorAction SilentlyContinue
+                }
+            }
+            Write-OK "Unloaded plugin: $Name"
+        }
+    }
+
+    switch ($Action) {
+        'list' {
+            Write-Step "Discovering plugins in $PluginRoot"
+            $Plugins = Discover-Plugins
+            if ($Plugins.Count -eq 0) {
+                Write-Warn "No plugins found. Create one with: plugin new myplugin"
+            }
+            else {
+                $Plugins | Format-Table Name, Version, Description, Actions, Loaded -AutoSize
+            }
+        }
+        
+        'load' {
+            if (-not $PluginName) { Write-Err "Usage: plugin load <name>"; return }
+            Load-Plugin $PluginName
+        }
+        
+        'unload' {
+            if (-not $PluginName) { Write-Err "Usage: plugin unload <name>"; return }
+            Unload-Plugin $PluginName
+        }
+        
+        'reload' {
+            if (-not $PluginName) { Write-Err "Usage: plugin reload <name>"; return }
+            Unload-Plugin $PluginName
+            Load-Plugin $PluginName
+        }
+        
+        'info' {
+            if (-not $PluginName) { Write-Err "Usage: plugin info <name>"; return }
+            $PluginPath = "$PluginRoot\$PluginName.ps1"
+            if (-not (Test-Path $PluginPath)) { Write-Err "Plugin not found: $PluginName"; return }
+            
+            $Content = Get-Content $PluginPath -Raw
+            Write-Host "`nPlugin: $PluginName" -ForegroundColor Cyan
+            Write-Host "Path: $PluginPath"
+            
+            $Lines = Get-Content $PluginPath -Head 50
+            foreach ($Line in $Lines) {
+                if ($Line -match '^#\s*(Version|Description|Author|Action):\s*(.+)$') {
+                    Write-Host "  $($matches[1]): $($matches[2].Trim())" -ForegroundColor Gray
+                }
+            }
+            
+            $Functions = [regex]::Matches($Content, 'function\s+(\w+)') | ForEach-Object { $_.Groups[1].Value }
+            if ($Functions) {
+                Write-Host "`nActions: $($Functions -join ', ')" -ForegroundColor Yellow
+            }
+        }
+        
+        'new' {
+            if (-not $PluginName) { Write-Err "Usage: plugin new <name>"; return }
+            
+            $PluginFile = "$PluginRoot\$PluginName.ps1"
+            if (Test-Path $PluginFile -and -not $Force) {
+                Write-Err "Plugin already exists: $PluginName (use -Force to overwrite)"
+                return
+            }
+            
+            $Template = @"
+# Version: 1.0.0
+# Description: $PluginName plugin
+# Author: $env:USERNAME
+# Action: $PluginName
+
+function $PluginName {
+    <#
+    .SYNOPSIS
+        $PluginName plugin action
+    .DESCRIPTION
+        User plugin. Edit the body to implement your feature.
+    .PARAMETER Config
+        Toolkit config object (may be `$null for local-only plugins)
+    .PARAMETER Arguments
+        Command arguments array
+    #>
+    [CmdletBinding()]
+    param(
+        `$Config,
+        [array]`$Arguments
+    )
+
+    `$C = Get-ToolkitColors
+    Write-Host "[$PluginName] Hello from plugin! Args: `$(`$Arguments -join ' ')" -ForegroundColor Cyan
+}
+"@
+            
+            $Template | Out-File $PluginFile -Encoding utf8
+            Write-OK "Created plugin: $PluginFile"
+            Write-Host "Edit the file to add your actions, then run: plugin load $PluginName"
+        }
+        
+        'run' {
+            if (-not $PluginName) { Write-Err "Usage: plugin run <name> [args...]"; return }
+            $PluginPath = "$PluginRoot\$PluginName.ps1"
+            if (-not (Test-Path $PluginPath)) { Write-Err "Plugin not found: $PluginName"; return }
+            try {
+                . $PluginPath
+            }
+            catch {
+                Write-Err "Failed to load plugin '$PluginName': $_"; return
+            }
+            $ActionName = $null
+            foreach ($l in (Get-Content $PluginPath -Head 10)) {
+                if ($l -match '^#\s*Action:\s*(.+)$') { $ActionName = $matches[1].Trim(); break }
+            }
+            if (-not $ActionName) { $ActionName = $PluginName }
+            if (Get-Command $ActionName -ErrorAction SilentlyContinue) {
+                & $ActionName -Arguments $PluginArgs
+            }
+            else {
+                Write-Err "Plugin entry function '$ActionName' not found."
+            }
+        }
+
+        default {
+            Write-Err "Unknown action: $Action"
+            Write-Host "Available actions: list, load, unload, reload, info, new, run"
+        }
+    }
+}
+
+New-Alias -Name plugin -Value Invoke-PluginAction -Force -Scope Global
+Export-ModuleMember -Function * -Alias plugin
+
 

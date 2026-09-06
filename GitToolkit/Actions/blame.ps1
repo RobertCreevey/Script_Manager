@@ -15,7 +15,7 @@ $ShowEmail = $ArgsOnly -contains '-e' -or $ArgsOnly -contains '--show-email'
 $Minimal = $ArgsOnly -contains '--minimal'
 
 if (-not $File) {
-    Write-Host "$($C.Warn)[ERROR] Usage: blame <file> [-L start,end] [-w] [-e] [--minimal]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: blame <file> [-L start,end] [-w] [-e] [--minimal]$($C.Reset)"
     return
 }
 

@@ -7,15 +7,8 @@
     PowerShellVersion = '7.0'
     CompatiblePSEditions = @('Core')
     RequiredModules = @('SharedToolkit')
-    FunctionsToExport = @(
-        'Register-GitProfile'
-        'Invoke-GitToolkitRouter'
-    )
-    AliasesToExport = @(
-        'work'
-        'personal'
-        'newgit'
-    )
+    FunctionsToExport = '*'
+    AliasesToExport = '*'
     PrivateData = @{
         PSData = @{
             Tags = @('toolkit', 'git', 'version-control', 'devops')
@@ -25,3 +18,4 @@
         }
     }
 }
+

@@ -13,7 +13,7 @@ $AllTags = $ArgsOnly -contains '-a' -or $ArgsOnly -contains '--all-tags'
 $Platform = $ArgsOnly | Where-Object { $_ -match '^--platform=' } | ForEach-Object { $_ -replace '^--platform=', '' }
 
 if (-not $Image) {
-    Write-Host "$($C.Warn)[ERROR] Usage: pull <image>[:tag] [-a] [--platform PLATFORM]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: pull <image>[:tag] [-a] [--platform PLATFORM]$($C.Reset)"
     return
 }
 

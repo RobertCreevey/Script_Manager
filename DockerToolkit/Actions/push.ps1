@@ -12,7 +12,7 @@ $Image = $ArgsOnly[0]
 $AllTags = $ArgsOnly -contains '-a' -or $ArgsOnly -contains '--all-tags'
 
 if (-not $Image) {
-    Write-Host "$($C.Warn)[ERROR] Usage: push <image>[:tag] [-a]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: push <image>[:tag] [-a]$($C.Reset)"
     return
 }
 

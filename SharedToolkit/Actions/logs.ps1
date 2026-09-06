@@ -36,7 +36,7 @@ if ($Follow) {
             $_
         }
     } catch {
-        Write-Host "$($C.Warn)Error: $_$($C.Reset)"
+        Write-Host "$($C.Crit)Error: $_$($C.Reset)"
     }
     return
 }

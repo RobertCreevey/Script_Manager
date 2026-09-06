@@ -37,5 +37,5 @@ switch ($Action) {
         if ($Job) { Write-Host "[popup] Listener running: $($Job.State)" -ForegroundColor Green }
         else { Write-Host "[popup] Listener not running." -ForegroundColor Gray }
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: popup [listen|stop|status]$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: popup [listen|stop|status]$($C.Reset)" }
 }

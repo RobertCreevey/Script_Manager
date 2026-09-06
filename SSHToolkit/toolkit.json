@@ -41,7 +41,19 @@
     }
   },
   "switches": {
-    "Global": ["Force", "f", "DryRun", "ConfirmAnswer", "json", "csv", "raw", "table", "help", "h", "?"],
+    "Global": [
+      "Force",
+      "f",
+      "DryRun",
+      "ConfirmAnswer",
+      "json",
+      "csv",
+      "raw",
+      "table",
+      "help",
+      "h",
+      "?"
+    ],
     "play": ["fullscreen", "fs", "force", "f"],
     "msg": [],
     "popup": []

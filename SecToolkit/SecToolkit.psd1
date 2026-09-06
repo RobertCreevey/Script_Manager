@@ -7,14 +7,8 @@
     PowerShellVersion = '7.0'
     CompatiblePSEditions = @('Core')
     RequiredModules = @('SharedToolkit')
-    FunctionsToExport = @(
-        'Register-SecProfile'
-        'Invoke-SecToolkitRouter'
-    )
-    AliasesToExport = @(
-        'host'
-        'newsec'
-    )
+    FunctionsToExport = '*'
+    AliasesToExport = '*'
     PrivateData = @{
         PSData = @{
             Tags = @('toolkit', 'security', 'audit', 'hardening')
@@ -24,3 +18,4 @@
         }
     }
 }
+

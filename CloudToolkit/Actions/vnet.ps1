@@ -38,5 +38,5 @@ switch ($Sub) {
         }
         $Results | Format-ToolOutput -Format $Format
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: net [vpcs|subnets|sg] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: net [vpcs|subnets|sg] ...$($C.Reset)" }
 }

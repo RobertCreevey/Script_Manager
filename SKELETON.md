@@ -177,6 +177,7 @@ Export-ModuleMember -Function * -Alias *
 ---
 
 ## Alias List Pattern (toolkit.json)
+<!-- TODO: Use key value as name and list items as aliases -->
 **Every discoverable entity is an alias list: `[canonical, alias1, alias2...]`**
 ```json
 {

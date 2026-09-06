@@ -7,16 +7,8 @@
     PowerShellVersion = '7.0'
     CompatiblePSEditions = @('Core')
     RequiredModules = @('SharedToolkit')
-    FunctionsToExport = @(
-        'Register-CloudProfile'
-        'Invoke-CloudToolkitRouter'
-    )
-    AliasesToExport = @(
-        'aws-prod'
-        'azure-dev'
-        'gcp-staging'
-        'newcloud'
-    )
+    FunctionsToExport = '*'
+    AliasesToExport = '*'
     PrivateData = @{
         PSData = @{
             Tags = @('toolkit', 'cloud', 'aws', 'azure', 'gcp')
@@ -26,3 +18,4 @@
         }
     }
 }
+

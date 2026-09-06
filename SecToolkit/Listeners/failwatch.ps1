@@ -12,7 +12,7 @@ try {
         $Events = Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625; StartTime=$Since} -ErrorAction SilentlyContinue
         if ($Events.Count -ge $Threshold) {
             $Src = ($Events | Select-Object -First 1).Properties[19].Value
-            Write-Host "[failwatch] $($C.Warn)$($Events.Count) failed logons since $($Since.ToString('HH:mm')) from $Src$($C.Reset)" -ForegroundColor Red
+            Write-Host "[failwatch] $($C.Crit)$($Events.Count) failed logons since $($Since.ToString('HH:mm')) from $Src$($C.Reset)"
             & "$global:SharedToolkitPath\Actions\toast.ps1" -Config $Config -Arguments @("Brute Force?", "$($Events.Count) failed logons from $Src")
             [Console]::Beep(440, 500)
         }

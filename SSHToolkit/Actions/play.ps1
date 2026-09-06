@@ -20,7 +20,7 @@ $Path = $ArgsOnly[0]
 $Player = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { 'wmplayer' }  # wmplayer or edge
 
 if (-not $Path) {
-    Write-Host "$($C.Warn)[ERROR] Usage: play <path> [wmplayer|edge] [-fs]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: play <path> [wmplayer|edge] [-fs]$($C.Reset)"
     Write-Host "$($C.Str)  Path must be accessible by the logged-in user (use C:\Users\Public\...)$($C.Reset)"
     return
 }

@@ -28,7 +28,7 @@ switch ($Sub) {
         $Results | Format-ToolOutput -Format $Format
     }
     'create' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: networks create <name> [--driver <driver>] [--subnet <cidr>] [--gateway <ip>]$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: networks create <name> [--driver <driver>] [--subnet <cidr>] [--gateway <ip>]$($C.Reset)"; return }
         $Driver = $ArgsOnly | Where-Object { $_ -match '^--driver=' } | ForEach-Object { $_ -replace '--driver=', '' }
         if (-not $Driver) { $Driver = 'bridge' }
         $Subnet = $ArgsOnly | Where-Object { $_ -match '^--subnet=' } | ForEach-Object { $_ -replace '--subnet=', '' }
@@ -41,17 +41,17 @@ switch ($Sub) {
         & $BaseCmd $Args
     }
     'connect' {
-        if (-not $Name -or -not $Container) { Write-Host "$($C.Warn)[ERROR] Usage: networks connect <network> <container>$($C.Reset)"; return }
+        if (-not $Name -or -not $Container) { Write-Host "$($C.Crit)[ERROR] Usage: networks connect <network> <container>$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Docker network '$Name'", "Connect container '$Container'")) { return }
         & $BaseCmd network connect $Name $Container
     }
     'disconnect' {
-        if (-not $Name -or -not $Container) { Write-Host "$($C.Warn)[ERROR] Usage: networks disconnect <network> <container>$($C.Reset)"; return }
+        if (-not $Name -or -not $Container) { Write-Host "$($C.Crit)[ERROR] Usage: networks disconnect <network> <container>$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Docker network '$Name'", "Disconnect container '$Container'")) { return }
         & $BaseCmd network disconnect $Name $Container
     }
     'rm' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: networks rm <name> [-f]$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: networks rm <name> [-f]$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Docker network", "Remove network '$Name'")) { return }
         & $BaseCmd network rm $Name
     }
@@ -60,9 +60,9 @@ switch ($Sub) {
         & $BaseCmd network prune -f
     }
     'inspect' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: networks inspect <name> [-json]$($C.Reset)"; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: networks inspect <name> [-json]$($C.Reset)"; return }
         $Out = & $BaseCmd network inspect $Name | ConvertFrom-Json
         if ($Format -eq 'json') { $Out | ConvertTo-Json -Depth 5 } else { $Out | Format-List * }
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: networks [ls|create|connect|disconnect|rm|prune|inspect] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: networks [ls|create|connect|disconnect|rm|prune|inspect] ...$($C.Reset)" }
 }

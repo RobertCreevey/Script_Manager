@@ -41,5 +41,5 @@ switch ($Sub) {
         $Cmd = "$BaseCmd events @(if($Since){'--since ' + $Since}) @(if($Until){'--until ' + $Until}) @(if($Filter){'--filter ' + $Filter})"
         & powershell -NoProfile -Command $Cmd
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: system [info|version|df|events] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: system [info|version|df|events] ...$($C.Reset)" }
 }

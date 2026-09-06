@@ -8,7 +8,7 @@ $ChainName = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { "" }
 $Interval = if ($ArgsOnly[2]) { [int]$ArgsOnly[2] } else { 5 }
 
 if (-not $ChainName) {
-    Write-Host "$($C.Warn)[ERROR] Usage: procwait <process> <chain> [interval_secs]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: procwait <process> <chain> [interval_secs]$($C.Reset)"
     return
 }
 
@@ -19,7 +19,7 @@ $User = $Config.User
 $Key = $Config.Key
 
 while ($true) {
-    $CheckCmd = "ssh -i `$Key $User@$IP tasklist /FI `\"IMAGENAME eq $ProcessName`\" /FO CSV | Select-String $ProcessName"
+    $CheckCmd = "ssh -i `$Key $User@$IP tasklist /FI `"IMAGENAME eq $ProcessName`" /FO CSV | Select-String $ProcessName"
     $Result = & powershell -NoProfile -Command $CheckCmd
     if (-not $Result) {
         Write-Host "[procwait] Process '$ProcessName' exited. Triggering chain '$ChainName'..." -ForegroundColor Green

@@ -19,7 +19,7 @@ $RepoPath = $Config.Path
 Set-Location $RepoPath
 
 if (-not $Paths.Count -and -not $All -and -not $Update) {
-    Write-Host "$($C.Warn)[ERROR] Usage: add <path>... [-A] [-u] [-p] [-i] [-n]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: add <path>... [-A] [-u] [-p] [-i] [-n]$($C.Reset)"
     return
 }
 

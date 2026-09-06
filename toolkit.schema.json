@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Toolkit Manifest Schema",
+  "type": "object",
+  "required": ["version", "description", "actions"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9]+)?$",
+      "description": "Semantic version (e.g., 1.0.0)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "description": "Human-readable toolkit description"
+    },
+    "profiles": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Profile names (for reference only)"
+    },
+    "actions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": { "type": "string" },
+        "description": "Alias list: [canonical, alias1, alias2...]"
+      },
+      "description": "Action definitions as alias lists"
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Parameter alias list: [canonical, alias1, alias2...]"
+        }
+      },
+      "description": "Action parameters as alias lists"
+    },
+    "switches": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "description": "Switches per action (including Global)"
+    },
+    "listeners": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": { "type": "string" },
+        "description": "Listener alias list: [canonical, alias1, alias2...]"
+      },
+      "description": "Listener definitions as alias lists"
+    },
+    "builtins": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": { "type": "string" },
+        "description": "Builtin command alias list: [canonical, alias1, alias2...]"
+      },
+      "description": "Builtin command definitions as alias lists"
+    }
+  },
+  "additionalProperties": false
+}

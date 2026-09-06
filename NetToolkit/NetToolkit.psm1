@@ -24,7 +24,7 @@ function Invoke-NetToolkitRouter {
     $ContextName = $MyInvocation.InvocationName
     $C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
     $ProfileFile = "$global:NetToolkitPath\Profiles\$ContextName.json"
-    if (-not (Test-Path $ProfileFile)) { Write-Host "$($C.Warn)[ERROR] Profile missing for '$ContextName'$($C.Reset)" ; return }
+    if (-not (Test-Path $ProfileFile)) { Write-Host "$($C.Crit)[ERROR] Profile missing for '$ContextName'$($C.Reset)" ; return }
     $Config = Get-Content $ProfileFile | ConvertFrom-Json
     $ForwardedArgs = @($ForwardedArgs)
     $global:ToolContext = $ContextName
@@ -47,10 +47,10 @@ function Invoke-NetToolkitRouter {
         if ($ForwardedArgs -and $ForwardedArgs[0] -eq "set" -and $ForwardedArgs[1]) {
             $K = $ForwardedArgs[1]; $V = ($ForwardedArgs[2..($ForwardedArgs.Length-1)] -join " ").Trim()
             if ($Config.PSObject.Properties[$K]) { $Config.$K = $V; $Config | ConvertTo-Json | Out-File $ProfileFile -Force; Write-Host "[OK] $K = $V" -ForegroundColor Green }
-            else { Write-Host "$($C.Warn)[ERROR] Invalid key: IP, MAC, Broadcast.$($C.Reset)" }
+            else { Write-Host "$($C.Crit)[ERROR] Invalid key: IP, MAC, Broadcast.$($C.Reset)" }
             return
         }
-        Write-Host "$($C.Warn)[ERROR] Usage: $ContextName config view | config set [IP|MAC|Broadcast] [value]$($C.Reset)"
+        Write-Host "$($C.Crit)[ERROR] Usage: $ContextName config view | config set [IP|MAC|Broadcast] [value]$($C.Reset)"
         return
     }
 
@@ -67,7 +67,7 @@ function Invoke-NetToolkitRouter {
     $SharedListener = Invoke-SharedAsset -Type "Listeners" -AssetName $Action -Config $Config -ForwardedArgs $ForwardedArgs
     if ($SharedListener) { return }
 
-    Write-Host "$($C.Warn)[ERROR] could not resolve '$Action'$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] could not resolve '$Action'$($C.Reset)"
 }
 
 Get-ChildItem "$global:NetToolkitPath\Profiles\*.json" -ErrorAction SilentlyContinue | ForEach-Object {

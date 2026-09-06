@@ -6,7 +6,7 @@ $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $TargetName = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { $null }
 
 $ModulesPath = "$env:USERPROFILE\Documents\PowerShell\Modules"
-if (-not (Test-Path $ModulesPath)) { Write-Host "$($C.Warn)[ERROR] Modules path not found: $ModulesPath$($C.Reset)" ; return }
+if (-not (Test-Path $ModulesPath)) { Write-Host "$($C.Crit)[ERROR] Modules path not found: $ModulesPath$($C.Reset)" ; return }
 
 $ToolkitFolders = Get-ChildItem -Path $ModulesPath -Directory | Where-Object { $_.Name -ne "SharedToolkit" -and (Test-Path "$($_.FullName)\$($_.Name).psm1") }
 
@@ -32,7 +32,7 @@ function Get-ToolkitInfo {
 
 if ($TargetName) {
     $Folder = $ToolkitFolders | Where-Object { $_.Name -eq $TargetName }
-    if (-not $Folder) { Write-Host "$($C.Warn)[ERROR] Toolkit '$TargetName' not found.$($C.Reset)" ; return }
+    if (-not $Folder) { Write-Host "$($C.Crit)[ERROR] Toolkit '$TargetName' not found.$($C.Reset)" ; return }
     $Info = Get-ToolkitInfo $Folder.FullName $Folder.Name
     Write-Host ""
     Write-Host "$($C.Sys)═══ TOOLKIT: $($C.Action)$($Info.Name)$($C.Reset) v$($C.Str)$($Info.Version)$($C.Reset) ═══" -ForegroundColor White

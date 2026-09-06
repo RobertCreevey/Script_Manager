@@ -18,7 +18,7 @@ $Workdir = $ArgsOnly | Where-Object { $_ -match '^--workdir=' } | ForEach-Object
 $Privileged = $ArgsOnly -contains '--privileged'
 
 if (-not $Container -or -not $CmdLine) {
-    Write-Host "$($C.Warn)[ERROR] Usage: exec <container> <command> [args...] [-it] [-d] [--user USER] [--env KEY=VAL] [--workdir PATH] [--privileged]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: exec <container> <command> [args...] [-it] [-d] [--user USER] [--env KEY=VAL] [--workdir PATH] [--privileged]$($C.Reset)"
     return
 }
 

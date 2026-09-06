@@ -22,7 +22,7 @@ Set-Location $RepoPath
 
 switch ($Sub) {
     'start' {
-        if (-not $Upstream) { Write-Host "$($C.Warn)[ERROR] Usage: rebase start <upstream> [--onto <branch>] [-i] [--autosquash]$($C.Reset)"; return }
+        if (-not $Upstream) { Write-Host "$($C.Crit)[ERROR] Usage: rebase start <upstream> [--onto <branch>] [-i] [--autosquash]$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Git repository", "Start rebase onto '$Upstream'")) { return }
         $Cmd = "git rebase"
         if ($Interactive) { $Cmd += " -i" }
@@ -43,5 +43,5 @@ switch ($Sub) {
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Git repository", "Skip rebase commit")) { return }
         & git rebase --skip
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: rebase [start|continue|abort|skip] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: rebase [start|continue|abort|skip] ...$($C.Reset)" }
 }

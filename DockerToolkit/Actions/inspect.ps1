@@ -12,7 +12,7 @@ $Type = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { 'container' }
 $Name = $ArgsOnly[1]
 
 if (-not $Name) {
-    Write-Host "$($C.Warn)[ERROR] Usage: inspect <container|image|volume|network> <name> [-json]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: inspect <container|image|volume|network> <name> [-json]$($C.Reset)"
     return
 }
 

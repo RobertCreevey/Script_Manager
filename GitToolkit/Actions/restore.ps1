@@ -18,7 +18,7 @@ $RepoPath = $Config.Path
 Set-Location $RepoPath
 
 if (-not $Paths.Count -and -not $Staged) {
-    Write-Host "$($C.Warn)[ERROR] Usage: restore <path>... [-s|--staged] [--source <commit>] [-W|--worktree] [-p]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: restore <path>... [-s|--staged] [--source <commit>] [-W|--worktree] [-p]$($C.Reset)"
     return
 }
 

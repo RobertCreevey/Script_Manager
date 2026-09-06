@@ -20,7 +20,7 @@ $Key = $Config.Key
 Write-Host "[popup] Sending Yes/No prompt to target..." -ForegroundColor Cyan
 
 # Get logged-in user
-$LoggedInUserCmd = "ssh $User@$IP -i $Key `(Get-CimInstance Win32_ComputerSystem).UserName`"
+$LoggedInUserCmd = "ssh $User@$IP -i $Key `(Get-CimInstance Win32_ComputerSystem).UserName"
 $LoggedInUser = & powershell -NoProfile -Command $LoggedInUserCmd
 
 # Build response handler script

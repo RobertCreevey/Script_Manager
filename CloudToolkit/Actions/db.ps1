@@ -24,7 +24,7 @@ switch ($Sub) {
         $Results | Format-ToolOutput -Format $Format
     }
     'connect' {
-        if (-not $Name) { Write-Host "$($C.Warn)[ERROR] Usage: db connect <name>$($C.Reset)" ; return }
+        if (-not $Name) { Write-Host "$($C.Crit)[ERROR] Usage: db connect <name>$($C.Reset)" ; return }
         Write-Host "$($C.Warn)Connection strings - use provider CLI:$($C.Reset)"
         switch ($Provider) {
             'aws'  { & aws rds generate-db-auth-token --hostname $Name --port 5432 --region $Region --profile $Profile }
@@ -32,5 +32,5 @@ switch ($Sub) {
             'gcp'  { & gcloud sql connect $Name --project $Project --user=postgres }
         }
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: db [list|connect] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: db [list|connect] ...$($C.Reset)" }
 }

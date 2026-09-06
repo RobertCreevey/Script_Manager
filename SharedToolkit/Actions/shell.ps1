@@ -76,7 +76,7 @@ while ($true) {
                 try {
                     & $ActionFile -Config $Config -Arguments $Args
                 } catch {
-                    Write-Host "$($C.Warn)Error: $_$($C.Reset)"
+                    Write-Host "$($C.Crit)Error: $_$($C.Reset)"
                 }
                 break
             }
@@ -88,7 +88,7 @@ while ($true) {
         }
     } catch {
         if ($_.Exception.Message -like "*Interrupted*") { break }
-        Write-Host "$($C.Warn)Error: $_$($C.Reset)"
+        Write-Host "$($C.Crit)Error: $_$($C.Reset)"
     }
 }
 

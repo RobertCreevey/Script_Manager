@@ -49,14 +49,14 @@ switch ($Method) {
     'wts' {
         Write-Host "[msg] Sending via WTSSendMessage (Session 1)..." -ForegroundColor Cyan
         $Script = @"
-Add-Type -TypeDefinition @"
+Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
 public class WTS {
     [DllImport("wtsapi32.dll", SetLastError = true)]
     public static extern bool WTSSendMessage(IntPtr hServer, int SessionId, String pTitle, int TitleLength, String pMessage, int MessageLength, int Style, int Timeout, out int pResponse, bool bWait);
 }
-"@
+'@
 [WTS]::WTSSendMessage([IntPtr]::Zero, 1, `"$Title`", `$Title.Length, `"$Message`", `$Message.Length, 0, 0, [ref]0, `$false)
 "@
         $Encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($Script))
@@ -70,7 +70,7 @@ public class WTS {
 `$wshell.Popup(`"$Message`", 0, `"$Title`", 64) | Out-Null
 "@
         $Encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($Script))
-        $LoggedInUser = "ssh $User@$IP -i $Key `(Get-CimInstance Win32_ComputerSystem).UserName`"
+        $LoggedInUser = "ssh $User@$IP -i $Key `(Get-CimInstance Win32_ComputerSystem).UserName"
         $LoggedInUser = & powershell -NoProfile -Command $LoggedInUser
         $TaskScript = @"
 `$Action = New-ScheduledTaskAction -Execute `"powershell.exe`" -Argument `"-NoProfile -WindowStyle Hidden -EncodedCommand $Encoded`"

@@ -38,7 +38,7 @@ switch ($Sub) {
         & $Cmd
     }
     'skip' {
-        if (-not $Skip) { Write-Host "$($C.Warn)[ERROR] Usage: bisect skip <commit>$($C.Reset)"; return }
+        if (-not $Skip) { Write-Host "$($C.Crit)[ERROR] Usage: bisect skip <commit>$($C.Reset)"; return }
         $Cmd = "git bisect skip $Skip"
         & $Cmd
     }
@@ -52,22 +52,22 @@ switch ($Sub) {
     }
     'replay' {
         $File = $ArgsOnly[1]
-        if (-not $File) { Write-Host "$($C.Warn)[ERROR] Usage: bisect replay <file>$($C.Reset)"; return }
+        if (-not $File) { Write-Host "$($C.Crit)[ERROR] Usage: bisect replay <file>$($C.Reset)"; return }
         & git bisect replay $File
     }
     'run' {
         $Script = $ArgsOnly[1..($ArgsOnly.Count-1)] -join ' '
-        if (-not $Script) { Write-Host "$($C.Warn)[ERROR] Usage: bisect run <command>$($C.Reset)"; return }
+        if (-not $Script) { Write-Host "$($C.Crit)[ERROR] Usage: bisect run <command>$($C.Reset)"; return }
         if (-not $Force -and -not $PSCmdlet.ShouldProcess("Git repository", "Run bisect with command")) { return }
         & git bisect run $Script
     }
     'terms' {
         if ($Term) {
-            if (-not $TermBad -or -not $TermGood) { Write-Host "$($C.Warn)[ERROR] Usage: bisect terms --term-bad <bad> --term-good <good>$($C.Reset)"; return }
+            if (-not $TermBad -or -not $TermGood) { Write-Host "$($C.Crit)[ERROR] Usage: bisect terms --term-bad <bad> --term-good <good>$($C.Reset)"; return }
             & git bisect terms --term-bad $TermBad --term-good $TermGood
         } else {
             & git bisect terms
         }
     }
-    default { Write-Host "$($C.Warn)[ERROR] Usage: bisect [start|bad|good|skip|reset|log|replay|run|terms] ...$($C.Reset)" }
+    default { Write-Host "$($C.Crit)[ERROR] Usage: bisect [start|bad|good|skip|reset|log|replay|run|terms] ...$($C.Reset)" }
 }

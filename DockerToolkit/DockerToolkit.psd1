@@ -7,16 +7,8 @@
     PowerShellVersion = '7.0'
     CompatiblePSEditions = @('Core')
     RequiredModules = @('SharedToolkit')
-    FunctionsToExport = @(
-        'Register-DockerProfile'
-        'Invoke-DockerToolkitRouter'
-    )
-    AliasesToExport = @(
-        'local'
-        'remote'
-        'swarm'
-        'newdocker'
-    )
+    FunctionsToExport = '*'
+    AliasesToExport = '*'
     PrivateData = @{
         PSData = @{
             Tags = @('toolkit', 'docker', 'container', 'kubernetes')
@@ -26,3 +18,4 @@
         }
     }
 }
+

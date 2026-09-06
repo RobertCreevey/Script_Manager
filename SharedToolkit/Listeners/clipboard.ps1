@@ -8,7 +8,7 @@ $Pattern = if ($ArgsOnly[1]) { $ArgsOnly[1] } else { '(\d{1,3}\.\d{1,3}\.\d{1,3}
 $Interval = if ($ArgsOnly[2]) { [int]$ArgsOnly[2] } else { 2 }
 
 if (-not $ChainName) {
-    Write-Host "$($C.Warn)[ERROR] Usage: clipboard <chain> [regex_pattern] [interval_secs]$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] Usage: clipboard <chain> [regex_pattern] [interval_secs]$($C.Reset)"
     return
 }
 

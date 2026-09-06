@@ -7,14 +7,8 @@
     PowerShellVersion = '7.0'
     CompatiblePSEditions = @('Core')
     RequiredModules = @('SharedToolkit')
-    FunctionsToExport = @(
-        'Register-FileProfile'
-        'Invoke-FileToolkitRouter'
-    )
-    AliasesToExport = @(
-        'home'
-        'newfile'
-    )
+    FunctionsToExport = '*'
+    AliasesToExport = '*'
     PrivateData = @{
         PSData = @{
             Tags = @('toolkit', 'file', 'search', 'filesystem')
@@ -24,3 +18,4 @@
         }
     }
 }
+

@@ -31,7 +31,7 @@ function Invoke-GitToolkitRouter {
     if ($Inv -ne 'Invoke-GitToolkitRouter') { $ContextName = $Inv } else { $ContextName = $global:ToolContext }
     $C = if ($global:ToolColors) { $global:ToolColors } else { [PSCustomObject]@{} }
     $ProfileFile = "$global:GitToolkitPath\Profiles\$ContextName.json"
-    if (-not (Test-Path $ProfileFile)) { Write-Host "$($C.Warn)[ERROR] Profile registry missing for '$ContextName'$($C.Reset)" ; return }
+    if (-not (Test-Path $ProfileFile)) { Write-Host "$($C.Crit)[ERROR] Profile registry missing for '$ContextName'$($C.Reset)" ; return }
     $Config = Get-Content $ProfileFile | ConvertFrom-Json
     $ForwardedArgs = @($ForwardedArgs)
     $global:ToolContext = $ContextName
@@ -72,11 +72,11 @@ function Invoke-GitToolkitRouter {
                 $Config | ConvertTo-Json | Out-File $ProfileFile -Force
                 Write-Host "[OK] Saved $($C.Param)$K$($C.Reset) = $($C.Str)$V$($C.Reset)" -ForegroundColor Green
             } else {
-                Write-Host "$($C.Warn)[ERROR] Invalid key: Path, User, Email, Remote.$($C.Reset)"
+                Write-Host "$($C.Crit)[ERROR] Invalid key: Path, User, Email, Remote.$($C.Reset)"
             }
             return
         }
-        Write-Host "$($C.Warn)[ERROR] Usage: $ContextName config view | config set [Path|User|Email|Remote] [value]$($C.Reset)"
+        Write-Host "$($C.Crit)[ERROR] Usage: $ContextName config view | config set [Path|User|Email|Remote] [value]$($C.Reset)"
         return
     }
 
@@ -99,7 +99,7 @@ function Invoke-GitToolkitRouter {
     }
 
     if ($Action -eq "clone") {
-        if (-not $ForwardedArgs[0]) { Write-Host "$($C.Warn)[ERROR] Usage: clone <url> [path]$($C.Reset)" ; return }
+        if (-not $ForwardedArgs[0]) { Write-Host "$($C.Crit)[ERROR] Usage: clone <url> [path]$($C.Reset)" ; return }
         $Url = $ForwardedArgs[0]
         $Path = if ($ForwardedArgs[1]) { $ForwardedArgs[1] } else { $Config.Path }
         & git clone $Url $Path
@@ -119,7 +119,7 @@ function Invoke-GitToolkitRouter {
     $SharedListener = Invoke-SharedAsset -Type "Listeners" -AssetName $Action -Config $Config -ForwardedArgs $ForwardedArgs
     if ($SharedListener) { return }
 
-    Write-Host "$($C.Warn)[ERROR] could not resolve '$Action'$($C.Reset)"
+    Write-Host "$($C.Crit)[ERROR] could not resolve '$Action'$($C.Reset)"
     Invoke-ToolEvent -Name "UnknownAction" -Data "$ContextName : $Action" -Config $Config
 }
 

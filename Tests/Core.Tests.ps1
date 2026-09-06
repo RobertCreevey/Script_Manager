@@ -1,4 +1,5 @@
 #Requires -Module Pester
+$global:WarningPreference = 'SilentlyContinue'  # toolkit cmdlets intentionally use non-approved verbs; suppress the notice across all Pester scopes for this session.
 
 Describe "SharedToolkit Core Functions" {
     BeforeAll {
@@ -199,5 +200,37 @@ Describe "Cross-Toolkit Helpers" {
             $Result = Invoke-CrossToolkitAction -Toolkit "NonExistent" -Action "test" -Config @{}
             $Result | Should -Be $false
         }
+    }
+}
+
+Describe "Router entrypoints (compat shims)" {
+    BeforeAll {
+        Import-Module "K:\_scripts\SharedToolkit_PowerShell_Module\SharedToolkit\SharedToolkit.psd1" -Force -DisableNameChecking
+    }
+
+    It "Invoke-SharedHelpSystem renders help without throwing" {
+        $SharedRoot = (Get-Module SharedToolkit -ErrorAction SilentlyContinue).ModuleBase
+        if (-not $SharedRoot) { $SharedRoot = Split-Path (Get-Command Get-ToolkitHelp).Source -Parent }
+        { Invoke-SharedHelpSystem -Caller 'unit' -TargetTopic $null -ChildModulePath $SharedRoot } | Should -Not -Throw
+    }
+
+    It "Invoke-ToolEvent records an event via the canonical emitter" {
+        $global:ToolEvents.Clear()
+        $null = Invoke-ToolEvent -Name 'RegTest' -Data 'ok' -Config $null
+        ($global:ToolEvents | Where-Object { $_.Name -eq 'RegTest' }) | Should -Not -BeNullOrEmpty
+    }
+
+    It "Canonical implementations coexist with the router shims" {
+        Get-Command Get-ToolkitHelp          | Should -Not -BeNullOrEmpty
+        Get-Command Write-ToolkitEvent       | Should -Not -BeNullOrEmpty
+        Get-Command Use-SharedAsset          | Should -Not -BeNullOrEmpty
+        Get-Command Invoke-SharedHelpSystem  | Should -Not -BeNullOrEmpty
+        Get-Command Invoke-ToolEvent         | Should -Not -BeNullOrEmpty
+        Get-Command Invoke-SharedAsset       | Should -Not -BeNullOrEmpty
+    }
+
+    It "Invoke-SharedAsset delegates to Use-SharedAsset" {
+        Invoke-SharedAsset -Type "Actions" -AssetName "NonExistentAction" -Config @{} -ForwardedArgs @() |
+            Should -Be $false
     }
 }

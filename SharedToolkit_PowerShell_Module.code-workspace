@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "awesome-powershell",
+			"path": "../../GitHub/Awesome-Powershell/awesome-powershell"
+		}
+	],
+	"settings": {}
+}
