@@ -1,14 +1,15 @@
-$RepoRoot = Split-Path -Parent $PSScriptRoot
-$SharedManifest = Join-Path $RepoRoot 'SharedToolkit\SharedToolkit.psd1'
-$SshManifest = Join-Path $RepoRoot 'SSHToolkit\SSHToolkit.psd1'
-$DockerManifest = Join-Path $RepoRoot 'DockerToolkit\DockerToolkit.psd1'
-$GitManifest = Join-Path $RepoRoot 'GitToolkit\GitToolkit.psd1'
+$script:RepoRoot = Split-Path -Parent $PSScriptRoot
+$script:SharedManifest = Join-Path $script:RepoRoot 'SharedToolkit\SharedToolkit.psd1'
+$script:SshManifest = Join-Path $script:RepoRoot 'SSHToolkit\SSHToolkit.psd1'
+$script:DockerManifest = Join-Path $script:RepoRoot 'DockerToolkit\DockerToolkit.psd1'
+$script:GitManifest = Join-Path $script:RepoRoot 'GitToolkit\GitToolkit.psd1'
 #Requires -Module Pester
 $global:WarningPreference = 'SilentlyContinue'  # toolkit cmdlets intentionally use non-approved verbs; suppress the notice across all Pester scopes for this session.
 
 Describe "SharedToolkit Core Functions" {
     BeforeAll {
-        Import-Module $SharedManifest -Force
+        $r = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $r 'SharedToolkit\SharedToolkit.psd1') -Force -ErrorAction Stop
     }
 
     Describe "Get-ToolkitColors" {
@@ -144,7 +145,8 @@ Describe "SharedToolkit Core Functions" {
 
 Describe "SSHToolkit Actions" {
     BeforeAll {
-        Import-Module $SshManifest -Force
+        $r = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $r 'SSHToolkit\SSHToolkit.psd1') -Force -ErrorAction Stop
     }
 
     Describe "Request-ToolkitConfirmation (via Assert)" {
@@ -164,7 +166,8 @@ Describe "SSHToolkit Actions" {
 
 Describe "DockerToolkit Actions" {
     BeforeAll {
-        Import-Module $DockerManifest -Force
+        $r = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $r 'DockerToolkit\DockerToolkit.psd1') -Force -ErrorAction Stop
     }
 
     Describe "Get-ActionArguments integration" {
@@ -177,7 +180,8 @@ Describe "DockerToolkit Actions" {
 
 Describe "GitToolkit Actions" {
     BeforeAll {
-        Import-Module $GitManifest -Force
+        $r = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $r 'GitToolkit\GitToolkit.psd1') -Force -ErrorAction Stop
     }
 
     Describe "Get-ActionArguments integration" {
@@ -190,7 +194,8 @@ Describe "GitToolkit Actions" {
 
 Describe "Cross-Toolkit Helpers" {
     BeforeAll {
-        Import-Module $SharedManifest -Force
+        $r = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $r 'SharedToolkit\SharedToolkit.psd1') -Force -ErrorAction Stop
     }
 
     Describe "Use-SharedAsset" {
@@ -210,7 +215,8 @@ Describe "Cross-Toolkit Helpers" {
 
 Describe "Router entrypoints (compat shims)" {
     BeforeAll {
-        Import-Module $SharedManifest -Force -DisableNameChecking
+        $r = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $r 'SharedToolkit\SharedToolkit.psd1') -Force -DisableNameChecking -ErrorAction Stop
     }
 
     It "Invoke-SharedHelpSystem renders help without throwing" {
