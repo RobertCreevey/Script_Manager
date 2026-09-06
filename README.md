@@ -303,10 +303,13 @@ server1 config set User admin
 ```powershell
 profiles list                                    # List all profiles across all toolkits
 profiles show -name server1                      # Show one profile JSON
-profiles create -toolkit SSHToolkit -name x -json '{"IP":"1.2.3.4"}'
+profiles create -toolkit SSHToolkit -name x
+# Then configure via the profile alias:
+x config set IP 1.2.3.4
+x config set User admin
 profiles delete -toolkit SSHToolkit -name x
 profiles export -name server1 -json > backup.json
-profiles import -toolkit SSHToolkit -json (Get-Content backup.json)
+# profiles import -toolkit SSHToolkit -json (Get-Content backup.json)  # planned for v1.1
 ```
 
 ### Using Profiles

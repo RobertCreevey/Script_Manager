@@ -112,7 +112,7 @@ if ($Action) {
     Invoke-ToolEvent -Name "UnknownAction" -Data "$ContextName : $Action" -Config $Config
 }
 
-Get-ChildItem "$global:SSHToolkitPath\Profiles\*.json" -ErrorAction SilentlyContinue | ForEach-Object {
+Get-ChildItem "$global:SSHToolkitPath\Profiles\*.json" -ErrorAction SilentlyContinue | Where-Object { $_.BaseName } | ForEach-Object {
     New-Alias -Name $_.BaseName -Value Invoke-UniversalToolkitRouter -Force
     Export-ModuleMember -Alias $_.BaseName
 }

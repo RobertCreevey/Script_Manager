@@ -1254,7 +1254,17 @@ function Format-ToolOutput {
                     }
                 }
                 else {
-                    $Data | ForEach-Object { $_ -join ' | ' }
+                    $Data | ForEach-Object {
+                        if ($_ -is [System.Collections.IDictionary]) {
+                            $_.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }
+                        }
+                        elseif ($_ -is [string] -or $_ -is [int] -or $_ -is [long] -or $_ -is [double] -or $_ -is [bool]) {
+                            $_
+                        }
+                        else {
+                            $_.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }
+                        }
+                    }
                 }
             }
             default {

@@ -24,7 +24,9 @@ if ($Toolkit) { $AllToolkits = @($Toolkit) }
 function Get-Profiles {
     $Results = @()
     foreach ($Tk in $AllToolkits) {
-        $ToolkitPath = Get-ToolkitInstallPath -ToolkitName $Tk`r`n        if (-not $ToolkitPath) { continue }`r`n        $ProfilePath = Join-Path $ToolkitPath 'Profiles'
+        $ToolkitPath = Get-ToolkitInstallPath -ToolkitName $Tk
+        if (-not $ToolkitPath) { continue }
+        $ProfilePath = Join-Path $ToolkitPath 'Profiles'
         if (Test-Path $ProfilePath) {
             Get-ChildItem "$ProfilePath\*.json" -ErrorAction SilentlyContinue | ForEach-Object {
                 $Content = Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json -ErrorAction SilentlyContinue
@@ -60,7 +62,9 @@ switch ($Action) {
     }
     'create' {
         if (-not $Name -or -not $Toolkit) { Write-Host "$($C.Warn)Usage: profiles create -name <name> -toolkit <tk> [-json <config>]$($C.Reset)"; return }
-        $ToolkitPath = Get-ToolkitInstallPath -ToolkitName $Toolkit`r`n        if (-not $ToolkitPath) { Write-Host "Toolkit '$Toolkit' is not installed." -ForegroundColor Yellow; return }`r`n        $ProfilePath = Join-Path $ToolkitPath 'Profiles'
+        $ToolkitPath = Get-ToolkitInstallPath -ToolkitName $Toolkit
+        if (-not $ToolkitPath) { Write-Host "Toolkit '$Toolkit' is not installed." -ForegroundColor Yellow; return }
+        $ProfilePath = Join-Path $ToolkitPath 'Profiles'
         if (-not (Test-Path $ProfilePath)) { New-Item -ItemType Directory -Path $ProfilePath -Force | Out-Null }
         $FilePath = "$ProfilePath\$Name.json"
         if (Test-Path $FilePath) { Write-Host "$($C.Warn)Profile '$Name' already exists in $Toolkit$($C.Reset)"; return }
@@ -72,7 +76,9 @@ switch ($Action) {
         if (-not $Name) { Write-Host "$($C.Warn)Usage: profiles delete -name <name> [-toolkit <tk>]$($C.Reset)"; return }
         $Deleted = $false
         foreach ($Tk in $AllToolkits) {
-            $ToolkitPath = Get-ToolkitInstallPath -ToolkitName $Tk`r`n            if (-not $ToolkitPath) { continue }`r`n            $FilePath = Join-Path $ToolkitPath "Profiles\$Name.json"
+            $ToolkitPath = Get-ToolkitInstallPath -ToolkitName $Tk
+            if (-not $ToolkitPath) { continue }
+            $FilePath = Join-Path $ToolkitPath "Profiles\$Name.json"
             if (Test-Path $FilePath) {
                 Remove-Item $FilePath -Force
                 Write-Host "$($C.Ok)Deleted profile '$Name' from $Tk$($C.Reset)"

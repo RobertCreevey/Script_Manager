@@ -35,7 +35,7 @@ function MyPlugin {
         [array]$Arguments  # command arguments, already split
     )
     $C = if (Get-Command Get-ToolkitColors -ErrorAction SilentlyContinue) { Get-ToolkitColors } else {
-        [PSCustomObject]@{ Action='Cyan'; Ok='Green'; Warn='Yellow'; Err='Red'; Reset='' }
+        [PSCustomObject]@{ Action='Cyan'; Ok='Green'; Warn='Yellow'; Crit='Red'; Reset='' }
     }
     Write-Host "[MyPlugin] args: $($Arguments -join ' ')" -ForegroundColor $C.Action
 }

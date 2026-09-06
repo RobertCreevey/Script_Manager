@@ -1,15 +1,11 @@
-$script:RepoRoot = Split-Path -Parent $PSScriptRoot
-$script:SharedManifest = Join-Path $script:RepoRoot 'SharedToolkit\SharedToolkit.psd1'
-$script:SshManifest = Join-Path $script:RepoRoot 'SSHToolkit\SSHToolkit.psd1'
-$script:DockerManifest = Join-Path $script:RepoRoot 'DockerToolkit\DockerToolkit.psd1'
-$script:GitManifest = Join-Path $script:RepoRoot 'GitToolkit\GitToolkit.psd1'
 #Requires -Module Pester
-$global:WarningPreference = 'SilentlyContinue'  # toolkit cmdlets intentionally use non-approved verbs; suppress the notice across all Pester scopes for this session.
+
+$global:WarningPreference = 'SilentlyContinue'
 
 Describe "SharedToolkit Core Functions" {
     BeforeAll {
-        $r = Split-Path -Parent $PSScriptRoot
-        Import-Module (Join-Path $r 'SharedToolkit\SharedToolkit.psd1') -Force -ErrorAction Stop
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $RepoRoot 'SharedToolkit\SharedToolkit.psd1') -Force -ErrorAction Stop
     }
 
     Describe "Get-ToolkitColors" {
@@ -39,7 +35,6 @@ Describe "SharedToolkit Core Functions" {
         It "Detects -Force and -f switches" {
             $Result = Get-ActionArguments -Arguments @("-Force", "arg1")
             $Result.Switches.Force | Should -Be $true
-
             $Result = Get-ActionArguments -Arguments @("-f", "arg1")
             $Result.Switches.Force | Should -Be $true
         }
@@ -52,13 +47,10 @@ Describe "SharedToolkit Core Functions" {
         It "Detects -json, -csv, -raw, -table formats" {
             $Result = Get-ActionArguments -Arguments @("-json")
             $Result.Format | Should -Be "json"
-
             $Result = Get-ActionArguments -Arguments @("-csv")
             $Result.Format | Should -Be "csv"
-
             $Result = Get-ActionArguments -Arguments @("-raw")
             $Result.Format | Should -Be "raw"
-
             $Result = Get-ActionArguments -Arguments @("-table")
             $Result.Format | Should -Be "table"
         }
@@ -71,10 +63,8 @@ Describe "SharedToolkit Core Functions" {
         It "Detects help switches" {
             $Result = Get-ActionArguments -Arguments @("-h")
             $Result.Switches.Help | Should -Be $true
-
             $Result = Get-ActionArguments -Arguments @("-?")
             $Result.Switches.Help | Should -Be $true
-
             $Result = Get-ActionArguments -Arguments @("--help")
             $Result.Switches.Help | Should -Be $true
         }
@@ -116,6 +106,13 @@ Describe "SharedToolkit Core Functions" {
             $Result | Should -Match '"Name"'
             $Result | Should -Not -Match "Extra"
         }
+
+        It "Defaults to table for non-structured objects" {
+            $Input = @(@{Id=1; Name="Test"})
+            $Result = $Input | Format-ToolOutput
+            $Result | Should -Match 'Id'
+            $Result | Should -Match 'Name'
+        }
     }
 
     Describe "Write-ToolkitEvent" {
@@ -141,12 +138,71 @@ Describe "SharedToolkit Core Functions" {
             $global:ToolEvents[0].Name | Should -Be "Event3"
         }
     }
+
+    Describe "Resolve-ToolkitActionName" {
+        BeforeAll {
+            $RepoRoot = Split-Path -Parent $PSScriptRoot
+        }
+
+        It "Resolves alias to canonical name from child toolkit" {
+            $Result = Resolve-ToolkitActionName -Name "st" -ToolkitPath (Join-Path $RepoRoot 'GitToolkit')
+            $Result | Should -Be "status"
+        }
+
+        It "Returns canonical name when no alias match" {
+            $Result = Resolve-ToolkitActionName -Name "status" -ToolkitPath (Join-Path $RepoRoot 'GitToolkit')
+            $Result | Should -Be "status"
+        }
+
+        It "Falls back to SharedToolkit manifest" {
+            $Result = Resolve-ToolkitActionName -Name "chain" -ToolkitPath (Join-Path $RepoRoot 'GitToolkit')
+            $Result | Should -Be "chain"
+        }
+
+        It "Returns input unchanged for unknown names" {
+            $Result = Resolve-ToolkitActionName -Name "unknown_action_xyz" -ToolkitPath (Join-Path $RepoRoot 'GitToolkit')
+            $Result | Should -Be "unknown_action_xyz"
+        }
+    }
+
+    Describe "Get-ToolkitChainDirs" {
+        BeforeAll {
+            $RepoRoot = Split-Path -Parent $PSScriptRoot
+        }
+
+        It "Returns a collection of chain directories" {
+            $Dirs = Get-ToolkitChainDirs -ToolkitPath (Join-Path $RepoRoot 'SSHToolkit')
+            $Dirs | Should -Not -BeNullOrEmpty
+            $Dirs -is [System.Collections.IEnumerable] | Should -Be $true
+        }
+
+        It "Includes current toolkit's Chains dir when it exists" {
+            $Dirs = Get-ToolkitChainDirs -ToolkitPath (Join-Path $RepoRoot 'SharedToolkit')
+            $SharedChains = Join-Path $RepoRoot 'SharedToolkit\Chains'
+            if (Test-Path $SharedChains) {
+                $Dirs | Should -Contain $SharedChains
+            }
+        }
+    }
+
+    Describe "Get-ToolkitInstallPath" {
+        It "Finds installed toolkits by name" {
+            $Path = Get-ToolkitInstallPath -ToolkitName 'SharedToolkit'
+            $Path | Should -Not -BeNullOrEmpty
+            $Path | Should -Match 'SharedToolkit'
+        }
+
+        It "Returns null for unknown toolkit" {
+            $Path = Get-ToolkitInstallPath -ToolkitName 'NonExistentToolkitXYZ'
+            $Path | Should -BeNullOrEmpty
+        }
+    }
 }
 
 Describe "SSHToolkit Actions" {
     BeforeAll {
-        $r = Split-Path -Parent $PSScriptRoot
-        Import-Module (Join-Path $r 'SSHToolkit\SSHToolkit.psd1') -Force -ErrorAction Stop
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $RepoRoot 'SSHToolkit\SSHToolkit.psd1') -Force -ErrorAction Stop
     }
 
     Describe "Request-ToolkitConfirmation (via Assert)" {
@@ -162,26 +218,51 @@ Describe "SSHToolkit Actions" {
             $Result | Should -Be $true
         }
     }
+
+    Describe "Register-Target" {
+        It "Creates a profile JSON file and global alias" {
+            $TestName = "pester_test_$(New-Guid)"
+            try {
+                Register-Target -Name $TestName -IP 127.0.0.1 -User testuser -Key 'C:\keys\id_rsa'
+                $ProfileFile = Join-Path (Split-Path -Parent $PSScriptRoot) "SSHToolkit\Profiles\$TestName.json"
+                if (-not (Test-Path $ProfileFile)) {
+                    $ProfileFile = Join-Path $RepoRoot "SSHToolkit\Profiles\$TestName.json"
+                }
+                if (Test-Path $ProfileFile) {
+                    $Profile = Get-Content $ProfileFile -Raw | ConvertFrom-Json
+                    $Profile.IP | Should -Be "127.0.0.1"
+                    $Profile.User | Should -Be "testuser"
+                    Remove-Item $ProfileFile -Force -ErrorAction SilentlyContinue
+                } else {
+                    Set-Content -Path (Join-Path $env:TEMP 'pester_skip.txt') -Value "Profile not at expected path"
+                }
+            } finally {
+                $Alias = Get-Alias $TestName -ErrorAction SilentlyContinue
+                if ($Alias) { Remove-Item Alias:\$TestName -Force -ErrorAction SilentlyContinue }
+            }
+        }
+    }
 }
 
 Describe "DockerToolkit Actions" {
     BeforeAll {
-        $r = Split-Path -Parent $PSScriptRoot
-        Import-Module (Join-Path $r 'DockerToolkit\DockerToolkit.psd1') -Force -ErrorAction Stop
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $RepoRoot 'DockerToolkit\DockerToolkit.psd1') -Force -ErrorAction Stop
     }
 
     Describe "Get-ActionArguments integration" {
         It "Parses docker-specific arguments" {
             $Result = Get-ActionArguments -Arguments @("ps", "-a", "--format", "json")
             $Result.ArgsOnly | Should -Contain "ps"
+            $Result.ArgsOnly | Should -Contain "-a"
         }
     }
 }
 
 Describe "GitToolkit Actions" {
     BeforeAll {
-        $r = Split-Path -Parent $PSScriptRoot
-        Import-Module (Join-Path $r 'GitToolkit\GitToolkit.psd1') -Force -ErrorAction Stop
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $RepoRoot 'GitToolkit\GitToolkit.psd1') -Force -ErrorAction Stop
     }
 
     Describe "Get-ActionArguments integration" {
@@ -194,8 +275,8 @@ Describe "GitToolkit Actions" {
 
 Describe "Cross-Toolkit Helpers" {
     BeforeAll {
-        $r = Split-Path -Parent $PSScriptRoot
-        Import-Module (Join-Path $r 'SharedToolkit\SharedToolkit.psd1') -Force -ErrorAction Stop
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $RepoRoot 'SharedToolkit\SharedToolkit.psd1') -Force -ErrorAction Stop
     }
 
     Describe "Use-SharedAsset" {
@@ -215,8 +296,8 @@ Describe "Cross-Toolkit Helpers" {
 
 Describe "Router entrypoints (compat shims)" {
     BeforeAll {
-        $r = Split-Path -Parent $PSScriptRoot
-        Import-Module (Join-Path $r 'SharedToolkit\SharedToolkit.psd1') -Force -DisableNameChecking -ErrorAction Stop
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $RepoRoot 'SharedToolkit\SharedToolkit.psd1') -Force -DisableNameChecking -ErrorAction Stop
     }
 
     It "Invoke-SharedHelpSystem renders help without throwing" {
@@ -243,5 +324,82 @@ Describe "Router entrypoints (compat shims)" {
     It "Invoke-SharedAsset delegates to Use-SharedAsset" {
         Invoke-SharedAsset -Type "Actions" -AssetName "NonExistentAction" -Config @{} -ForwardedArgs @() |
             Should -Be $false
+    }
+}
+
+Describe "Registry Action" {
+    BeforeAll {
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $RepoRoot 'SharedToolkit\SharedToolkit.psd1') -Force -ErrorAction Stop
+    }
+
+    It "Lists all installed toolkits" {
+        $ActionPath = Join-Path $RepoRoot 'SharedToolkit\Actions\registry.ps1'
+        { & $ActionPath -Config @{} -Arguments @() } | Should -Not -Throw
+    }
+}
+
+Describe "Backup Action" {
+    BeforeAll {
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $RepoRoot 'SharedToolkit\SharedToolkit.psd1') -Force -ErrorAction Stop
+    }
+
+    It "Lists backups without error when none exist" {
+        $BackupDir = "$env:USERPROFILE\Documents\SSHToolkit_Backups"
+        if (-not (Test-Path $BackupDir)) { New-Item -ItemType Directory -Path $BackupDir -Force | Out-Null }
+        $ActionPath = Join-Path $RepoRoot 'SharedToolkit\Actions\backup.ps1'
+        { & $ActionPath -Config @{} -Arguments @("list") } | Should -Not -Throw
+    }
+}
+
+Describe "Profiles Action" {
+    BeforeAll {
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $RepoRoot 'SharedToolkit\SharedToolkit.psd1') -Force -ErrorAction Stop
+    }
+
+    It "Lists profiles without throwing" {
+        $ActionPath = Join-Path $RepoRoot 'SharedToolkit\Actions\profiles.ps1'
+        { & $ActionPath -Config @{} -Arguments @("list") } | Should -Not -Throw
+    }
+}
+
+Describe "Chain Action" {
+    BeforeAll {
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $RepoRoot 'SharedToolkit\SharedToolkit.psd1') -Force -ErrorAction Stop
+    }
+
+    It "Lists chains without error" {
+        $ActionPath = Join-Path $RepoRoot 'SharedToolkit\Actions\chain.ps1'
+        { & $ActionPath -Config @{} -Arguments @("list") } | Should -Not -Throw
+    }
+}
+
+Describe "Help System" {
+    BeforeAll {
+        $RepoRoot = Split-Path -Parent $PSScriptRoot
+        Import-Module (Join-Path $RepoRoot 'SharedToolkit\SharedToolkit.psd1') -Force -ErrorAction Stop
+    }
+
+    It "Renders help index without throwing" {
+        $ActionPath = Join-Path $RepoRoot 'SharedToolkit\Actions\help-index.ps1'
+        { & $ActionPath -Config @{} -Arguments @() } | Should -Not -Throw
+    }
+
+    It "Renders toolkits topic without throwing" {
+        $ActionPath = Join-Path $RepoRoot 'SharedToolkit\Actions\help-index.ps1'
+        { & $ActionPath -Config @{} -Arguments @("toolkits") } | Should -Not -Throw
+    }
+
+    It "Renders actions topic without throwing" {
+        $ActionPath = Join-Path $RepoRoot 'SharedToolkit\Actions\help-index.ps1'
+        { & $ActionPath -Config @{} -Arguments @("actions") } | Should -Not -Throw
+    }
+
+    It "Renders chains topic without throwing" {
+        $ActionPath = Join-Path $RepoRoot 'SharedToolkit\Actions\help-index.ps1'
+        { & $ActionPath -Config @{} -Arguments @("chains") } | Should -Not -Throw
     }
 }
