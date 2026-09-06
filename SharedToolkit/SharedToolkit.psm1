@@ -1522,5 +1522,75 @@ function $PluginName {
     }
 }
 
+$global:ToolkitPromptEnabled = $false
+$global:ToolkitSystemStats = $null
+$global:ToolkitSystemStatsTime = [datetime]::MinValue
+
+function Get-ToolkitSystemStats {
+    [CmdletBinding()]
+    param()
+    if ($global:ToolkitSystemStats -and ((Get-Date) - $global:ToolkitSystemStatsTime).TotalSeconds -lt 5) {
+        return $global:ToolkitSystemStats
+    }
+    $cpu = [math]::Round((Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average, 0)
+    $os = Get-CimInstance Win32_OperatingSystem
+    $cs = Get-CimInstance Win32_ComputerSystem
+    $ramFree = [math]::Round($os.FreePhysicalMemory / 1MB, 1)
+    $ramTotal = [math]::Round($cs.TotalPhysicalMemory / 1GB, 1)
+    $global:ToolkitSystemStats = [PSCustomObject]@{
+        CPU = $cpu
+        RAMFree = $ramFree
+        RAMTotal = $ramTotal
+    }
+    $global:ToolkitSystemStatsTime = Get-Date
+    return $global:ToolkitSystemStats
+}
+
+function Set-ToolkitPrompt {
+    [CmdletBinding()]
+    param([switch]$Disable)
+    if ($Disable -or $env:TOOLKIT_NO_PROMPT) {
+        $global:prompt = $null
+        $global:ToolkitPromptEnabled = $false
+        if (-not $Disable) { Write-Host "$($C.Info)[Toolkit] Prompt disabled via TOOLKIT_NO_PROMPT.$($C.Reset)" -ForegroundColor DarkGray }
+        return
+    }
+    $global:prompt = {
+        $C = Get-ToolkitColors
+        $ctx = $global:ToolContext
+        $time = Get-Date -Format "HH:mm:ss"
+        $stats = Get-ToolkitSystemStats
+        
+        if ($ctx) {
+            $online = $null
+            if ($global:ToolConfig) {
+                try { $online = Test-Connection -ComputerName $global:ToolConfig.IP -Count 1 -Quiet -ErrorAction SilentlyContinue } catch {}
+            }
+            $onlineStr = switch ($online) {
+                $true { "$($C.Ok)ONLINE$($C.Reset)" }
+                $false { "$($C.Crit)OFFLINE$($C.Reset)" }
+                default { "$($C.Muted)LOCAL$($C.Reset)" }
+            }
+            $ctxStr = "$($C.Host)$ctx$($C.Reset)"
+            $statStr = "$($C.Action)CPU:$($stats.CPU)%$($C.Reset) $($C.Action)RAM:$($stats.RAMFree)/$($stats.RAMTotal)GB$($C.Reset)"
+            $status = "$($C.Sys)▐$($C.Reset) $ctxStr  $statStr  $onlineStr  $($C.Muted)$time$($C.Sys)▌"
+        }
+        else {
+            $statStr = "$($C.Action)CPU:$($stats.CPU)%$($C.Reset) $($C.Action)RAM:$($stats.RAMFree)/$($stats.RAMTotal)GB$($C.Reset)"
+            $status = "$($C.Sys)▐$($C.Reset) $($C.Muted)local$($C.Reset)  $statStr  $($C.Muted)$time$($C.Sys)▌"
+        }
+        
+        $legend = "$($C.Info)F1=help$($C.Reset) $($C.Info)F2=banner$($C.Reset) $($C.Info)F3=theme$($C.Reset) $($C.Info)F4=clear$($C.Reset) $($C.Info)Tab=complete$($C.Reset)"
+        $width = $Host.UI.RawUI.BufferSize.Width
+        if ($width -lt 1) { $width = 120 }
+        $padding = [math]::Max(0, $width - ($status.Length + $legend.Length + 2))
+        $line1 = "$status$(' ' * $padding)$legend"
+        return "$line1`nPS $($executionContext.SessionState.Path.CurrentLocation)$(' ' * 2)"
+    }
+    $global:ToolkitPromptEnabled = $true
+}
+
+if (-not $env:TOOLKIT_NO_PROMPT) { Set-ToolkitPrompt }
+
 New-Alias -Name plugin -Value Invoke-PluginAction -Force -Scope Global
 Export-ModuleMember -Function * -Alias plugin

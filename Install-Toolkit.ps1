@@ -105,11 +105,36 @@ function Write-Err { param([string]$M) Write-Host "  $($C.Crit)[ERR]$($C.Reset) 
 function Write-Cat { param([string]$M) Write-Host "$($C.Category)$M$($C.Reset)" }
 function Write-Info { param([string]$M) Write-Host "$($C.Info)$M$($C.Reset)" }
 
-# Ensure the DEFAULT destination is on PSModulePath so modules are recognized
-# shell-wide. If the user path isn't a literal PSModulePath entry (e.g. when the
-# profile lives on a mapped/junction drive), fall back to the first matching
-# PSModulePath entry. An explicitly-provided -Destination is always honored.
-if (-not $PSBoundParameters.ContainsKey('Destination') -and -not $DryRun) {
+# --- Path/PSModulePath handling -------------------------------------------
+# If the caller supplied a custom -Destination, ensure it's discoverable by
+# PowerShell module resolution. For the default destination we only warn and
+# fall back, because mutating the user's PSModulePath for a built-in default
+# is unnecessary noise. For custom destinations we append explicitly so
+# "run from anywhere" actually works even without a profile reload.
+$userPsModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'User')
+$machinePsModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Machine')
+$allPsModulePathEntries = @($env:PSModulePath -split ';' | Where-Object { $_ })
+if ($PSBoundParameters.ContainsKey('Destination') -and -not $DryRun) {
+    if ($allPsModulePathEntries -notcontains $Destination) {
+        $addToUser = $true
+        if ($userPsModulePath -split ';' | Where-Object { $_ } | Where-Object { $_ -eq $Destination }) {
+            $addToUser = $false
+        }
+        if ($addToUser) {
+            try {
+                $newUserPath = (@($userPsModulePath -split ';' | Where-Object { $_ }) + $Destination) -join ';'
+                [Environment]::SetEnvironmentVariable('PSModulePath', $newUserPath, 'User')
+                $env:PSModulePath = $newUserPath + ';' + $env:PSModulePath
+                Write-OK "Added '$Destination' to user PSModulePath (effective immediately for this session and future sessions)."
+            }
+            catch {
+                Write-Warn "Failed to add '$Destination' to PSModulePath: $_"
+                Write-Warn "You may need to import modules with full paths or add the directory to PSModulePath manually."
+            }
+        }
+    }
+}
+elseif (-not $PSBoundParameters.ContainsKey('Destination') -and -not $DryRun) {
     $psmodEntries = $env:PSModulePath -split ';' | Where-Object { $_ }
     if ($psmodEntries -notcontains $Destination) {
         $alt = $psmodEntries | Where-Object { $_ -like '*\Documents\PowerShell\Modules' } | Select-Object -First 1

@@ -16,6 +16,7 @@
     "shot": ["shot", "screenshot", "capture"],
     "timer": ["timer", "countdown", "stopwatch"],
     "battery": ["battery", "power", "charge"],
+    "banner": ["banner", "legend", "statusbar", "status"],
     "procs": ["procs", "processes", "ps", "tasks"],
     "svc": ["svc", "services", "service"],
     "theme": ["theme", "colors", "palette"],

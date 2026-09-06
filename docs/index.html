@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Script_Manager — Modular PowerShell Automation Suite</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface-2: #334155;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent-2: #818cf8;
+    --accent-3: #34d399;
+    --accent-4: #f472b6;
+    --border: #475569;
+    --shadow: rgba(0,0,0,0.45);
+    --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 800px at 10% -10%, rgba(56,189,248,.18), transparent 60%),
+                radial-gradient(1000px 700px at 110% 10%, rgba(129,140,248,.18), transparent 55%),
+                radial-gradient(900px 600px at 50% 110%, rgba(52,211,153,.12), transparent 55%),
+                var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  header, main, footer { will-change: transform; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* GPU-accelerated animations */
+  @keyframes floatUp {
+    from { opacity: 0; transform: translate3d(0, 30px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+  @keyframes glowPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(56,189,248,.25); }
+    50% { box-shadow: 0 0 0 14px rgba(56,189,248,0); }
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(14px) saturate(140%);
+    background: rgba(15,23,42,.72);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 24px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    animation: floatUp .6s ease-out both;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-icon {
+    width: 38px; height: 38px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2), var(--accent-4));
+    background-size: 200% 200%;
+    animation: gradientShift 6s ease infinite;
+    display: grid; place-items: center;
+    font-weight: 800; color: #0b1020;
+  }
+  .brand h1 { font-size: 18px; margin: 0; letter-spacing: .2px; }
+  .brand p { margin: 0; color: var(--text-muted); font-size: 13px; }
+
+  .search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1 420px;
+    max-width: 720px;
+  }
+  .search-wrap input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #0b1220;
+    color: var(--text);
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .search-wrap input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(56,189,248,.15);
+  }
+
+  main {
+    padding: 22px 24px 60px;
+    max-width: 1320px;
+    margin: 0 auto;
+    display: grid;
+    gap: 20px;
+  }
+
+  .toolkit {
+    background: linear-gradient(180deg, rgba(30,41,59,.8), rgba(30,41,59,.55));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px;
+    backdrop-filter: blur(10px);
+    transform: translate3d(0,0,0);
+    transition: transform .18s ease, box-shadow .18s ease;
+    animation: floatUp .55s ease-out both;
+  }
+  .toolkit:hover {
+    transform: translate3d(0, -3px, 0);
+    box-shadow: 0 18px 40px var(--shadow);
+  }
+  .toolkit-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .toolkit-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: .2px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(148,163,184,.12);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+  .badge .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent-3);
+    box-shadow: 0 0 8px var(--accent-3);
+  }
+  .profiles {
+    color: var(--accent-2);
+    font-weight: 600;
+  }
+
+  .desc {
+    color: var(--text-muted);
+    margin: 6px 0 16px;
+    max-width: 90ch;
+  }
+
+  .section {
+    margin-top: 14px;
+  }
+  .section h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: var(--text-muted);
+    margin: 0 0 10px;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: rgba(148,163,184,.08);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: transform .12s ease, background .18s ease, border-color .18s ease;
+    transform: translate3d(0,0,0);
+  }
+  .chip:hover {
+    background: rgba(148,163,184,.18);
+    border-color: var(--accent);
+    transform: translate3d(0,-2px,0);
+  }
+  .chip .name {
+    font-weight: 600;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .chip .meta {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  details.param-drawer {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(15,23,42,.45);
+    overflow: hidden;
+    margin: 8px 0;
+  }
+  details.param-drawer summary {
+    list-style: none;
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 14px;
+    transition: background .18s ease;
+  }
+  details.param-drawer summary::-webkit-details-marker { display: none; }
+  details.param-drawer[open] summary { border-bottom: 1px solid var(--border); }
+  details.param-drawer summary:hover { background: rgba(148,163,184,.08); }
+  details.param-drawer .inner {
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+  }
+  .param-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 10px;
+    align-items: baseline;
+    font-size: 13px;
+  }
+  .param-row code {
+    color: var(--accent-3);
+    font-family: var(--mono);
+  }
+  .example {
+    background: #0b1220;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #cbd5e1;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .nav-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .nav-card {
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(148,163,184,.08);
+    border: 1px solid var(--border);
+    transition: transform .14s ease, border-color .18s ease;
+    cursor: pointer;
+  }
+  .nav-card:hover { border-color: var(--accent); transform: translate3d(0,-2px,0); }
+  .nav-card h4 { margin: 0 0 4px; color: var(--accent); }
+  .nav-card p { margin: 0; color: var(--text-muted); font-size: 12px; }
+
+  footer {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 20px;
+    font-size: 13px;
+  }
+
+  .hidden { display: none !important; }
+  .no-results { color: var(--text-muted); padding: 18px; text-align: center; }
+  .highlight { outline: 2px solid var(--accent-2); outline-offset: 2px; border-radius: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">SM</div>
+    <div>
+      <h1>Script_Manager</h1>
+      <p>Modular PowerShell Automation Suite</p>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <input id="search" type="text" placeholder="Search toolkits, actions, params, examples…" autocomplete="off" spellcheck="false">
+  </div>
+</header>
+
+<main id="main">
+  <section class="toolkit" data-toolkit="SharedToolkit" id="shared">
+    <div class="toolkit-header">
+      <div class="toolkit-title">🧩 SharedToolkit <span class="badge">v1.0.0</span></div>
+      <div class="badge"><span class="dot"></span>Core</div>
+    </div>
+    <p class="desc">Shared local/UI actions, events, chains, aliases, profiles — usable by all toolkits. Provides the orchestration core.</p>
+
+    <div class="section">
+      <h3>Built-ins</h3>
+      <div class="chips">
+        <a class="chip" href="#shared-help"><span class="name">help</span><span class="meta">help, h, ?, -h</span></a>
+        <a class="chip" href="#shared-config"><span class="name">config</span><span class="meta">config, cfg, settings</span></a>
+        <a class="chip" href="#shared-online"><span class="name">online</span><span class="meta">online, ping, check, health</span></a>
+        <a class="chip" href="#shared-chain"><span class="name">chain</span><span class="meta">chain, chains, workflow</span></a>
+        <a class="chip" href="#shared-dispatch"><span class="name">dispatch</span><span class="meta">dispatch, remote, cross</span></a>
+        <a class="chip" href="#shared-alias"><span class="name">alias</span><span class="meta">alias, aliases</span></a>
+        <a class="chip" href="#shared-schedule"><span class="name">schedule</span><span class="meta">schedule, cron</span></a>
+        <a class="chip" href="#shared-registry"><span class="name">registry</span><span class="meta">registry, reg, list</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Actions</h3>
+      <div class="chips">
+        <a class="chip" href="#shared-beep"><span class="name">beep</span><span class="meta">beep, sound, tone</span></a>
+        <a class="chip" href="#shared-toast"><span class="name">toast</span><span class="meta">toast, notification, notify</span></a>
+        <a class="chip" href="#shared-log"><span class="name">log</span><span class="meta">log, write-log, event</span></a>
+        <a class="chip" href="#shared-speak"><span class="name">speak</span><span class="meta">speak, tts, say, voice</span></a>
+        <a class="chip" href="#shared-clip"><span class="name">clip</span><span class="meta">clip, clipboard, copy</span></a>
+        <a class="chip" href="#shared-open"><span class="name">open</span><span class="meta">open, launch, start</span></a>
+        <a class="chip" href="#shared-now"><span class="name">now</span><span class="meta">now, time, datetime, clock</span></a>
+        <a class="chip" href="#shared-sys"><span class="name">sys</span><span class="meta">sys, system, info, status</span></a>
+        <a class="chip" href="#shared-hash"><span class="name">hash</span><span class="meta">hash, checksum, sha256</span></a>
+        <a class="chip" href="#shared-net"><span class="name">net</span><span class="meta">net, network, ip, ping</span></a>
+        <a class="chip" href="#shared-shot"><span class="name">shot</span><span class="meta">shot, screenshot, capture</span></a>
+        <a class="chip" href="#shared-timer"><span class="name">timer</span><span class="meta">timer, countdown, stopwatch</span></a>
+        <a class="chip" href="#shared-battery"><span class="name">battery</span><span class="meta">battery, power, charge</span></a>
+        <a class="chip" href="#shared-procs"><span class="name">procs</span><span class="meta">procs, processes, ps, tasks</span></a>
+        <a class="chip" href="#shared-svc"><span class="name">svc</span><span class="meta">svc, services, service</span></a>
+        <a class="chip" href="#shared-theme"><span class="name">theme</span><span class="meta">theme, colors, palette</span></a>
+        <a class="chip" href="#shared-events"><span class="name">events</span><span class="meta">events, event-log, history</span></a>
+        <a class="chip" href="#shared-notify"><span class="name">notify</span><span class="meta">notify, alert, warning</span></a>
+        <a class="chip" href="#shared-ask"><span class="name">ask</span><span class="meta">ask, prompt, input</span></a>
+        <a class="chip" href="#shared-alert"><span class="name">alert</span><span class="meta">alert, warn, critical</span></a>
+        <a class="chip" href="#shared-dashboard"><span class="name">dashboard</span><span class="meta">dashboard, status, overview</span></a>
+        <a class="chip" href="#shared-registry"><span class="name">registry</span><span class="meta">registry, reg, toolkit-list</span></a>
+        <a class="chip" href="#shared-backup"><span class="name">backup</span><span class="meta">backup, save, export</span></a>
+        <a class="chip" href="#shared-restore"><span class="name">restore</span><span class="meta">restore, import, recover</span></a>
+        <a class="chip" href="#shared-history"><span class="name">history</span><span class="meta">history, cmd-history, commands</span></a>
+        <a class="chip" href="#shared-search"><span class="name">search</span><span class="meta">search, find, grep, lookup</span></a>
+        <a class="chip" href="#shared-logs"><span class="name">logs</span><span class="meta">logs, log-viewer, tail, events</span></a>
+        <a class="chip" href="#shared-health"><span class="name">health</span><span class="meta">health, health-check, status</span></a>
+        <a class="chip" href="#shared-profiles"><span class="name">profiles</span><span class="meta">profiles, profile-mgr, targets</span></a>
+        <a class="chip" href="#shared-shell"><span class="name">shell</span><span class="meta">shell, repl, interactive</span></a>
+        <a class="chip" href="#shared-chain-list"><span class="name">chain</span><span class="meta">chain, chains, workflow</span></a>
+        <a class="chip" href="#shared-help-index"><span class="name">help-index</span><span class="meta">help-index, help-full, all-help</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Listeners</h3>
+      <div class="chips">
+        <a class="chip" href="#shared-clock"><span class="name">clock</span><span class="meta">clock, time-sync, ntp</span></a>
+        <a class="chip" href="#shared-clipboard"><span class="name">clipboard</span><span class="meta">clipboard, clip-watch, paste-trigger</span></a>
+        <a class="chip" href="#shared-filewatch"><span class="name">filewatch</span><span class="meta">filewatch, fw, dir-watch, folder-monitor</span></a>
+        <a class="chip" href="#shared-popup"><span class="name">popup</span><span class="meta">popup, popup-listener, interactive-listener</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Chains</h3>
+      <div class="chips">
+        <a class="chip" href="#chain-noop"><span class="name">noop</span><span class="meta">1 step</span></a>
+        <a class="chip" href="#chain-wol"><span class="name">wol</span><span class="meta">3 steps</span></a>
+        <a class="chip" href="#chain-restartsvc"><span class="name">restartsvc</span><span class="meta">3 steps</span></a>
+        <a class="chip" href="#chain-cleanup"><span class="name">cleanup</span><span class="meta">3 steps</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Global Switches</h3>
+      <div class="chips">
+        <span class="chip"><span class="name">-Force</span><span class="meta">f</span></span>
+        <span class="chip"><span class="name">-DryRun</span></span>
+        <span class="chip"><span class="name">-ConfirmAnswer</span></span>
+        <span class="chip"><span class="name">-json</span></span>
+        <span class="chip"><span class="name">-csv</span></span>
+        <span class="chip"><span class="name">-raw</span></span>
+        <span class="chip"><span class="name">-table</span></span>
+        <span class="chip"><span class="name">-help</span><span class="meta">h, ?</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolkit" data-toolkit="SSHToolkit" id="ssh">
+    <div class="toolkit-header">
+      <div class="toolkit-title">🖥️ SSHToolkit <span class="badge">v1.0.0</span></div>
+      <div class="badge"><span class="dot"></span>Remote</div>
+    </div>
+    <p class="desc">LAN SSH administration — profiles, remote actions, file transfer, visual interaction.</p>
+
+    <div class="section">
+      <h3>Built-ins</h3>
+      <div class="chips">
+        <a class="chip" href="#ssh-help"><span class="name">help</span><span class="meta">help, h, ?, -h</span></a>
+        <a class="chip" href="#ssh-config"><span class="name">config</span><span class="meta">config, cfg, settings, conf</span></a>
+        <a class="chip" href="#ssh-online"><span class="name">online</span><span class="meta">online, ping, check, health, status</span></a>
+        <a class="chip" href="#ssh-ssh"><span class="name">ssh</span><span class="meta">ssh, shell, terminal, term</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Actions</h3>
+      <div class="chips">
+        <a class="chip" href="#ssh-play"><span class="name">play</span><span class="meta">play, start-video, force-play, video</span></a>
+        <a class="chip" href="#ssh-snap"><span class="name">snap</span><span class="meta">snap, screenshot, screen-capture, ss</span></a>
+        <a class="chip" href="#ssh-apps"><span class="name">apps</span><span class="meta">apps, applications, windows, open-apps</span></a>
+        <a class="chip" href="#ssh-lock"><span class="name">lock</span><span class="meta">lock, lock-screen, winlock</span></a>
+        <a class="chip" href="#ssh-time"><span class="name">time</span><span class="meta">time, sync-time, resync, w32tm</span></a>
+        <a class="chip" href="#ssh-msg"><span class="name">msg</span><span class="meta">msg, message, notify, popup-msg, alert</span></a>
+        <a class="chip" href="#ssh-popup"><span class="name">popup</span><span class="meta">popup, prompt, yesno, confirm, interactive</span></a>
+        <a class="chip" href="#ssh-push"><span class="name">push</span><span class="meta">push, scp-push, upload, send-file</span></a>
+        <a class="chip" href="#ssh-pull"><span class="name">pull</span><span class="meta">pull, scp-pull, download, get-file</span></a>
+        <a class="chip" href="#ssh-run"><span class="name">run</span><span class="meta">run, exec, execute, cmd</span></a>
+        <a class="chip" href="#ssh-shutdown"><span class="name">shutdown</span><span class="meta">shutdown, poweroff, reboot, restart</span></a>
+        <a class="chip" href="#ssh-ports"><span class="name">ports</span><span class="meta">ports, port-scan, scan, netstat</span></a>
+        <a class="chip" href="#ssh-process"><span class="name">process</span><span class="meta">process, proc, ps, tasklist</span></a>
+        <a class="chip" href="#ssh-service"><span class="name">service</span><span class="meta">service, svc, services</span></a>
+        <a class="chip" href="#ssh-disk"><span class="name">disk</span><span class="meta">disk, drives, storage, df</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Listeners</h3>
+      <div class="chips">
+        <a class="chip" href="#ssh-netcheck"><span class="name">netcheck</span><span class="meta">netcheck, nc, ping-watch, heartbeat</span></a>
+        <a class="chip" href="#ssh-procwait"><span class="name">procwait</span><span class="meta">procwait, pw, process-wait, wait-proc</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolkit" data-toolkit="NetToolkit" id="net">
+    <div class="toolkit-header">
+      <div class="toolkit-title">🌐 NetToolkit <span class="badge">v1.0.0</span></div>
+    </div>
+    <p class="desc">Network diagnostics and LAN discovery — ping sweeps, port scans, traceroute, DNS, ARP, WiFi profiles, Wake-on-LAN, gateway info and MAC vendor lookups.</p>
+
+    <div class="section">
+      <h3>Built-ins</h3>
+      <div class="chips">
+        <a class="chip" href="#net-help"><span class="name">help</span><span class="meta">help, h, ?, -h</span></a>
+        <a class="chip" href="#net-config"><span class="name">config</span><span class="meta">config, cfg, settings, conf</span></a>
+        <a class="chip" href="#net-online"><span class="name">online</span><span class="meta">online, ping, check, health, status</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Actions</h3>
+      <div class="chips">
+        <a class="chip" href="#net-wol"><span class="name">wol</span><span class="meta">wol, wake, wakeonlan, magic-packet</span></a>
+        <a class="chip" href="#net-sweep"><span class="name">sweep</span><span class="meta">sweep, ping-sweep, pingsweep, scan, discover</span></a>
+        <a class="chip" href="#net-portscan"><span class="name">portscan</span><span class="meta">portscan, pscan, scan-ports, ports</span></a>
+        <a class="chip" href="#net-traceroute"><span class="name">traceroute</span><span class="meta">traceroute, trace, tracert, hops</span></a>
+        <a class="chip" href="#net-dns"><span class="name">dns</span><span class="meta">dns, dig, resolve, nslookup</span></a>
+        <a class="chip" href="#net-arp"><span class="name">arp</span><span class="meta">arp, arp-table, neighbors, mac-table</span></a>
+        <a class="chip" href="#net-wifi"><span class="name">wifi</span><span class="meta">wifi, wlan, wireless, profiles</span></a>
+        <a class="chip" href="#net-gateway"><span class="name">gateway</span><span class="meta">gateway, gw, default-gateway, route</span></a>
+        <a class="chip" href="#net-connections"><span class="name">connections</span><span class="meta">connections, conn, netstat, sockets, tcp</span></a>
+        <a class="chip" href="#net-publicip"><span class="name">publicip</span><span class="meta">publicip, myip, wanip, external-ip</span></a>
+        <a class="chip" href="#net-macvendor"><span class="name">macvendor</span><span class="meta">macvendor, oui, mac-lookup, vendor</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolkit" data-toolkit="DockerToolkit" id="docker">
+    <div class="toolkit-header">
+      <div class="toolkit-title">🐳 DockerToolkit <span class="badge">v1.0.0</span></div>
+    </div>
+    <p class="desc">Docker container management — containers, images, compose, volumes, networks, logs, exec, prune, and system info.</p>
+
+    <div class="section">
+      <h3>Built-ins</h3>
+      <div class="chips">
+        <a class="chip" href="#docker-help"><span class="name">help</span><span class="meta">help, h, ?, -h</span></a>
+        <a class="chip" href="#docker-config"><span class="name">config</span><span class="meta">config, cfg, settings, conf</span></a>
+        <a class="chip" href="#docker-online"><span class="name">online</span><span class="meta">online, ping, check, health, status</span></a>
+        <a class="chip" href="#docker-context"><span class="name">context</span><span class="meta">context, ctx, docker-context</span></a>
+        <a class="chip" href="#docker-login"><span class="name">login</span><span class="meta">login, registry-login, auth</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Actions</h3>
+      <div class="chips">
+        <a class="chip" href="#docker-ps"><span class="name">ps</span><span class="meta">ps, containers, container-list, list</span></a>
+        <a class="chip" href="#docker-images"><span class="name">images</span><span class="meta">images, image-list, img, image</span></a>
+        <a class="chip" href="#docker-compose"><span class="name">compose</span><span class="meta">compose, compose-up, compose-down, dc, stack</span></a>
+        <a class="chip" href="#docker-volumes"><span class="name">volumes</span><span class="meta">volumes, volume-list, vol, volume</span></a>
+        <a class="chip" href="#docker-networks"><span class="name">networks</span><span class="meta">networks, network-list, net, docker-networks</span></a>
+        <a class="chip" href="#docker-logs"><span class="name">logs</span><span class="meta">logs, container-logs, tail, follow</span></a>
+        <a class="chip" href="#docker-exec"><span class="name">exec</span><span class="meta">exec, execute, run-in, shell</span></a>
+        <a class="chip" href="#docker-prune"><span class="name">prune</span><span class="meta">prune, clean, cleanup, remove-unused</span></a>
+        <a class="chip" href="#docker-stats"><span class="name">stats</span><span class="meta">stats, container-stats, resources, usage</span></a>
+        <a class="chip" href="#docker-inspect"><span class="name">inspect</span><span class="meta">inspect, container-inspect, details</span></a>
+        <a class="chip" href="#docker-build"><span class="name">build</span><span class="meta">build, image-build, docker-build</span></a>
+        <a class="chip" href="#docker-pull"><span class="name">pull</span><span class="meta">pull, image-pull, download</span></a>
+        <a class="chip" href="#docker-push"><span class="name">push</span><span class="meta">push, image-push, upload</span></a>
+        <a class="chip" href="#docker-system"><span class="name">system</span><span class="meta">system, info, df, disk-usage, version</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolkit" data-toolkit="FileToolkit" id="file">
+    <div class="toolkit-header">
+      <div class="toolkit-title">📁 FileToolkit <span class="badge">v1.0.0</span></div>
+    </div>
+    <p class="desc">File operations and search — find by wildcard with size filters, grep file contents by regex, find duplicate files by SHA256, directory tree sizes, and recent file activity.</p>
+
+    <div class="section">
+      <h3>Built-ins</h3>
+      <div class="chips">
+        <a class="chip" href="#file-help"><span class="name">help</span><span class="meta">help, h, ?, -h</span></a>
+        <a class="chip" href="#file-config"><span class="name">config</span><span class="meta">config, cfg, settings, conf</span></a>
+        <a class="chip" href="#file-online"><span class="name">online</span><span class="meta">online, ping, check, health, status</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Actions</h3>
+      <div class="chips">
+        <a class="chip" href="#file-find"><span class="name">find</span><span class="meta">find, search, locate, files</span></a>
+        <a class="chip" href="#file-grep"><span class="name">grep</span><span class="meta">grep, search-content, content-search, rg, ripgrep</span></a>
+        <a class="chip" href="#file-dedupe"><span class="name">dedupe</span><span class="meta">dedupe, duplicates, dups, dedup</span></a>
+        <a class="chip" href="#file-treesize"><span class="name">treesize</span><span class="meta">treesize, tree, dirsize, folder-size, size</span></a>
+        <a class="chip" href="#file-recent"><span class="name">recent</span><span class="meta">recent, latest, new, activity, modified</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolkit" data-toolkit="GitToolkit" id="git">
+    <div class="toolkit-header">
+      <div class="toolkit-title">🔀 GitToolkit <span class="badge">v1.0.0</span></div>
+    </div>
+    <p class="desc">Git repository operations — status, diff, commit, push, pull, branch, merge, tag, log, stash, rebase, and remote management.</p>
+
+    <div class="section">
+      <h3>Built-ins</h3>
+      <div class="chips">
+        <a class="chip" href="#git-help"><span class="name">help</span><span class="meta">help, h, ?, -h</span></a>
+        <a class="chip" href="#git-config"><span class="name">config</span><span class="meta">config, cfg, settings, conf</span></a>
+        <a class="chip" href="#git-online"><span class="name">online</span><span class="meta">online, ping, check, health, status</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Actions</h3>
+      <div class="chips">
+        <a class="chip" href="#git-status"><span class="name">status</span><span class="meta">status, st, state, changes</span></a>
+        <a class="chip" href="#git-diff"><span class="name">diff</span><span class="meta">diff, d, changes, patch</span></a>
+        <a class="chip" href="#git-commit"><span class="name">commit</span><span class="meta">commit, ci, cm, save</span></a>
+        <a class="chip" href="#git-push"><span class="name">push</span><span class="meta">push, psh, publish, upstream</span></a>
+        <a class="chip" href="#git-pull"><span class="name">pull</span><span class="meta">pull, pl, fetch, update</span></a>
+        <a class="chip" href="#git-branch"><span class="name">branch</span><span class="meta">branch, br, branches, checkout, co, switch</span></a>
+        <a class="chip" href="#git-merge"><span class="name">merge</span><span class="meta">merge, mg, integrate</span></a>
+        <a class="chip" href="#git-tag"><span class="name">tag</span><span class="meta">tag, tags, label, release</span></a>
+        <a class="chip" href="#git-log"><span class="name">log</span><span class="meta">log, lg, history, commits</span></a>
+        <a class="chip" href="#git-stash"><span class="name">stash</span><span class="meta">stash, st, save, shelf</span></a>
+        <a class="chip" href="#git-rebase"><span class="name">rebase</span><span class="meta">rebase, rb, rebase-interactive, squash</span></a>
+        <a class="chip" href="#git-remote"><span class="name">remote</span><span class="meta">remote, rmt, remotes, origin, upstream</span></a>
+        <a class="chip" href="#git-init"><span class="name">init</span><span class="meta">init, initialize, create-repo</span></a>
+        <a class="chip" href="#git-clone"><span class="name">clone</span><span class="meta">clone, cl, checkout-repo</span></a>
+        <a class="chip" href="#git-add"><span class="name">add</span><span class="meta">add, stage, index</span></a>
+        <a class="chip" href="#git-reset"><span class="name">reset</span><span class="meta">reset, unstage, uncommit</span></a>
+        <a class="chip" href="#git-restore"><span class="name">restore</span><span class="meta">restore, discard, checkout-files</span></a>
+        <a class="chip" href="#git-clean"><span class="name">clean</span><span class="meta">clean, remove-untracked, prune</span></a>
+        <a class="chip" href="#git-config"><span class="name">config</span><span class="meta">config, cfg, settings, git-config</span></a>
+        <a class="chip" href="#git-blame"><span class="name">blame</span><span class="meta">blame, annotate, who</span></a>
+        <a class="chip" href="#git-show"><span class="name">show</span><span class="meta">show, display, commit-show</span></a>
+        <a class="chip" href="#git-bisect"><span class="name">bisect</span><span class="meta">bisect, binary-search, find-bug</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolkit" data-toolkit="MediaToolkit" id="media">
+    <div class="toolkit-header">
+      <div class="toolkit-title">🎬 MediaToolkit <span class="badge">v1.0.0</span></div>
+    </div>
+    <p class="desc">Local media and display control — audio volume and mute, display resolution, monitor info, wallpaper, and foreground window capture.</p>
+
+    <div class="section">
+      <h3>Built-ins</h3>
+      <div class="chips">
+        <a class="chip" href="#media-help"><span class="name">help</span><span class="meta">help, h, ?, -h</span></a>
+        <a class="chip" href="#media-config"><span class="name">config</span><span class="meta">config, cfg, settings, conf</span></a>
+        <a class="chip" href="#media-online"><span class="name">online</span><span class="meta">online, ping, check, health, status</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Actions</h3>
+      <div class="chips">
+        <a class="chip" href="#media-audio"><span class="name">audio</span><span class="meta">audio, volume, vol, sound, mute</span></a>
+        <a class="chip" href="#media-display"><span class="name">display</span><span class="meta">display, screen, resolution, res, dpi</span></a>
+        <a class="chip" href="#media-monitors"><span class="name">monitors</span><span class="meta">monitors, monitor, screens, displays</span></a>
+        <a class="chip" href="#media-wallpaper"><span class="name">wallpaper</span><span class="meta">wallpaper, background, bg, desktop</span></a>
+        <a class="chip" href="#media-wincap"><span class="name">wincap</span><span class="meta">wincap, window-capture, capture-window, fg-capture</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolkit" data-toolkit="SecToolkit" id="sec">
+    <div class="toolkit-header">
+      <div class="toolkit-title">🛡️ SecToolkit <span class="badge">v1.0.0</span></div>
+    </div>
+    <p class="desc">Local security auditing — firewall status, Windows Defender, local users/groups, UAC level, auto-start programs, SMB shares, and failed-logon brute-force detection.</p>
+
+    <div class="section">
+      <h3>Built-ins</h3>
+      <div class="chips">
+        <a class="chip" href="#sec-help"><span class="name">help</span><span class="meta">help, h, ?, -h</span></a>
+        <a class="chip" href="#sec-config"><span class="name">config</span><span class="meta">config, cfg, settings, conf</span></a>
+        <a class="chip" href="#sec-online"><span class="name">online</span><span class="meta">online, ping, check, health, status</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Actions</h3>
+      <div class="chips">
+        <a class="chip" href="#sec-firewall"><span class="name">firewall</span><span class="meta">firewall, fw, rules, firewall-rules</span></a>
+        <a class="chip" href="#sec-defender"><span class="name">defender</span><span class="meta">defender, wd, windows-defender, antivirus, av</span></a>
+        <a class="chip" href="#sec-accounts"><span class="name">accounts</span><span class="meta">accounts, users, groups, local-users, local-groups</span></a>
+        <a class="chip" href="#sec-uac"><span class="name">uac</span><span class="meta">uac, user-account-control, elevation</span></a>
+        <a class="chip" href="#sec-autoruns"><span class="name">autoruns</span><span class="meta">autoruns, startup, auto-start, boot-items</span></a>
+        <a class="chip" href="#sec-shares"><span class="name">shares</span><span class="meta">shares, smb-shares, shared-folders, smb</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Listeners</h3>
+      <div class="chips">
+        <a class="chip" href="#sec-failwatch"><span class="name">failwatch</span><span class="meta">failwatch, failed-logons, brute-force, logon-monitor</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolkit" data-toolkit="CloudToolkit" id="cloud">
+    <div class="toolkit-header">
+      <div class="toolkit-title">☁️ CloudToolkit <span class="badge">v1.0.0</span></div>
+    </div>
+    <p class="desc">Multi-cloud management (AWS, Azure, GCP) — instances, storage, functions, networks, databases, secrets, costs.</p>
+
+    <div class="section">
+      <h3>Built-ins</h3>
+      <div class="chips">
+        <a class="chip" href="#cloud-help"><span class="name">help</span><span class="meta">help, h, ?, -h</span></a>
+        <a class="chip" href="#cloud-config"><span class="name">config</span><span class="meta">config, cfg, settings, conf</span></a>
+        <a class="chip" href="#cloud-online"><span class="name">online</span><span class="meta">online, ping, check, health, status</span></a>
+        <a class="chip" href="#cloud-auth"><span class="name">auth</span><span class="meta">auth, login, authenticate, signin</span></a>
+        <a class="chip" href="#cloud-regions"><span class="name">regions</span><span class="meta">regions, region, locations, azs, zones</span></a>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Actions</h3>
+      <div class="chips">
+        <a class="chip" href="#cloud-instances"><span class="name">instances</span><span class="meta">instances, inst, ec2, vms, servers, nodes</span></a>
+        <a class="chip" href="#cloud-storage"><span class="name">storage</span><span class="meta">storage, stor, s3, blobs, buckets, objects</span></a>
+        <a class="chip" href="#cloud-fn"><span class="name">fn</span><span class="meta">fn, functions, func, lambda, serverless, faas</span></a>
+        <a class="chip" href="#cloud-vnet"><span class="name">vnet</span><span class="meta">vnet, network, vpc, vpcs, subnets, sg, security-groups, cloudnet</span></a>
+        <a class="chip" href="#cloud-db"><span class="name">db</span><span class="meta">db, database, databases, rds, sql, cloudsql</span></a>
+        <a class="chip" href="#cloud-secrets"><span class="name">secrets</span><span class="meta">secrets, secret, vault, keys, secrets-manager</span></a>
+        <a class="chip" href="#cloud-costs"><span class="name">costs</span><span class="meta">costs, cost, billing, budget, spend</span></a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Script_Manager · Modular PowerShell Automation Suite · Built on SharedToolkit
+</footer>
+
+<script>
+(function(){
+  const main = document.getElementById('main');
+  const search = document.getElementById('search');
+  let currentQuery = '';
+
+  function normalize(text){
+    return (text||'').toLowerCase().replace(/[^a-z0-9]+/g,' ');
+  }
+
+  function match(el, query){
+    if(!query) return true;
+    const q = normalize(query);
+    const text = normalize(el.textContent || '');
+    return text.includes(q);
+  }
+
+  function filter(){
+    const q = search.value.trim();
+    const toolkits = Array.from(main.querySelectorAll('.toolkit'));
+    let anyVisible = false;
+
+    toolkits.forEach(tk=>{
+      const id = tk.id;
+      const title = tk.querySelector('.toolkit-title');
+      const desc = tk.querySelector('.desc');
+      const chips = tk.querySelectorAll('.chip, details.param-drawer, .example, .param-row, .nav-card, .inner');
+      let tkMatch = false;
+      let contentMatch = false;
+
+      if(!q){
+        tkMatch = true; contentMatch = true;
+      } else {
+        tkMatch = match(title, q) || match(desc, q);
+        contentMatch = false;
+        chips.forEach(c=>{
+          if(match(c, q)) contentMatch = true;
+        });
+      }
+
+      const visible = tkMatch || contentMatch;
+      tk.classList.toggle('hidden', !visible);
+      if(visible) anyVisible = true;
+    });
+
+    if(!anyVisible && q){
+      main.insertAdjacentHTML('beforeend', '<div class="no-results" id="no-results">No matches for <b>'+escapeHtml(q)+'</b></div>');
+    } else {
+      const nr = document.getElementById('no-results');
+      if(nr) nr.remove();
+    }
+  }
+
+  function escapeHtml(s){return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));}
+
+  search.addEventListener('input', filter);
+  search.addEventListener('search', filter);
+
+  // Smooth scroll for anchor chips
+  document.addEventListener('click', e=>{
+    const chip = e.target.closest('.chip[href^="#"]');
+    if(!chip) return;
+    e.preventDefault();
+    const target = document.querySelector(chip.getAttribute('href'));
+    if(!target) return;
+    target.scrollIntoView({behavior:'smooth', block:'start'});
+    target.classList.add('highlight');
+    setTimeout(()=>target.classList.remove('highlight'), 1800);
+  });
+
+  // Initial filter in case of hash
+  filter();
+})();
+</script>
+</body>
+</html>
