@@ -13,7 +13,7 @@
         PSData = @{
             Tags = @('toolkit', 'media', 'display', 'audio')
             LicenseUri = ''
-            ProjectUri = ''
+            ProjectUri = 'https://github.com/RobertCreevey/Script_Manager'
             ReleaseNotes = 'Media and display control toolkit'
         }
     }

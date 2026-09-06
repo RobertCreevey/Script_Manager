@@ -13,7 +13,7 @@
         PSData = @{
             Tags = @('toolkit', 'file', 'search', 'filesystem')
             LicenseUri = ''
-            ProjectUri = ''
+            ProjectUri = 'https://github.com/RobertCreevey/Script_Manager'
             ReleaseNotes = 'File operations toolkit'
         }
     }

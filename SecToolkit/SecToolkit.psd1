@@ -13,7 +13,7 @@
         PSData = @{
             Tags = @('toolkit', 'security', 'audit', 'hardening')
             LicenseUri = ''
-            ProjectUri = ''
+            ProjectUri = 'https://github.com/RobertCreevey/Script_Manager'
             ReleaseNotes = 'Security auditing toolkit'
         }
     }

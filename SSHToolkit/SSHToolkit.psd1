@@ -12,7 +12,7 @@
     PrivateData          = @{
         Tags         = @('toolkit', 'ssh', 'remote', 'lan', 'administration')
         LicenseUri   = ''
-        ProjectUri   = ''
+        ProjectUri   = 'https://github.com/RobertCreevey/Script_Manager'
         ReleaseNotes = 'SSH LAN administration toolkit'
     }
 }

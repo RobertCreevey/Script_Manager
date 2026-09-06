@@ -13,7 +13,7 @@
         PSData = @{
             Tags = @('toolkit', 'cloud', 'aws', 'azure', 'gcp')
             LicenseUri = ''
-            ProjectUri = ''
+            ProjectUri = 'https://github.com/RobertCreevey/Script_Manager'
             ReleaseNotes = 'Cloud management toolkit'
         }
     }

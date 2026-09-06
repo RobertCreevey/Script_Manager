@@ -13,7 +13,7 @@
         PSData = @{
             Tags = @('toolkit', 'git', 'version-control', 'devops')
             LicenseUri = ''
-            ProjectUri = ''
+            ProjectUri = 'https://github.com/RobertCreevey/Script_Manager'
             ReleaseNotes = 'Git operations toolkit'
         }
     }

@@ -14,7 +14,7 @@
         PSData = @{
             Tags         = @('toolkit', 'automation', 'shared', 'orchestration')
             LicenseUri   = ''
-            ProjectUri   = ''
+            ProjectUri = 'https://github.com/RobertCreevey/Script_Manager'
             ReleaseNotes = 'Initial release with approved verb naming'
         }
     }

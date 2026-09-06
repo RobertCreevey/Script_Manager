@@ -13,7 +13,7 @@
         PSData = @{
             Tags = @('toolkit', 'network', 'lan', 'diagnostics')
             LicenseUri = ''
-            ProjectUri = ''
+            ProjectUri = 'https://github.com/RobertCreevey/Script_Manager'
             ReleaseNotes = 'Network diagnostics toolkit'
         }
     }

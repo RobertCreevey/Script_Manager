@@ -13,7 +13,7 @@
         PSData = @{
             Tags = @('toolkit', 'docker', 'container', 'kubernetes')
             LicenseUri = ''
-            ProjectUri = ''
+            ProjectUri = 'https://github.com/RobertCreevey/Script_Manager'
             ReleaseNotes = 'Docker container management toolkit'
         }
     }
