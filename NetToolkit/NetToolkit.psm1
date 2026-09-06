@@ -28,6 +28,12 @@ function Invoke-NetToolkitRouter {
     $Config = Get-Content $ProfileFile | ConvertFrom-Json
     $ForwardedArgs = @($ForwardedArgs)
     $global:ToolContext = $ContextName
+# Shared routing state: shared actions/listeners can resolve the toolkit that
+# owns the active context instead of assuming SSHToolkit.
+$global:CurrentToolkitPath = $global:NetToolkitPath
+if ($Action) {
+    $Action = Resolve-ToolkitActionName -Name $Action -ToolkitPath $global:NetToolkitPath
+}
 
     if ($Action -eq 'help' -or $Action -eq '-h' -or $Action -eq '/?' -or -not $Action) {
         $Topic = if ($ForwardedArgs) { $ForwardedArgs -join ' ' } else { $null }
@@ -56,13 +62,13 @@ function Invoke-NetToolkitRouter {
 
     Write-ToolCommand -ContextName $ContextName -Action $Action -Arguments $ForwardedArgs
     $ChildAction = "$global:NetToolkitPath\Actions\$Action.ps1"
-    if (Test-Path $ChildAction) { & $ChildAction -Config $Config -Args $ForwardedArgs ; return }
+    if (Test-Path $ChildAction) { & $ChildAction -Config $Config -Arguments $ForwardedArgs ; return }
 
     $SharedFound = Invoke-SharedAsset -Type "Actions" -AssetName $Action -Config $Config -ForwardedArgs $ForwardedArgs
     if ($SharedFound) { return }
 
     $ChildListener = "$global:NetToolkitPath\Listeners\$Action.ps1"
-    if (Test-Path $ChildListener) { & $ChildListener -Config $Config -Args $ForwardedArgs ; return }
+    if (Test-Path $ChildListener) { & $ChildListener -Config $Config -Arguments $ForwardedArgs ; return }
 
     $SharedListener = Invoke-SharedAsset -Type "Listeners" -AssetName $Action -Config $Config -ForwardedArgs $ForwardedArgs
     if ($SharedListener) { return }

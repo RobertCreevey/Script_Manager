@@ -35,6 +35,12 @@ function Invoke-DockerToolkitRouter {
     $Config = Get-Content $ProfileFile | ConvertFrom-Json
     $ForwardedArgs = @($ForwardedArgs)
     $global:ToolContext = $ContextName
+# Shared routing state: shared actions/listeners can resolve the toolkit that
+# owns the active context instead of assuming SSHToolkit.
+$global:CurrentToolkitPath = $global:DockerToolkitPath
+if ($Action) {
+    $Action = Resolve-ToolkitActionName -Name $Action -ToolkitPath $global:DockerToolkitPath
+}
 
     $DockerHost = if ($Config.Host) { "-H $($Config.Host)" } else { "" }
     $DockerContext = if ($Config.Context -and $Config.Context -ne 'default') { "--context $($Config.Context)" } else { "" }

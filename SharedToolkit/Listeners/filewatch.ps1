@@ -29,7 +29,7 @@ while ($true) {
     foreach ($File in $NewFiles) {
         Write-Host "[filewatch] New file detected: $File" -ForegroundColor Green
         Write-Host "[filewatch] Triggering chain: $ChainName" -ForegroundColor Cyan
-        Invoke-UniversalToolkitRouter -Action "chain" -ForwardedArgs @("run", $ChainName)
+        Invoke-ToolkitContextAction -Action "chain" -ForwardedArgs @("run", $ChainName)
     }
     $KnownFiles = $CurrentFiles
     Start-Sleep -Seconds $Interval

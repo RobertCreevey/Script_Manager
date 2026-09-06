@@ -37,6 +37,12 @@ function Invoke-CloudToolkitRouter {
     $Config = Get-Content $ProfileFile | ConvertFrom-Json
     $ForwardedArgs = @($ForwardedArgs)
     $global:ToolContext = $ContextName
+# Shared routing state: shared actions/listeners can resolve the toolkit that
+# owns the active context instead of assuming SSHToolkit.
+$global:CurrentToolkitPath = $global:CloudToolkitPath
+if ($Action) {
+    $Action = Resolve-ToolkitActionName -Name $Action -ToolkitPath $global:CloudToolkitPath
+}
 
     $Builtins = @('help', 'config', 'online', 'auth', 'regions')
     if ($Action -and $Action -notin $Builtins) {

@@ -23,6 +23,12 @@ function Invoke-MediaToolkitRouter {
     $Config = Get-Content $ProfileFile | ConvertFrom-Json
     $ForwardedArgs = @($ForwardedArgs)
     $global:ToolContext = $ContextName
+# Shared routing state: shared actions/listeners can resolve the toolkit that
+# owns the active context instead of assuming SSHToolkit.
+$global:CurrentToolkitPath = $global:MediaToolkitPath
+if ($Action) {
+    $Action = Resolve-ToolkitActionName -Name $Action -ToolkitPath $global:MediaToolkitPath
+}
 
     if ($Action -eq 'help' -or $Action -eq '-h' -or $Action -eq '/?' -or -not $Action) {
         $Topic = if ($ForwardedArgs) { $ForwardedArgs -join ' ' } else { $null }
@@ -43,7 +49,7 @@ function Invoke-MediaToolkitRouter {
 
     Write-ToolCommand -ContextName $ContextName -Action $Action -Arguments $ForwardedArgs
     $ChildAction = "$global:MediaToolkitPath\Actions\$Action.ps1"
-    if (Test-Path $ChildAction) { & $ChildAction -Config $Config -Args $ForwardedArgs ; return }
+    if (Test-Path $ChildAction) { & $ChildAction -Config $Config -Arguments $ForwardedArgs ; return }
 
     $SharedFound = Invoke-SharedAsset -Type "Actions" -AssetName $Action -Config $Config -ForwardedArgs $ForwardedArgs
     if ($SharedFound) { return }

@@ -1,9 +1,14 @@
+$RepoRoot = Split-Path -Parent $PSScriptRoot
+$SharedManifest = Join-Path $RepoRoot 'SharedToolkit\SharedToolkit.psd1'
+$SshManifest = Join-Path $RepoRoot 'SSHToolkit\SSHToolkit.psd1'
+$DockerManifest = Join-Path $RepoRoot 'DockerToolkit\DockerToolkit.psd1'
+$GitManifest = Join-Path $RepoRoot 'GitToolkit\GitToolkit.psd1'
 #Requires -Module Pester
 $global:WarningPreference = 'SilentlyContinue'  # toolkit cmdlets intentionally use non-approved verbs; suppress the notice across all Pester scopes for this session.
 
 Describe "SharedToolkit Core Functions" {
     BeforeAll {
-        Import-Module "K:\_scripts\SharedToolkit_PowerShell_Module\SharedToolkit\SharedToolkit.psd1" -Force
+        Import-Module $SharedManifest -Force
     }
 
     Describe "Get-ToolkitColors" {
@@ -139,7 +144,7 @@ Describe "SharedToolkit Core Functions" {
 
 Describe "SSHToolkit Actions" {
     BeforeAll {
-        Import-Module "K:\_scripts\SharedToolkit_PowerShell_Module\SSHToolkit\SSHToolkit.psd1" -Force
+        Import-Module $SshManifest -Force
     }
 
     Describe "Request-ToolkitConfirmation (via Assert)" {
@@ -159,7 +164,7 @@ Describe "SSHToolkit Actions" {
 
 Describe "DockerToolkit Actions" {
     BeforeAll {
-        Import-Module "K:\_scripts\SharedToolkit_PowerShell_Module\DockerToolkit\DockerToolkit.psd1" -Force
+        Import-Module $DockerManifest -Force
     }
 
     Describe "Get-ActionArguments integration" {
@@ -172,7 +177,7 @@ Describe "DockerToolkit Actions" {
 
 Describe "GitToolkit Actions" {
     BeforeAll {
-        Import-Module "K:\_scripts\SharedToolkit_PowerShell_Module\GitToolkit\GitToolkit.psd1" -Force
+        Import-Module $GitManifest -Force
     }
 
     Describe "Get-ActionArguments integration" {
@@ -185,7 +190,7 @@ Describe "GitToolkit Actions" {
 
 Describe "Cross-Toolkit Helpers" {
     BeforeAll {
-        Import-Module "K:\_scripts\SharedToolkit_PowerShell_Module\SharedToolkit\SharedToolkit.psd1" -Force
+        Import-Module $SharedManifest -Force
     }
 
     Describe "Use-SharedAsset" {
@@ -205,7 +210,7 @@ Describe "Cross-Toolkit Helpers" {
 
 Describe "Router entrypoints (compat shims)" {
     BeforeAll {
-        Import-Module "K:\_scripts\SharedToolkit_PowerShell_Module\SharedToolkit\SharedToolkit.psd1" -Force -DisableNameChecking
+        Import-Module $SharedManifest -Force -DisableNameChecking
     }
 
     It "Invoke-SharedHelpSystem renders help without throwing" {

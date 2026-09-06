@@ -45,7 +45,7 @@ $Choice = & "$global:SharedToolkitPath\Actions\ask.ps1" -Config $Config -Argumen
 if ($Map -and $Map[$Choice]) {
     $TargetChain = $Map[$Choice]
     $ChainFile = $null
-    @("$global:SSHToolkitPath\Chains", "$global:SharedToolkitPath\Chains") | ForEach-Object {
+    @(Get-ToolkitChainDirs) | ForEach-Object {
         if (Test-Path "$_\$TargetChain.json") { $ChainFile = "$_\$TargetChain.json" }
     }
     if ($ChainFile) {
@@ -55,7 +55,7 @@ if ($Map -and $Map[$Choice]) {
         if (-not $Confirmed) { Write-Host "$($C.Warn)Alert action cancelled by user.$($C.Reset)" -ForegroundColor Yellow; return }
     }
     Write-Host "$($C.Param)→ running chain '$TargetChain'$($C.Reset)"
-    try { Invoke-UniversalToolkitRouter -Action "chain" -ForwardedArgs @("run", $TargetChain, "-Force") } catch {
+    try { Invoke-ToolkitContextAction -Action "chain" -ForwardedArgs @("run", $TargetChain, "-Force") } catch {
         Write-ToolkitError -Message "Alert chain '$TargetChain' failed: $_" -Severity Error -Config $Config
     }
 } else {

@@ -23,7 +23,7 @@ while ($true) {
     $Result = & powershell -NoProfile -Command $CheckCmd
     if (-not $Result) {
         Write-Host "[procwait] Process '$ProcessName' exited. Triggering chain '$ChainName'..." -ForegroundColor Green
-        Invoke-UniversalToolkitRouter -Action "chain" -ForwardedArgs @("run", $ChainName)
+        Invoke-ToolkitContextAction -Action "chain" -ForwardedArgs @("run", $ChainName)
         break
     }
     Start-Sleep -Seconds $Interval

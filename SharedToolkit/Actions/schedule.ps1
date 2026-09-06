@@ -37,11 +37,11 @@ if ($Sub -eq "add") {
     $IntervalMin = if ($ArgsOnly[2] -and $ArgsOnly[2] -match '^\d+$') { [int]$ArgsOnly[2] } else { $null }
     if (-not $Name -or -not $IntervalMin) { Write-Host "$($C.Crit)[ERROR] Usage: schedule add <chain-name> <interval-minutes>$($C.Reset)" ; return }
     $ChainFile = $null
-    foreach ($d in @("$global:SSHToolkitPath\Chains", "$global:SharedToolkitPath\Chains")) { if (Test-Path "$d\$Name.json") { $ChainFile = "$d\$Name.json"; break } }
+    foreach ($d in @(Get-ToolkitChainDirs)) { if (Test-Path "$d\$Name.json") { $ChainFile = "$d\$Name.json"; break } }
     if (-not $ChainFile) { Write-Host "$($C.Crit)[ERROR] Chain '$Name' not found.$($C.Reset)" ; return }
     $TaskName = "$Prefix$Name"
     $LoggedInUser = (Get-CimInstance Win32_ComputerSystem).UserName
-    $ExecCmd = "pwsh -NoProfile -Command `"& { Import-Module SSHToolkit -ErrorAction SilentlyContinue; Invoke-UniversalToolkitRouter -Action 'chain' -ForwardedArgs @('run','$Name','-Force') }`""
+    $ExecCmd = "pwsh -NoProfile -Command `"& { Import-Module SSHToolkit -ErrorAction SilentlyContinue; Invoke-ToolkitContextAction -Action 'chain' -ForwardedArgs @('run','$Name','-Force') }`""
     $Action = New-ScheduledTaskAction -Execute "pwsh" -Argument "-NoProfile -WindowStyle Hidden -Command $ExecCmd"
     $Trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes $IntervalMin) -RepetitionDuration (New-TimeSpan -Days 3650)
     $Principal = New-ScheduledTaskPrincipal -UserId $LoggedInUser -LogonType Interactive

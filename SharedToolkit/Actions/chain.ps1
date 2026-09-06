@@ -1,7 +1,7 @@
 # Type: Action
 # Description: Lists, creates, or runs named chains of steps; each step is an action executed in the current profile context.
 param($Config, [array]$Arguments)
-$ChainDirs = @("$global:SSHToolkitPath\Chains", "$global:SharedToolkitPath\Chains")
+$ChainDirs = @(Get-ToolkitChainDirs)
 $Sub = if ($Arguments[0]) { $Arguments[0] } else { "list" }
 $Name = if ($Arguments[1]) { $Arguments[1] } else { $null }
 $C = Get-ToolkitColors
@@ -95,7 +95,7 @@ if ($Sub -eq "run") {
             if ($Step.Toolkit) {
                 $null = Invoke-CrossToolkitAction -Toolkit $Step.Toolkit -Action $Step.Action -Arguments $Step.Args -Config $Config
             } else {
-                Invoke-UniversalToolkitRouter -Action $Step.Action -ForwardedArgs $Step.Args
+                Invoke-ToolkitContextAction -Action $Step.Action -ForwardedArgs $Step.Args
             }
         } catch {
             Write-ToolkitError -Message "Chain step '$ToolkitLabel$($Step.Action)' failed: $_" -Severity Error -Config $Config

@@ -20,7 +20,7 @@ if ($Sub -eq "run" -and $ArgsOnly[1] -and $ArgsOnly[1] -match '^\d+$') {
         $Ctx = $Matches[1]; $Action = $Matches[2]; $ArgsStr = $Matches[3]
         Write-Host "$($C.Info)Replaying #$TargetIdx : $($C.Action)$Action$($C.Reset) $($C.Str)$ArgsStr$($C.Reset)" -ForegroundColor Cyan
         $ArgsArr = @($ArgsStr -split ' ')
-        try { Invoke-UniversalToolkitRouter -Action $Action -ForwardedArgs $ArgsArr } catch {
+        try { Invoke-ToolkitContextAction -ContextName $Ctx -Action $Action -ForwardedArgs $ArgsArr } catch {
             Write-Host "$($C.Crit)[ERROR] Replay failed: $_$($C.Reset)"
         }
     }

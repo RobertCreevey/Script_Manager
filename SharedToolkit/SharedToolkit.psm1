@@ -762,7 +762,7 @@ function Send-ToolkitNotification {
         $ChainMap = ($Actions.GetEnumerator() | ForEach-Object { "$($_.Key):$($_.Value)" }) -join ";"
         $Choice = Read-ToolkitPrompt -Message $Message -Title $Title -Buttons $Buttons -Default $Buttons[0] -Answer $env:TOOLKIT_PROMPT_DEFAULT
         if ($Actions[$Choice]) {
-            try { Invoke-UniversalToolkitRouter -Action "chain" -ForwardedArgs @("run", $Actions[$Choice]) } catch {
+            try { Invoke-ToolkitContextAction -Action "chain" -ForwardedArgs @("run", $Actions[$Choice]) } catch {
                 Write-ToolkitError -Message "Interactive chain '$($Actions[$Choice])' failed: $_" -Config $Config
             }
         }
@@ -888,6 +888,16 @@ function Write-ToolCommand {
 }
 
 function Invoke-CrossToolkitAction {
+    <#
+    .SYNOPSIS
+        Executes an action belonging to another installed toolkit.
+
+    .DESCRIPTION
+        Resolves the target toolkit through PowerShell's module discovery
+        instead of assuming a particular Documents\PowerShell\Modules path.
+        The target action is invoked using the common Config/Arguments
+        contract used by toolkit actions.
+    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)][string]$Toolkit,
@@ -895,17 +905,36 @@ function Invoke-CrossToolkitAction {
         [array]$Arguments = @(),
         $Config = $null
     )
-    $ModulesPath = "$env:USERPROFILE\Documents\PowerShell\Modules"
-    $ToolkitFolder = "$ModulesPath\$Toolkit"
-    $RouterFile = "$ToolkitFolder\$Toolkit.psm1"
-    if (-not (Test-Path $RouterFile)) { Write-Host "No module named '$Toolkit' at $RouterFile" -ForegroundColor Red ; return $false }
-    $ActionFile = "$ToolkitFolder\Actions\$Action.ps1"
-    if (-not (Test-Path $ActionFile)) { Write-Host "Toolkit '$Toolkit' has no action '$Action'" -ForegroundColor Red ; return $false }
-    if (-not (Get-Command $Toolkit -ErrorAction SilentlyContinue)) {
-        . $RouterFile
+
+    $ToolkitPath = Get-ToolkitInstallPath -ToolkitName $Toolkit
+    if (-not $ToolkitPath) {
+        Write-Host "No installed toolkit named '$Toolkit' was found on PSModulePath." -ForegroundColor Red
+        return $false
     }
-    & $ActionFile -Config $Config -Arguments $Arguments
-    $true
+
+    $Action = Resolve-ToolkitActionName -Name $Action -ToolkitPath $ToolkitPath
+    $ActionFile = Join-Path $ToolkitPath "Actions\$Action.ps1"
+
+    if (-not (Test-Path -LiteralPath $ActionFile -PathType Leaf)) {
+        Write-Host "Toolkit '$Toolkit' has no action '$Action'." -ForegroundColor Red
+        return $false
+    }
+
+    try {
+        # Import the target module so any shared dependencies and exported
+        # router/helper functions are available. The action itself is invoked
+        # directly because this is an explicit cross-toolkit action call.
+        if (-not (Get-Module -Name $Toolkit)) {
+            Import-Module $Toolkit -ErrorAction Stop
+        }
+
+        & $ActionFile -Config $Config -Arguments $Arguments
+        return $true
+    }
+    catch {
+        Write-ToolkitError -Message "Cross-toolkit action '$Toolkit::$Action' failed: $_" -Config $Config
+        return $false
+    }
 }
 
 function Get-ToolkitInstallPath {
@@ -1006,7 +1035,7 @@ function Initialize-ToolkitCompletion {
 
     Register-ArgumentCompleter -CommandName "chain" -ParameterName Name -ScriptBlock {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-        $ChainDirs = @("$global:SSHToolkitPath\Chains", "$global:SharedToolkitPath\Chains")
+        $ChainDirs = @(Get-ToolkitChainDirs)
         foreach ($d in $ChainDirs) {
             if (Test-Path $d) {
                 Get-ChildItem "$d\*.json" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }

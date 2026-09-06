@@ -76,10 +76,10 @@ Write-Host "[popup] Response: $Result" -ForegroundColor (if ($Result -eq 'Yes') 
 # Execute follow-up action if provided
 if ($Result -eq 'Yes' -and $YesAction) {
     Write-Host "[popup] Executing Yes action: $YesAction" -ForegroundColor Cyan
-    Invoke-UniversalToolkitRouter -Action $YesAction -ForwardedArgs @()
+    Invoke-ToolkitContextAction -Action $YesAction -ForwardedArgs @()
 } elseif ($Result -eq 'No' -and $NoAction) {
     Write-Host "[popup] Executing No action: $NoAction" -ForegroundColor Cyan
-    Invoke-UniversalToolkitRouter -Action $NoAction -ForwardedArgs @()
+    Invoke-ToolkitContextAction -Action $NoAction -ForwardedArgs @()
 }
 
 [PSCustomObject]@{ Action='popup'; Question=$Question; Response=$Result; Status='Completed' } | Format-ToolOutput -Format $Format

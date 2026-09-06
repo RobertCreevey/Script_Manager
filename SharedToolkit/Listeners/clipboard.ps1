@@ -25,7 +25,7 @@ while ($true) {
             if ($Content -match $Pattern) {
                 Write-Host "[clipboard] Match detected: $($Matches[0])" -ForegroundColor Green
                 Write-Host "[clipboard] Triggering chain: $ChainName" -ForegroundColor Cyan
-                Invoke-UniversalToolkitRouter -Action "chain" -ForwardedArgs @("run", $ChainName)
+                Invoke-ToolkitContextAction -Action "chain" -ForwardedArgs @("run", $ChainName)
                 $LastContent = $Content
             }
         }

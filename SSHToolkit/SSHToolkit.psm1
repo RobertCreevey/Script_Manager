@@ -31,6 +31,12 @@ function Invoke-UniversalToolkitRouter {
     $Config = Get-Content $ProfileFile | ConvertFrom-Json
     $ForwardedArgs = @($ForwardedArgs)
     $global:ToolContext = $ContextName
+# Shared routing state: shared actions/listeners can resolve the toolkit that
+# owns the active context instead of assuming SSHToolkit.
+$global:CurrentToolkitPath = $global:SSHToolkitPath
+if ($Action) {
+    $Action = Resolve-ToolkitActionName -Name $Action -ToolkitPath $global:SSHToolkitPath
+}
 
     $Builtins = @('help', 'config', 'online', 'ssh')
     if ($Action -and $Action -notin $Builtins) {

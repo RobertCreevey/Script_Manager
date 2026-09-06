@@ -35,6 +35,12 @@ function Invoke-GitToolkitRouter {
     $Config = Get-Content $ProfileFile | ConvertFrom-Json
     $ForwardedArgs = @($ForwardedArgs)
     $global:ToolContext = $ContextName
+# Shared routing state: shared actions/listeners can resolve the toolkit that
+# owns the active context instead of assuming SSHToolkit.
+$global:CurrentToolkitPath = $global:GitToolkitPath
+if ($Action) {
+    $Action = Resolve-ToolkitActionName -Name $Action -ToolkitPath $global:GitToolkitPath
+}
 
     $Builtins = @('help', 'config', 'online', 'init', 'clone')
     if ($Action -and $Action -notin $Builtins) {
