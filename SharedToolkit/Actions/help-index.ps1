@@ -19,25 +19,25 @@ function Load-ToolkitManifest {
 }
 
 function Get-AllToolkits {
-    $ModulesPath = "$env:USERPROFILE\Documents\PowerShell\Modules"
-    $Toolkits = @()
-    if (Test-Path $ModulesPath) {
-        Get-ChildItem $ModulesPath -Directory | Where-Object { Test-Path "$($_.FullName)\$($_.Name).psm1" } | ForEach-Object {
-            $Manifest = Load-ToolkitManifest $_.FullName
-            $ActionNames = if ($Manifest.actions) { $Manifest.actions.PSObject.Properties.Name } else { @() }
-            $ListenerNames = if ($Manifest.listeners) { $Manifest.listeners.PSObject.Properties.Name } else { @() }
-            $BuiltinNames = if ($Manifest.builtins) { $Manifest.builtins.PSObject.Properties.Name } else { @() }
-            $Toolkits += [PSCustomObject]@{
-                Name = $_.Name
-                Path = $_.FullName
-                Manifest = $Manifest
-                Actions = $ActionNames
-                Listeners = $ListenerNames
-                Builtins = $BuiltinNames
-            }
+    $Toolkits = @(Get-Module -ListAvailable -ErrorAction SilentlyContinue | Where-Object { $_.Name -like '*Toolkit' } | Select-Object -Unique -ExpandProperty Name | Sort-Object)
+    $All = @()
+    foreach ($Tk in $Toolkits) {
+        $Path = Get-ToolkitInstallPath -ToolkitName $Tk
+        if (-not $Path) { continue }
+        $Manifest = Load-ToolkitManifest $Path
+        $ActionNames = if ($Manifest.actions) { $Manifest.actions.PSObject.Properties.Name } else { @() }
+        $ListenerNames = if ($Manifest.listeners) { $Manifest.listeners.PSObject.Properties.Name } else { @() }
+        $BuiltinNames = if ($Manifest.builtins) { $Manifest.builtins.PSObject.Properties.Name } else { @() }
+        $All += [PSCustomObject]@{
+            Name = $Tk
+            Path = $Path
+            Manifest = $Manifest
+            Actions = $ActionNames
+            Listeners = $ListenerNames
+            Builtins = $BuiltinNames
         }
     }
-    return $Toolkits
+    return $All
 }
 
 switch ($Topic) {

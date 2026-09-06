@@ -4,6 +4,7 @@ param($Config, [array]$Arguments)
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $C = Get-ToolkitColors
 $Sub = if ($ArgsOnly[0]) { $ArgsOnly[0].ToLower() } else { "backup" }
+$ModulesPath = $null
 $BackupDir = "$env:USERPROFILE\Documents\SSHToolkit_Backups"
 
 if ($Sub -eq "restore") {
@@ -30,8 +31,9 @@ if ($Sub -eq "restore") {
     $Restored = 0
     foreach ($ToolkitBundle in $Bundle.Toolkits.PSObject.Properties) {
         $ToolkitName = $ToolkitBundle.Name
-        $ModulesPath = "$env:USERPROFILE\Documents\PowerShell\Modules"
-        $DestBase = "$ModulesPath\$ToolkitName"
+        $ToolkitPath = Get-ToolkitInstallPath -ToolkitName $ToolkitName
+        if (-not $ToolkitPath) { continue }
+        $DestBase = $ToolkitPath
         if (-not (Test-Path $DestBase)) { New-Item -ItemType Directory -Path $DestBase -Force | Out-Null }
         foreach ($Prof in $ToolkitBundle.Value.Profiles.PSObject.Properties) {
             $Prof | ConvertTo-Json -Depth 5 | ConvertFrom-Json | ConvertTo-Json -Depth 5 | Out-File "$DestBase\Profiles\$($Prof.Name).json" -Force
@@ -59,8 +61,10 @@ if ($Sub -eq "list") {
 }
 
 if (-not (Test-Path $BackupDir)) { New-Item -ItemType Directory -Path $BackupDir -Force | Out-Null }
-$ModulesPath = "$env:USERPROFILE\Documents\PowerShell\Modules"
-$ToolkitFolders = Get-ChildItem -Path $ModulesPath -Directory | Where-Object { $_.Name -ne "SharedToolkit" -and (Test-Path "$($_.FullName)\$($_.Name).psm1") }
+$ToolkitFolders = foreach ($Tk in @(Get-Module -ListAvailable -ErrorAction SilentlyContinue | Where-Object { $_.Name -like '*Toolkit' } | Select-Object -Unique -ExpandProperty Name | Sort-Object)) {
+    $Path = Get-ToolkitInstallPath -ToolkitName $Tk
+    if ($Path -and (Test-Path "$Path\$Tk.psm1")) { [PSCustomObject]@{ Name = $Tk; FullName = $Path } }
+}
 $Bundle = [ordered]@{ Created = Get-Date -Format "yyyy-MM-dd HH:mm:ss"; Toolkits = [ordered]@{} }
 foreach ($Folder in $ToolkitFolders) {
     $TName = $Folder.Name

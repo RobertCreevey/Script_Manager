@@ -5,10 +5,11 @@ $C = Get-ToolkitColors
 $ArgsOnly = @($Arguments | Where-Object { $_ -notin @("-Force", "-f") })
 $TargetName = if ($ArgsOnly[0]) { $ArgsOnly[0] } else { $null }
 
-$ModulesPath = "$env:USERPROFILE\Documents\PowerShell\Modules"
-if (-not (Test-Path $ModulesPath)) { Write-Host "$($C.Crit)[ERROR] Modules path not found: $ModulesPath$($C.Reset)" ; return }
-
-$ToolkitFolders = Get-ChildItem -Path $ModulesPath -Directory | Where-Object { $_.Name -ne "SharedToolkit" -and (Test-Path "$($_.FullName)\$($_.Name).psm1") }
+$Toolkits = @(Get-Module -ListAvailable -ErrorAction SilentlyContinue | Where-Object { $_.Name -like '*Toolkit' } | Select-Object -Unique -ExpandProperty Name | Sort-Object)
+$ToolkitFolders = foreach ($Tk in $Toolkits) {
+    $Path = Get-ToolkitInstallPath -ToolkitName $Tk
+    if ($Path -and (Test-Path "$Path\$Tk.psm1")) { [PSCustomObject]@{ Name = $Tk; FullName = $Path } }
+}
 
 function Get-ToolkitInfo {
     param([string]$FolderPath, [string]$Name)

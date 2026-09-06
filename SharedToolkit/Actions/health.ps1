@@ -26,17 +26,19 @@ $Disk | ForEach-Object {
 }
 
 # Toolkit Health
-$Toolkits = @("SSHToolkit", "NetToolkit", "MediaToolkit", "SecToolkit", "FileToolkit", "SharedToolkit")
+$Toolkits = @(Get-Module -ListAvailable -ErrorAction SilentlyContinue | Where-Object { $_.Name -like '*Toolkit' } | Select-Object -Unique -ExpandProperty Name | Sort-Object)
 foreach ($Toolkit in $Toolkits) {
-    $ModulePath = "$env:USERPROFILE\Documents\PowerShell\Modules\$Toolkit\$Toolkit.psm1"
+    $ToolkitPath = Get-ToolkitInstallPath -ToolkitName $Toolkit
+    if (-not $ToolkitPath) { continue }
+    $ModulePath = Join-Path $ToolkitPath "$Toolkit.psm1"
     if (Test-Path $ModulePath) {
         $Results += [PSCustomObject]@{ Component = $Toolkit; Check = 'Module'; Value = 'Installed'; Status = 'OK' }
-        $ActionsPath = "$env:USERPROFILE\Documents\PowerShell\Modules\$Toolkit\Actions"
+        $ActionsPath = Join-Path $ToolkitPath 'Actions'
         if (Test-Path $ActionsPath) {
             $ActionCount = (Get-ChildItem "$ActionsPath\*.ps1" -ErrorAction SilentlyContinue).Count
             $Results += [PSCustomObject]@{ Component = $Toolkit; Check = 'Actions'; Value = "$ActionCount actions"; Status = 'OK' }
         }
-        $ProfilesPath = "$env:USERPROFILE\Documents\PowerShell\Modules\$Toolkit\Profiles"
+        $ProfilesPath = Join-Path $ToolkitPath 'Profiles'
         if (Test-Path $ProfilesPath) {
             $ProfileCount = (Get-ChildItem "$ProfilesPath\*.json" -ErrorAction SilentlyContinue).Count
             $Results += [PSCustomObject]@{ Component = $Toolkit; Check = 'Profiles'; Value = "$ProfileCount profiles"; Status = 'OK' }
