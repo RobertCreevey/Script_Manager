@@ -12,7 +12,7 @@
     PrivateData = @{
         PSData = @{
             Tags = @('toolkit', 'network', 'lan', 'diagnostics')
-            LicenseUri = ''
+            LicenseUri = 'https://github.com/RobertCreevey/Script_Manager/blob/master/LICENSE'
             ProjectUri = 'https://github.com/RobertCreevey/Script_Manager'
             ReleaseNotes = 'Network diagnostics toolkit'
         }

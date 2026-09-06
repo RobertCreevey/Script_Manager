@@ -12,7 +12,7 @@
     PrivateData = @{
         PSData = @{
             Tags = @('toolkit', 'file', 'search', 'filesystem')
-            LicenseUri = ''
+            LicenseUri = 'https://github.com/RobertCreevey/Script_Manager/blob/master/LICENSE'
             ProjectUri = 'https://github.com/RobertCreevey/Script_Manager'
             ReleaseNotes = 'File operations toolkit'
         }

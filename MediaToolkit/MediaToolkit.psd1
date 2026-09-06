@@ -12,7 +12,7 @@
     PrivateData = @{
         PSData = @{
             Tags = @('toolkit', 'media', 'display', 'audio')
-            LicenseUri = ''
+            LicenseUri = 'https://github.com/RobertCreevey/Script_Manager/blob/master/LICENSE'
             ProjectUri = 'https://github.com/RobertCreevey/Script_Manager'
             ReleaseNotes = 'Media and display control toolkit'
         }

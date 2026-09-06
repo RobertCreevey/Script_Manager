@@ -12,7 +12,7 @@
     PrivateData = @{
         PSData = @{
             Tags = @('toolkit', 'git', 'version-control', 'devops')
-            LicenseUri = ''
+            LicenseUri = 'https://github.com/RobertCreevey/Script_Manager/blob/master/LICENSE'
             ProjectUri = 'https://github.com/RobertCreevey/Script_Manager'
             ReleaseNotes = 'Git operations toolkit'
         }

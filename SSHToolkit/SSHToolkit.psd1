@@ -11,7 +11,7 @@
     AliasesToExport = '*'
     PrivateData          = @{
         Tags         = @('toolkit', 'ssh', 'remote', 'lan', 'administration')
-        LicenseUri   = ''
+        LicenseUri   = 'https://github.com/RobertCreevey/Script_Manager/blob/master/LICENSE'
         ProjectUri   = 'https://github.com/RobertCreevey/Script_Manager'
         ReleaseNotes = 'SSH LAN administration toolkit'
     }
