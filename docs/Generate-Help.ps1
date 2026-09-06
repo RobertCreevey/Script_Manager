@@ -3,17 +3,15 @@
     Bootstrap script for PlatyPS-based native help generation.
 
 .DESCRIPTION
-    This is the starting point for wiring `Get-Help <action>` (MAML) into the
-    toolkit, using PlatyPS (Microsoft.PowerShell.PlatyPS).
+    Generates PlatyPS markdown help sources from each toolkit's toolkit.json.
+    By default it previews what would be generated. Use -Generate to write
+    docs/help/<Toolkit>/*.md for one or all toolkits.
 
-    Source-of-truth for help content today is `toolkit.json` (canonical name +
-    aliases, parameters, switches, builtins, listeners) plus plugin headers
-    (`# Type: / # Description:`). This script shows how to derive PlatyPS help
-    objects from that data so `Get-Help <Toolkit> <action>` works natively.
-
-    NOTE: Full generation for all 9 toolkits + plugins is staged (see TODOs
-    below). This script is safe to run: it imports PlatyPS if available and
-    emits the planned help objects without writing files unless -Generate.
+    Source-of-truth for help content is toolkit.json (canonical name + aliases,
+    parameters, switches, builtins, listeners) plus plugin headers
+    (`# Type: / # Description:`). This script derives PlatyPS help objects from
+    that data so `Get-Help <Toolkit> <action>` can work natively after MAML
+    compilation with New-ExternalHelp.
 
 .PARAMETER Toolkit
     Toolkit manifest module name, e.g. SSHToolkit. (default: SSHToolkit)
@@ -21,36 +19,30 @@
 .PARAMETER Generate
     Actually emit/rewrite .md source files in docs/help/<Toolkit>/.
 
+.PARAMETER All
+    Generate help for all installed toolkits. Implies -Generate.
+
 .EXAMPLE
     .\docs\Generate-Help.ps1
-    Probe + preview one help object for SSHToolkit::snap.
+    Preview help objects for all actions in SSHToolkit.
 
 .EXAMPLE
     .\docs\Generate-Help.ps1 -Toolkit DockerToolkit -Generate
     Write DockerToolkit help markdown sources to docs/help/DockerToolkit/.
-#>
 
-# TODO: Run this for every toolkit; commit generated docs/help/<Toolkit>/*.md
-#       to source. Then: New-ExternalHelp -Path docs/help/<Toolkit> -OutputPath
-#       <ModuleRoot>\en-US\ -Force; bump manifest HelpInfoURI.
-# TODO: Also scaffold `about_Toolkit` conceptual help per module.
-# TODO: Derive help for user plugins from ~/.toolkit/plugins/* headers.
-# TODO: Add a `toolkit help update` action that re-runs this for changed
-#       toolkits, so help stays in sync with toolkit.json.
+.EXAMPLE
+    .\docs\Generate-Help.ps1 -All -Generate
+    Write help markdown sources for every installed toolkit.
+#>
 
 [CmdletBinding()]
 param(
     [string]$Toolkit = 'SSHToolkit',
-    [switch]$Generate
+    [switch]$Generate,
+    [switch]$All
 )
 
 $ModuleRoot = (Get-Item $PSScriptRoot).Parent.FullName   # repo root (...\SharedToolkit_PowerShell_Module)
-$Source = Join-Path $ModuleRoot $Toolkit
-$Manifest = Join-Path $Source "$Toolkit.psd1"
-$ToolkitJson = Join-Path $Source 'toolkit.json'
-
-if (-not (Test-Path $Manifest)) { Write-Error "Toolkit '$Toolkit' not found at $Source"; return }
-if (-not (Test-Path $ToolkitJson)) { Write-Error "toolkit.json not found for $Toolkit"; return }
 
 # --- Load PlatyPS --------------------------------------------------------
 $HasPlatyPS = $false
@@ -60,54 +52,121 @@ if (-not $HasPlatyPS) {
     Write-Host "  Install-Module -Name PlatyPS -Scope CurrentUser -Force"
 }
 
-# --- Load the toolkit manifest data --------------------------------------
-$tk = Get-Content $ToolkitJson -Raw | ConvertFrom-Json
+# --- Discover toolkits ---------------------------------------------------
+$AllToolkits = Get-ChildItem $ModuleRoot -Directory | Where-Object { $_.Name -like '*Toolkit' } | Select-Object -ExpandProperty Name
+if ($All) {
+    $Toolkits = $AllToolkits
+} else {
+    if ($AllToolkits -notcontains $Toolkit) { Write-Error "Toolkit '$Toolkit' not found at $ModuleRoot"; return }
+    $Toolkits = @($Toolkit)
+}
 
-# --- Build help objects for a sample action: snap ------------------------
-$Action = 'snap'
-$aliasList = $tk.actions.$Action          # [canonical, alias1, ...]
-$params = $tk.parameters.$Action.PSObject.Properties.Name
-$paramAliases = foreach ($p in $params) { $tk.parameters.$Action.$p }
+# --- Helpers -------------------------------------------------------------
+function New-ActionHelpMarkdown {
+    param(
+        [string]$Toolkit,
+        [string]$Action,
+        [array]$AliasList,
+        [hashtable]$Parameters,
+        $ToolkitData
+    )
+    $Canonical = $AliasList[0]
+    $Aliases = ($AliasList | Where-Object { $_ -ne $Canonical }) -join ', '
 
-$Synopsis = "$($aliasList[0]) — capture a remote screenshot and pull it locally."
-$Description = "Runs the $($aliasList[0]) action: takes a silent screenshot on the target, copies it via SCP, then cleans up. Aliases: $($aliasList -join ', ')."
-
-Write-Host "($Toolkit) Help object preview for action '$Action':" -ForegroundColor Cyan
-Write-Host "  Synopsis    : $Synopsis"
-Write-Host "  Description : $Description"
-Write-Host "  Parameters  : $($params -join ', ')"
-
-if ($HasPlatyPS -and $Generate) {
-    $OutDir = Join-Path $ModuleRoot "docs\help\$Toolkit"
-    if (-not (Test-Path $OutDir)) { New-Item -ItemType Directory -Path $OutDir -Force | Out-Null }
-
-    # Conceptual help is written as markdown, then New-ExternalHelp turns it
-    # into MAML. Each action becomes a Function help file.
     $md = @()
-    $md += "# $($aliasList[0])"
+    $md += "# $Canonical"
     $md += ""
     $md += "## SYNOPSIS"
-    $md += $Synopsis
+    $md += "$Canonical — $($ToolkitData.description) (action: $Action)"
+    $md += ""
     $md += "## DESCRIPTION"
-    $md += $Description
-    if ($params) {
+    if ($Aliases) {
+        $md += "Canonical action: $Canonical. Aliases: $Aliases."
+    } else {
+        $md += "Canonical action: $Canonical."
+    }
+    $md += ""
+    $md += "## SYNTAX"
+    $md += '```'
+    $md += "profile $Canonical [args...]"
+    if ($Aliases) { $md += "profile $($Aliases.Split(',')[0].Trim()) [args...]" }
+    $md += '```'
+    $md += ""
+
+    if ($Parameters.Count -gt 0) {
         $md += "## PARAMETERS"
-        foreach ($p in $params) {
+        foreach ($p in $Parameters.Keys) {
             $md += "### $p"
-            $md += "Alias list: $($($tk.parameters.$Action.$p) -join ', ')"
+            $pAliases = @($Parameters[$p]) -ne $p
+            if ($pAliases) { $md += "Aliases: $($pAliases -join ', ')" }
+            $md += ""
         }
     }
+
     $md += "## EXAMPLES"
     $md += '```'
-    $md += "<profile> $($aliasList[0]) screenshot.png"
+    $md += "profile $Canonical"
     $md += '```'
-    Set-Content (Join-Path $OutDir "$Action.md") ($md -join "`n")
-    Write-Host "  Wrote $OutDir\$Action.md" -ForegroundColor Green
-
-    # Generate MAML for THIS toolkit module (en-US) so Get-Help resolves.
-    # NOTE: call New-ExternalHelp for each toolkit directory once all .md exist:
-    #   New-ExternalHelp -Path "$ModuleRoot\docs\help\$Toolkit" -OutputPath "$Source\en-US\" -Force
+    return ($md -join "`n")
 }
-elseif (-not $HasPlatyPS) {
-    Write-Host "  (PlatyPS missing) Would write docs/help/$Toolkit/$Action.md" -ForegroundColor Yellow
+
+# --- Generate ------------------------------------------------------------
+foreach ($tk in $Toolkits) {
+    $Source = Join-Path $ModuleRoot $tk
+    $ToolkitJson = Join-Path $Source 'toolkit.json'
+    if (-not (Test-Path $ToolkitJson)) { Write-Warning "$tk : toolkit.json missing"; continue }
+
+    $tkData = Get-Content $ToolkitJson -Raw | ConvertFrom-Json
+
+    $Actions = @{}
+    if ($tkData.actions) {
+        $tkData.actions.PSObject.Properties | ForEach-Object {
+            $Actions[$_.Name] = @($_.Value)
+        }
+    }
+    if ($tkData.builtins) {
+        $tkData.builtins.PSObject.Properties | ForEach-Object {
+            $Actions[$_.Name] = @($_.Value)
+        }
+    }
+
+    if ($Actions.Count -eq 0) { Write-Host "$tk : no actions"; continue }
+
+    Write-Host "`n($tk) Generating help for $($Actions.Count) actions..." -ForegroundColor Cyan
+
+    if ($Generate) {
+        $OutDir = Join-Path $ModuleRoot "docs\help\$tk"
+        if (-not (Test-Path $OutDir)) { New-Item -ItemType Directory -Path $OutDir -Force | Out-Null }
+    }
+
+    foreach ($Action in $Actions.Keys | Sort-Object) {
+        $AliasList = $Actions[$Action]
+        $paramNames = @()
+        if ($tkData.parameters -and $tkData.parameters.$Action) {
+            $paramNames = @($tkData.parameters.$Action.PSObject.Properties.Name)
+        }
+        $paramMap = @{}
+        foreach ($p in $paramNames) {
+            $paramMap[$p] = @($tkData.parameters.$Action.$p)
+        }
+
+        $md = New-ActionHelpMarkdown -Toolkit $tk -Action $Action -AliasList $AliasList -Parameters $paramMap -ToolkitData $tkData
+
+        if ($Generate) {
+            $OutFile = Join-Path $OutDir "$Action.md"
+            Set-Content -Path $OutFile -Value $md -Encoding utf8
+            Write-Host "  [OK] $OutFile" -ForegroundColor Green
+        } else {
+            Write-Host "  [$Action] $($AliasList[0])" -ForegroundColor Gray
+            Write-Host "    Aliases : $($AliasList -join ', ')" -ForegroundColor DarkGray
+            if ($paramNames) { Write-Host "    Params  : $($paramNames -join ', ')" -ForegroundColor DarkGray }
+        }
+    }
+
+    if ($Generate -and $HasPlatyPS) {
+        $MamlDir = Join-Path $Source 'en-US'
+        if (-not (Test-Path $MamlDir)) { New-Item -ItemType Directory -Path $MamlDir -Force | Out-Null }
+        Write-Host "`n  To compile MAML for $tk :" -ForegroundColor Yellow
+        Write-Host "    New-ExternalHelp -Path `"$OutDir`" -OutputPath `"$MamlDir`" -Force" -ForegroundColor Yellow
+    }
 }
